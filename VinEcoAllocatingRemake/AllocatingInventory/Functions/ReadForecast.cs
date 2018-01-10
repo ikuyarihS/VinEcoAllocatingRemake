@@ -24,7 +24,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         [SuppressMessage("ReSharper", "ArgumentsStyleOther")]
         [SuppressMessage("ReSharper", "ArgumentsStyleNamedExpression")]
         [SuppressMessage("ReSharper", "ArgumentsStyleStringLiteral")]
-        private void ReadForecast(object sender, DoWorkEventArgs e)
+        private async void ReadForecast(object sender, DoWorkEventArgs e)
         {
             try
             {
@@ -188,9 +188,13 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                 //    SupplierName = _ulti.ObjectToString(row["SNAME"]),
                                 //});
 
+                                string region = _ulti.ObjectToString(row["Region"]);
+                                if (region.Contains(' '))
+                                    region = _ulti.ConvertToUnsigned(_ulti.ReturnInitials(region));
+
                                 dicSupplier.TryAdd(supCode, new Supplier
                                 {
-                                    SupplierRegion = _ulti.ObjectToString(row["Region"]),
+                                    SupplierRegion = region,
                                     SupplierCode = supCode,
                                     SupplierName = _ulti.ObjectToString(row["SNAME"]),
                                     SupplierType = table.Columns.Contains("Source")
@@ -263,7 +267,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 // ReSharper disable HeapView.DelegateAllocation
 
                 // Forecasts
-                Task.Run(delegate
+                var dbForecasts = new Task(() =>
                 {
                     try
                     {
@@ -322,8 +326,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                     _ulti.DoubleToObject(supply.QuantityForecast);
                             }
 
-                            LargeExportOneWorkbook($@"{_applicationPath}\Database\{table.TableName}.xlsx",
-                                new List<DataTable> {table}, true, true);
+                            string path = $@"{_applicationPath}\Database\{table.TableName}.xlsx";
+                            _ulti.LargeExportOneWorkbook(path, new List<DataTable> {table}, true, true);
+                            _ulti.ConvertExcelTypeInterop(path, "xlsx", "xlsb");
                         }
                     }
                     catch (Exception ex)
@@ -334,7 +339,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 });
 
                 // Products
-                Task.Run(delegate
+                var dbProducts = new Task(() =>
                 {
                     using (var table = new DataTable {TableName = "Products"})
                     {
@@ -360,13 +365,14 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                             table.Rows.Add(row);
                         }
 
-                        LargeExportOneWorkbook($@"{_applicationPath}\Database\{table.TableName}.xlsx",
-                            new List<DataTable> {table}, true, true);
+                        string path = $@"{_applicationPath}\Database\{table.TableName}.xlsx";
+                        _ulti.LargeExportOneWorkbook(path, new List<DataTable> {table}, true, true);
+                        _ulti.ConvertExcelTypeInterop(path, "xlsx", "xlsb");
                     }
                 });
 
                 // Suppliers
-                Task.Run(delegate
+                var dbSuppliers = new Task(() =>
                 {
                     using (var table = new DataTable {TableName = "Suppliers"})
                     {
@@ -399,13 +405,23 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                             table.Rows.Add(row);
                         }
 
-                        LargeExportOneWorkbook($@"{_applicationPath}\Database\{table.TableName}.xlsx",
-                            new List<DataTable> {table}, true, true);
+                        string path = $@"{_applicationPath}\Database\{table.TableName}.xlsx";
+                        _ulti.LargeExportOneWorkbook(path, new List<DataTable> {table}, true, true);
+                        _ulti.ConvertExcelTypeInterop(path, "xlsx", "xlsb");
                     }
                 });
 
+                dbForecasts.Start();
+                dbProducts.Start();
+                dbSuppliers.Start();
+
+                await Task.WhenAll(dbForecasts, dbProducts, dbSuppliers);
+
                 // ReSharper restore HeapView.DelegateAllocation
                 // ReSharper restore ImplicitlyCapturedClosure
+
+                WriteToRichTextBoxOutput("Đã ghi vào cơ sở dữ liệu.", 1);
+
             }
             // Just, why?
             catch (Exception ex)
