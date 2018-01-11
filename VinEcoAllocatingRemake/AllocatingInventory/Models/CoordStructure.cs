@@ -15,13 +15,13 @@ namespace VinEcoAllocatingRemake.AllocatingInventory.Models
         public Dictionary<Guid, Customer> dicCustomer;
 
         //public Dictionary<DateTime, Dictionary<Product, Dictionary<SupplierForecast, double>>> dicDeli;
-        public Dictionary<(DateTime DateFc, Product Product, SupplierForecast Supply), double> dicDeli;
+        public Dictionary<(DateTime DateFc, string ProductCode, SupplierForecast Supply), double> dicDeli;
 
         //public Dictionary<DateTime, Dictionary<Product, Dictionary<SupplierForecast, bool>>> dicFC;
-        public Dictionary<(DateTime DateFc, Product Product), (SupplierForecast Supply, bool)> dicFC;
+        public Dictionary<(DateTime DateFc, string ProductCode, string SupplierCode), (SupplierForecast Supply, bool)> dicFC;
 
         //public Dictionary<DateTime, Dictionary<Product, Dictionary<CustomerOrder, bool>>> dicPO;
-        public Dictionary<(DateTime DatePo, Product Product, CustomerOrder Order), bool> dicPO;
+        public Dictionary<(DateTime DatePo, string ProductCode, string CustomerKeyCode), (CustomerOrder Order, bool)> dicPO;
         public Dictionary<Guid, Product> dicProduct;
         public Dictionary<Guid, ProductCrossRegion> dicProductCrossRegion;
         public Dictionary<string, ProductRate> dicProductRate;
@@ -35,9 +35,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory.Models
                     (DateTime DatePo, Product Product, CustomerOrder Order),
                     (DateTime DateFc, SupplierForecast Supply)>();
             dicCustomer = new Dictionary<Guid, Customer>();
-            dicDeli = new Dictionary<(DateTime DateFc, Product Product, SupplierForecast Supply), double>();
-            dicFC = new Dictionary<(DateTime DateFc, Product Product), (SupplierForecast Supply, bool)>();
-            dicPO = new Dictionary<(DateTime DatePo, Product Product, CustomerOrder Order), bool>();
+            dicDeli = new Dictionary<(DateTime DateFc, string ProductCode, SupplierForecast Supply), double>();
+            dicFC = new Dictionary<(DateTime DateFc, string ProductCode, string SupplierCode), (SupplierForecast Supply, bool)>();
+            dicPO = new Dictionary<(DateTime DatePo, string ProductCode, string CustomerKeyCode), (CustomerOrder Order, bool)>();
             dicProduct = new Dictionary<Guid, Product>();
             dicProductCrossRegion = new Dictionary<Guid, ProductCrossRegion>();
             dicProductRate = new Dictionary<string, ProductRate>();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace VinEcoAllocatingRemake.AllocatingInventory
 {
@@ -20,6 +21,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <param name="obj"></param>
         public double ObjectToDouble(object obj)
         {
+            
             // Check if exists.
             if (_dicObjectDouble.TryGetValue(obj, out double value))
                 return value;
@@ -31,8 +33,16 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 return 0;
             }
 
-            // If not, well, convert.
-            value = Convert.ToDouble(obj);
+            try
+            {
+                // If not, well, convert.
+                value = Convert.ToDouble(obj);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                value = 0;
+            }
 
             // ... and store the result.
             _dicObjectDouble.TryAdd(obj, value);

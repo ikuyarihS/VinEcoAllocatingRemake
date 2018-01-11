@@ -7,6 +7,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory.Models
         public Guid _id { get; set; }
 
         public Guid CustomerId { get; set; }
+        public string CustomerKeyCode { get; set; }
         public string CustomerCode { get; set; }
         public string CustomerName { get; set; }
         public string CustomerType { get; set; }

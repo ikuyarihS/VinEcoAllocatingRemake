@@ -97,7 +97,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         private void BackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             _bgw.DoWork -= ReadForecast;
-            //_bgw.DoWork -= ProcessData;
+            _bgw.DoWork -= ReadPurchaseOrder;
             _isBackgroundworkerIdle = true;
             WriteToRichTextBoxOutput("Done!");
             WriteToRichTextBoxOutput();
@@ -134,6 +134,24 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 if (_isBackgroundworkerIdle)
                 {
                     _bgw.DoWork += ReadForecast;
+                    _isBackgroundworkerIdle = false;
+                }
+
+                _bgw.RunWorkerAsync();
+            }
+            else
+            {
+                MessageBox.Show("Đang uýnh nhau, đợi xíu!");
+            }
+        }
+
+        private void PoHandler(object sender, RoutedEventArgs e)
+        {
+            if (!_bgw.IsBusy && _isBackgroundworkerIdle)
+            {
+                if (_isBackgroundworkerIdle)
+                {
+                    _bgw.DoWork += ReadPurchaseOrder;
                     _isBackgroundworkerIdle = false;
                 }
 

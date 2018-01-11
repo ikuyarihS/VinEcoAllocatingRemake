@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using DocumentFormat.OpenXml;
@@ -15,12 +14,18 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         ///     OpenWriter Style, for Multiple DataTable into Multiple Worksheets in a single Workbook. A real fucking pain.
         /// </summary>
         /// <param name="filePath">Where your file will be.</param>
-        /// <param name="listDataTables">List of dataTables. Can contain just 1, doesn't matter.</param>
+        /// <param name="theName">Oh come on.</param>
+        /// <param name="listArrays">List of Arrays. Can contain just 1, doesn't matter.</param>
+        /// <param name="listColumnNames">Ah fuck.</param>
+        /// <param name="listTypes">Ah fuck v2.</param>
         /// <param name="yesHeader">You want headers?</param>
         /// <param name="yesZero">You want zero instead of null?</param>
-        public void LargeExportOneWorkbook(
+        public void ExportXmlArray(
             string filePath,
-            IEnumerable<DataTable> listDataTables,
+            string theName,
+            IEnumerable<object[,]> listArrays,
+            List<string> listColumnNames,
+            List<Type> listTypes,
             bool yesHeader = false,
             bool yesZero = false)
         {
@@ -37,11 +42,11 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                     var count = 0;
 
-                    foreach (DataTable dt in listDataTables)
+                    foreach (object[,] array in listArrays)
                     {
                         var dicColName = new Dictionary<int, string>();
 
-                        for (var colIndex = 0; colIndex < dt.Columns.Count; colIndex++)
+                        for (var colIndex = 0; colIndex < array.GetUpperBound(1); colIndex++)
                         {
                             int dividend = colIndex + 1;
                             string columnName = string.Empty;
@@ -87,7 +92,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                             //write the row start element with the row index attribute
                             writer.WriteStartElement(new Row(), attributes);
 
-                            for (var columnNum = 1; columnNum <= dt.Columns.Count; ++columnNum)
+                            for (var columnNum = 1; columnNum <= array.GetUpperBound(1); ++columnNum)
                             {
                                 //reset the list of attributes
                                 attributes = new List<OpenXmlAttribute>
@@ -102,7 +107,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                 writer.WriteStartElement(new Cell(), attributes);
 
                                 //write the cell value
-                                writer.WriteElement(new CellValue(dt.Columns[columnNum - 1].ColumnName));
+                                writer.WriteElement(new CellValue(listColumnNames[columnNum - 1]));
 
                                 //writer.WriteElement(new CellValue(string.Format("This is Row {0}, Cell {1}", rowNum, columnNum)));
 
@@ -114,7 +119,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                             writer.WriteEndElement();
                         }
 
-                        for (var rowNum = 1; rowNum <= dt.Rows.Count; rowNum++)
+                        for (var rowNum = 1; rowNum <= array.GetUpperBound(0); rowNum++)
                         {
                             //create a new list of attributes
                             attributes = new List<OpenXmlAttribute>
@@ -127,10 +132,10 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                             //write the row start element with the row index attribute
                             writer.WriteStartElement(new Row(), attributes);
 
-                            DataRow dr = dt.Rows[rowNum - 1];
-                            for (var columnNum = 1; columnNum <= dt.Columns.Count; columnNum++)
+                            //DataRow dr = dt.Rows[rowNum - 1];
+                            for (var columnNum = 1; columnNum <= array.GetUpperBound(1); columnNum++)
                             {
-                                Type type = dt.Columns[columnNum - 1].DataType;
+                                Type type = listTypes[columnNum - 1];
                                 //reset the list of attributes
                                 attributes = new List<OpenXmlAttribute>
                                 {
@@ -146,8 +151,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                 writer.WriteStartElement(new Cell(), attributes);
 
                                 //write the cell value
-                                if (yesZero | (dr[columnNum - 1].ToString() != "0"))
-                                    writer.WriteElement(new CellValue(dr[columnNum - 1].ToString()));
+                                if (!yesZero && array[rowNum - 1, columnNum - 1] != null && array[rowNum - 1, columnNum - 1].ToString() != "0")
+                                    writer.WriteElement(new CellValue(array[rowNum - 1, columnNum - 1].ToString()));
 
                                 // write the end cell element
                                 writer.WriteEndElement();
@@ -165,7 +170,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                         writerXb.WriteElement(new Sheet
                         {
-                            Name = dt.TableName,
+                            Name = theName,
                             SheetId = Convert.ToUInt32(count + 1),
                             Id = document.WorkbookPart.GetIdOfPart(workSheetPart)
                         });

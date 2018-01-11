@@ -87,6 +87,7 @@
     <Compile Include="AllocatingInventory\Functions\Ultilities\ConvertExcel.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ConvertToUnsigned.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\DeleteEvaluationSheetInterop.cs" />
+    <Compile Include="AllocatingInventory\Functions\Ultilities\ExportExcelXmlStyle_Array.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ExportExcelXmlStyle.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ReturnInitials.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ToNumber.cs" />
@@ -173,10 +174,10 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="Data\Forecast\ThuMua.xlsb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Data\Forecast\VinEco.xlsb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -189,6 +190,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="384767119826616341_Z7H_icon.ico" />
+    <Resource Include="Resources\CustomIcons\exclamation.png" />
+    <Resource Include="Resources\CustomIcons\information.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

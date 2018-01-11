@@ -48,8 +48,6 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                 #region Reading old data.
 
-                // Todo - oh my fucking god.
-
                 // ReSharper disable ImplicitlyCapturedClosure
                 // ReSharper disable HeapView.DelegateAllocation
 
@@ -149,8 +147,6 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                 // ReSharper restore HeapView.DelegateAllocation
                 // ReSharper restore ImplicitlyCapturedClosure
-
-                // Todo - jesus christ.
 
                 #endregion
 
@@ -353,9 +349,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                 #endregion
 
-                watch.Stop();
                 WriteToRichTextBoxOutput(
-                    $"Xử lý xong DBSL, Tổng thời gian: {Math.Round(watch.Elapsed.TotalSeconds, 2).ToString(CultureInfo.InvariantCulture)}s!",
+                    $"Xử lý xong DBSL, mất: {Math.Round(watch.Elapsed.TotalSeconds, 2).ToString(CultureInfo.InvariantCulture)}s!",
                     2);
 
                 #region Write down Data.
@@ -382,23 +377,34 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                 table.Columns.Add(colName, colType);
 
                             var listDateFc = new List<DateTime>();
+                            var listAllDateFc = new List<DateTime>();
 
                             // Count DateFc.
                             foreach ((DateTime dateFc, string _, string _) in dicFc.Keys)
-                                if (!listDateFc.Contains(dateFc))
-                                    listDateFc.Add(dateFc);
+                            {
+                                if (!listDateFc.Contains(dateFc)) listDateFc.Add(dateFc);
+
+                                if (!listAllDateFc.Contains(dateFc)) listAllDateFc.Add(dateFc);
+                            }
 
                             // ... and then add the same amount of columns.
-                            foreach (DateTime dateFc in
-                                from dateFc in listDateFc
-                                orderby dateFc
-                                select dateFc)
+                            foreach (DateTime dateFc in listDateFc)
                             {
                                 // Also remove all old items.
                                 foreach ((DateTime dateOldFc, string productCode, string supplierCode) key in dicOldFc
                                     .Keys.ToList())
-                                    if (key.dateOldFc == dateFc)
-                                        dicOldFc.Remove(key);
+                                {
+                                    if (key.dateOldFc == dateFc) dicOldFc.Remove(key);
+
+                                    if (!listAllDateFc.Contains(key.dateOldFc)) listAllDateFc.Add(key.dateOldFc);
+                                }
+                            }
+
+                            foreach (DateTime dateFc in
+                                from dateFc in listAllDateFc
+                                orderby dateFc
+                                select dateFc)
+                            {
                                 table.Columns.Add(_ulti.DateToString(dateFc, "dd-MMM-yyyy"), typeof(double));
                             }
 
@@ -420,11 +426,11 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                 DataRow row;
 
                                 string rowKey = $"{productCode}{supplierCode}";
-                                SupplierForecast supply = dicFc[(dateFc, productCode, supplierCode)].Supply;
+                                SupplierForecast supply = dicOldFc[(dateFc, productCode, supplierCode)].Supply;
 
                                 if (dicRow.TryGetValue(rowKey, out int rowIndex))
                                 {
-                                    row = table.Rows[rowIndex];
+                                    row = table.Select()[rowIndex];
                                 }
                                 else
                                 {
@@ -539,8 +545,15 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                 #endregion
 
+                dicFc.Clear();
+                dicSupplier.Clear();
+                dicProduct.Clear();
+
                 // The final flag.
-                WriteToRichTextBoxOutput("Đã ghi vào cơ sở dữ liệu.", 1);
+                watch.Stop();
+                WriteToRichTextBoxOutput(
+                    $"Đã ghi vào cơ sở dữ liệu. Tổng thời gian chạy: {Math.Round(watch.Elapsed.TotalSeconds, 2).ToString(CultureInfo.InvariantCulture)}s!",
+                    1);
             }
             // Just, why?
             catch (Exception ex)
