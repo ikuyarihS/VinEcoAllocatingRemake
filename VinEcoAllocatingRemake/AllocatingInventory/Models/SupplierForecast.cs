@@ -1,5 +1,4 @@
 ﻿using System;
-using MongoDB.Bson.Serialization.Attributes;
 
 namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 {
@@ -15,7 +14,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory.Models
             Target = "All";
         }
 
-        [BsonId] public Guid Id { get; set; }
+        public Guid Id { get; set; }
 
         public Guid SupplierForecastId { get; set; }
         public Guid SupplierId { get; set; }

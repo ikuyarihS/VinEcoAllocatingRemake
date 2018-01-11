@@ -1,5 +1,4 @@
 ﻿using System;
-using MongoDB.Bson.Serialization.Attributes;
 
 namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 {
@@ -11,7 +10,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory.Models
             ToSouth = true;
         }
 
-        [BsonId] public Guid _id { get; set; }
+        public Guid _id { get; set; }
 
         public Guid ProductId { get; set; }
         public bool ToNorth { get; set; }

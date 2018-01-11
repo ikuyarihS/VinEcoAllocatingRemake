@@ -1,11 +1,10 @@
 ﻿using System;
-using MongoDB.Bson.Serialization.Attributes;
 
 namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 {
     public class ProductUnitRegion
     {
-        [BsonId] public Guid _id { get; set; }
+        public Guid _id { get; set; }
 
         public string Region { get; set; }
         public string OrderUnitType { get; set; }

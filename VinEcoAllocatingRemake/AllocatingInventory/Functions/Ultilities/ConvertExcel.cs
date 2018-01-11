@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.Office.Interop.Excel;
 
@@ -13,6 +13,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         ///     Convert from one file format to another, using Interop.
         ///     Because apparently OpenXML doesn't deal with .xls type ( Including, but not exclusive to .xlsb )
         /// </summary>
+        [SuppressMessage("ReSharper", "ArgumentsStyleOther")]
+        [SuppressMessage("ReSharper", "ArgumentsStyleNamedExpression")]
+        [SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
         public void ConvertExcelTypeInterop(
             string filePath,
             string previousExtension = "",
@@ -30,35 +33,47 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     DisplayStatusBar = false,
                     AskToUpdateLinks = false
                 };
-                
-                Workbook xlWb = xlApp.Workbooks.Open(filePath);
+
+                Workbooks xlWbs = xlApp.Workbooks;
+                Workbook xlWb = xlWbs.Open(Filename: filePath);
 
                 object missing = Type.Missing;
 
+                // This is hilarious.
+                string falseStr = false.ToString();
+
                 xlWb.SaveAs(
-                    Filename: filePath.Replace(previousExtension, afterwardExtension), 
-                    FileFormat: XlFileFormat.xlExcel12, 
+                    Filename: filePath.Replace(oldValue: previousExtension, newValue: afterwardExtension),
+                    FileFormat: XlFileFormat.xlExcel12,
                     Password: missing,
-                    WriteResPassword: missing, 
-                    ReadOnlyRecommended: false, 
-                    CreateBackup: false, 
-                    AccessMode: XlSaveAsAccessMode.xlExclusive, 
-                    ConflictResolution: missing, 
-                    AddToMru: missing, 
+                    WriteResPassword: missing,
+                    ReadOnlyRecommended: falseStr,
+                    CreateBackup: falseStr,
+                    AccessMode: XlSaveAsAccessMode.xlExclusive,
+                    ConflictResolution: missing,
+                    AddToMru: missing,
                     TextCodepage: missing);
 
-                xlWb.Close(false);
-                Marshal.ReleaseComObject(xlWb);
+                xlWb.Close(SaveChanges: falseStr);
+                Release(xlWb);
+
+                xlWbs.Close();
+                Release(xlWbs);
 
                 xlApp.Quit();
-                Marshal.ReleaseComObject(xlApp);
+                Release(xlApp);
 
-                if (yesDeleteFile)
-                    File.Delete(filePath);
+                void Release(object suspect)
+                {
+                    Marshal.ReleaseComObject(suspect);
+                    suspect = null;
+                }
+
+                if (yesDeleteFile) File.Delete(path: filePath);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(message: ex.Message);
                 throw;
             }
         }

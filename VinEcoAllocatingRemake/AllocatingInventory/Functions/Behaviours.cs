@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -8,7 +7,6 @@ using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media.Animation;
 using Aspose.Cells;
-using MongoDB.Driver;
 using VinEcoAllocatingRemake.Properties;
 
 //using System.Runtime.Caching;
@@ -26,14 +24,6 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         };
 
         // Optimization stuff.
-        private readonly Dictionary<string, string> _dicCoreName =
-            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-        private readonly Dictionary<string, (string Region, string Type)> _dicLocation =
-            new Dictionary<string, (string Region, string Type)>(StringComparer.OrdinalIgnoreCase);
-
-        private readonly Dictionary<(string coreName, string Region, string Type), string> _dicNewName =
-            new Dictionary<(string coreName, string Region, string Type), string>();
 
         private readonly ExportTableOptions _globalExportTableOptionsopts = new ExportTableOptions
         {
@@ -55,28 +45,14 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// </summary>
         private void OpenApplicationPath(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                Process[] processExcel = Process.GetProcessesByName("excel");
+            Process[] processExcel = Process.GetProcessesByName("excel");
 
-                foreach (Process process in processExcel)
-                    process.Kill();
+            foreach (Process process in processExcel)
+                process.Kill();
 
-                WriteToRichTextBoxOutput("Vừng ơi mở ra!!!");
+            WriteToRichTextBoxOutput("Vừng ơi mở ra!!!");
 
-                //if (_applicationPath == null)
-                //{
-                //    WriteToRichTextBoxOutput("Có lỗi xảy ra, không mở được thư mục!");
-                //    return;
-                //}
-
-                Process.Start(_applicationPath);
-            }
-            catch (Exception ex)
-            {
-                WriteToRichTextBoxOutput(ex.Message);
-                throw;
-            }
+            Process.Start(_applicationPath);
         }
 
         private void Cancel_OnClick(object sender, RoutedEventArgs e)
@@ -108,47 +84,19 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
         private void Initializer()
         {
-            try
-            {
-                _bgw.ProgressChanged += BackgroundWorker_ProcessChanged;
+            _bgw.ProgressChanged += BackgroundWorker_ProcessChanged;
 
-                _bgw.RunWorkerCompleted += BackgroundWorker_RunWorkerCompleted;
+            _bgw.RunWorkerCompleted += BackgroundWorker_RunWorkerCompleted;
 
-                ProgressStatusBarLabel.Text = string.Empty;
+            ProgressStatusBarLabel.Text = string.Empty;
 
-                //WriteToRichTextBoxOutput("Khởi động MongoDB", 1);
-
-                ////starting the mongod server (when app starts)
-                //var start = new ProcessStartInfo
-                //{
-                //    FileName = $@"{_applicationPath}\mongod.exe",
-                //    WindowStyle = ProcessWindowStyle.Hidden,
-                //    UseShellExecute = false,
-                //    Arguments = $@"--dbpath {_applicationPath}\MongoDB"
-                //};
-                //// set UseShellExecute to false
-
-                //Process mongod = Process.Start(start);
-
-                //// Mongo CSharp Driver Code (see Mongo docs)
-                //var client = new MongoClient();
-                //IMongoDatabase database = client.GetDatabase("ChiaHangRemake");
-
-                WriteToRichTextBoxOutput();
-                WriteToRichTextBoxOutput("Sẵn sàng oánh nhau!", 1);
-
-                //MouseDown += Window_MouseDown;
-            }
-            catch (Exception ex)
-            {
-                WriteToRichTextBoxOutput(ex.Message);
-                throw;
-            }
+            WriteToRichTextBoxOutput();
+            WriteToRichTextBoxOutput("Sẵn sàng oánh nhau!", 1);
         }
 
         private void BackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            //_bgw.DoWork -= DataHandler;
+            _bgw.DoWork -= ReadForecast;
             //_bgw.DoWork -= ProcessData;
             _isBackgroundworkerIdle = true;
             WriteToRichTextBoxOutput("Done!");
@@ -173,7 +121,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     if (mainWindow != null) mainWindow.MyTaskBarInfo.ProgressValue = 0;
                     break;
                 default:
-                    ProgressStatusBarLabel.Text = $"{e.ProgressPercentage}%";
+                    ProgressStatusBarLabel.Text = $"{e.ProgressPercentage.ToString(string.Empty)}%";
                     if (mainWindow != null) mainWindow.MyTaskBarInfo.ProgressValue = e.ProgressPercentage / 100d;
                     break;
             }
@@ -181,7 +129,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
         private void HereWeGo(object sender, RoutedEventArgs e)
         {
-            if (!_bgw.IsBusy)
+            if (!_bgw.IsBusy && _isBackgroundworkerIdle)
             {
                 if (_isBackgroundworkerIdle)
                 {
@@ -197,18 +145,18 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             }
         }
 
-        private void ProcessData(object sender, RoutedEventArgs e)
-        {
-            if (!_bgw.IsBusy)
-            {
-                if (_isBackgroundworkerIdle) _isBackgroundworkerIdle = false;
+        //private void ProcessData(object sender, RoutedEventArgs e)
+        //{
+        //    if (!_bgw.IsBusy)
+        //    {
+        //        if (_isBackgroundworkerIdle) _isBackgroundworkerIdle = false;
 
-                _bgw.RunWorkerAsync();
-            }
-            else
-            {
-                MessageBox.Show("Đang uýnh nhau, đợi xíu!");
-            }
-        }
+        //        _bgw.RunWorkerAsync();
+        //    }
+        //    else
+        //    {
+        //        MessageBox.Show("Đang uýnh nhau, đợi xíu!");
+        //    }
+        //}
     }
 }

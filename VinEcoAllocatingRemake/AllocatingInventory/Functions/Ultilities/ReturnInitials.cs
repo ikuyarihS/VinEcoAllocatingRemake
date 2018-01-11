@@ -31,7 +31,6 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             // It was super effective.
             _dicStringInitials.TryAdd(suspect, result);
             return result;
-
         }
     }
 }

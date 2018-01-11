@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Windows;
 
 namespace VinEcoAllocatingRemake.AllocatingInventory
 {
@@ -10,7 +9,6 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         {
             try
             {
-
             }
             catch (Exception ex)
             {

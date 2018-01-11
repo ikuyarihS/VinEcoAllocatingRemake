@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using Microsoft.Office.Interop.Excel;
 
 namespace VinEcoAllocatingRemake.AllocatingInventory
 {
@@ -11,12 +13,13 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         ///     Pirate life ftw.
         /// </summary>
         /// <param name="filePath">Path of file saved and closed by Aspose.Cells.</param>
+        [SuppressMessage("ReSharper", "ArgumentsStyleNamedExpression")]
         private void Delete_Evaluation_Sheet_Interop(string filePath)
         {
             try
             {
                 // Initialize new instance of Interop Excel.Application.
-                var xlApp = new Microsoft.Office.Interop.Excel.Application
+                var xlApp = new Application
                 {
                     ScreenUpdating = false,
                     EnableEvents = false,
@@ -26,41 +29,24 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     Visible = false
                 };
 
-                Microsoft.Office.Interop.Excel.Workbooks xlWbs = xlApp.Workbooks;
+                Workbooks xlWbs = xlApp.Workbooks;
 
-                //ExcelInterop.Workbook xlWb = xlWbs.Open(
-                //    Filename: filePath,
-                //    UpdateLinks: false,
-                //    ReadOnly: false,
-                //    Format: 5,
-                //    Password: string.Empty,
-                //    WriteResPassword: string.Empty,
-                //    IgnoreReadOnlyRecommended: true,
-                //    Origin: ExcelInterop.XlPlatform.xlWindows,
-                //    Delimiter: string.Empty,
-                //    Editable: true,
-                //    Notify: false,
-                //    Converter: 0,
-                //    AddToMru: true,
-                //    Local: false,
-                //    CorruptLoad: false);
-                
                 // This is hilarious.
                 string falseStr = false.ToString();
                 string trueStr = true.ToString();
 
-                Microsoft.Office.Interop.Excel.Workbook xlWb = xlWbs.Open(
+                Workbook xlWb = xlWbs.Open(
                     Filename: filePath,
                     UpdateLinks: falseStr,
                     ReadOnly: falseStr,
                     IgnoreReadOnlyRecommended: trueStr,
-                    Origin: Microsoft.Office.Interop.Excel.XlPlatform.xlWindows,
+                    Origin: XlPlatform.xlWindows,
                     Notify: falseStr,
                     Converter: "0");
 
-                xlApp.Calculation = Microsoft.Office.Interop.Excel.XlCalculation.xlCalculationManual;
+                xlApp.Calculation = XlCalculation.xlCalculationManual;
 
-                Microsoft.Office.Interop.Excel.Sheets xlWss = xlWb.Worksheets;
+                Sheets xlWss = xlWb.Worksheets;
 
                 //foreach (ExcelInterop.Worksheet worksheet in xlWb.Worksheets)
                 for (var sheetIndex = 1; sheetIndex <= xlWss.Count; sheetIndex++)
@@ -85,7 +71,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 xlWss["1"].Activate();
 
                 Marshal.ReleaseComObject(xlWss);
-                xlWb.Close(SaveChanges: trueStr);
+                xlWb.Close(trueStr);
                 Marshal.ReleaseComObject(xlWb);
                 Marshal.ReleaseComObject(xlWbs);
                 xlApp.Quit();

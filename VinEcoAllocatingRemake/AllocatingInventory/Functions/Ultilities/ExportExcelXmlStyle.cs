@@ -19,7 +19,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <param name="yesHeader">You want headers?</param>
         /// <param name="yesZero">You want zero instead of null?</param>
         public void LargeExportOneWorkbook(
-            string filePath, 
+            string filePath,
             IEnumerable<DataTable> listDataTables,
             bool yesHeader = false,
             bool yesZero = false)
@@ -49,19 +49,27 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                             while (dividend > 0)
                             {
                                 int modifier = (dividend - 1) % 26;
-                                columnName = $"{Convert.ToChar(65 + modifier).ToString(CultureInfo.InvariantCulture)}{columnName}";
+                                columnName =
+                                    $"{Convert.ToChar(65 + modifier).ToString(CultureInfo.InvariantCulture)}{columnName}";
                                 dividend = (dividend - modifier) / 26;
                             }
 
                             dicColName.Add(colIndex + 1, columnName);
                         }
 
-                        var dicType = new Dictionary<Type, CellValues>(4)
+                        var dicType = new Dictionary<Type, string>(4)
                         {
-                            {typeof(DateTime), CellValues.Date},
-                            {typeof(string), CellValues.InlineString},
-                            {typeof(double), CellValues.Number},
-                            {typeof(int), CellValues.Number}
+                            // Neccessary evil.
+                            //{typeof(DateTime), CellValues.Date.ToString()},
+                            //{typeof(string), CellValues.InlineString.ToString()},
+                            //{typeof(double), CellValues.Number.ToString()},
+                            //{typeof(int), CellValues.Number.ToString()},
+                            //{typeof(bool), CellValues.Boolean.ToString()}
+                            {typeof(DateTime), "Date"},
+                            {typeof(string), "InlineString"},
+                            {typeof(double), "Number"},
+                            {typeof(int), "Number"},
+                            {typeof(bool), "Boolean"}
                         };
 
                         //this list of attributes will be used when writing a start element
@@ -134,7 +142,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                 {
                                     // Add data type attribute - in this case inline string (you might want to look at the shared strings table)
                                     new OpenXmlAttribute("t", null,
-                                        type == typeof(string) ? "str" : dicType[type].ToString()),
+                                        type == typeof(string) ? "str" : dicType[type]),
                                     // Add the cell reference attribute
                                     new OpenXmlAttribute("r", "",
                                         $"{dicColName[columnNum]}{(yesHeader ? rowNum + 1 : rowNum).ToString(CultureInfo.InvariantCulture)}")

@@ -1,5 +1,4 @@
 ﻿using System;
-using MongoDB.Bson.Serialization.Attributes;
 
 namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 {
@@ -18,7 +17,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory.Models
             //ProductNote = new List<string>();
         }
 
-        [BsonId] public Guid Id { get; set; }
+        public Guid Id { get; set; }
         public Guid ProductId { get; set; }
         public string ProductCode { get; set; }
         public string ProductName { get; set; }

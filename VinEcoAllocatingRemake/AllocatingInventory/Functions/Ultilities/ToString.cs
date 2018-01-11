@@ -5,10 +5,11 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 {
     public partial class Utilities
     {
-        private readonly ConcurrentDictionary<object, string> _dicObjectString =
-            new ConcurrentDictionary<object, string>();
         private readonly ConcurrentDictionary<DateTime, string> _dicDateString =
             new ConcurrentDictionary<DateTime, string>();
+
+        private readonly ConcurrentDictionary<object, string> _dicObjectString =
+            new ConcurrentDictionary<object, string>();
 
         /// <summary>
         ///     Pretty much a cache for converting Object to String.
@@ -31,7 +32,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         }
 
         /// <summary>
-        ///     Pretty much a cache for converting Object to String.
+        ///     Pretty much a cache for converting DateTime to String.
         /// </summary>
         public string DateToString(DateTime date, string dateFormat = "")
         {
