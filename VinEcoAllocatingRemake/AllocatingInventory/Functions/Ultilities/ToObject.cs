@@ -27,7 +27,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             if (_dicDateObject.TryGetValue(suspect, out object obj))
                 return obj;
 
-            obj = suspect.ToString(dateFormat);
+            obj = GetString(suspect.ToString(dateFormat));
 
             // Welp, it's actually a date.
             // Record the string anyway. Dis many importanto.
@@ -45,7 +45,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             if (_dicDoubleObject.TryGetValue(suspect, out object obj))
                 return obj;
 
-            obj = suspect.ToString(string.Empty);
+            // This feels like cheating tbh.
+            obj = GetString(suspect.ToString(string.Empty));
 
             // Welp, it's actually a date.
             // Record the string anyway. Dis many importanto.
@@ -63,9 +64,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             if (_dicBoolObject.TryGetValue(suspect, out object obj))
                 return obj;
 
-            obj = suspect.ToString();
+            obj = GetString(suspect.ToString());
 
-            // Welp, it's actually a date.
+            // Welp, it's actually a bool.
             // Record the string anyway. Dis many importanto.
             _dicBoolObject.TryAdd(suspect, obj);
             return obj;
@@ -81,7 +82,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             if (_dicIntObject.TryGetValue(suspect, out object obj))
                 return obj;
 
-            obj = suspect.ToString();
+            // Definitely cheating.
+            obj = GetString(suspect.ToString());
 
             // Welp, it's actually a date.
             // Record the string anyway. Dis many importanto.

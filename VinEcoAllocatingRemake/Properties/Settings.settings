@@ -1,7 +1,5 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)"
-              GeneratedClassNamespace="VinEcoAllocatingRemake.Properties" GeneratedClassName="Settings">
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="VinEcoAllocatingRemake.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
     <Setting Name="Height" Type="System.Double" Scope="User">
@@ -12,6 +10,18 @@
     </Setting>
     <Setting Name="LastPage" Type="System.String" Scope="User">
       <Value Profile="(Default)">Pages/Home.xaml</Value>
+    </Setting>
+    <Setting Name="North_North" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="South_South" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="Mid_North" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">3</Value>
+    </Setting>
+    <Setting Name="Mid_South" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
     </Setting>
   </Settings>
 </SettingsFile>

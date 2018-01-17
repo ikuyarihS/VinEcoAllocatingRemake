@@ -1,12 +1,10 @@
-﻿using System;
-
-namespace VinEcoAllocatingRemake.AllocatingInventory.Models
+﻿namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 {
-    public class Customer
+    public struct Customer
     {
-        public Guid _id { get; set; }
+        //public Guid _id { get; set; }
 
-        public Guid CustomerId { get; set; }
+        //public Guid CustomerId { get; set; }
         public string CustomerKeyCode { get; set; }
         public string CustomerCode { get; set; }
         public string CustomerName { get; set; }

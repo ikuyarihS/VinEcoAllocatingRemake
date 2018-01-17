@@ -9,7 +9,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 using Aspose.Cells;
 using VinEcoAllocatingRemake.AllocatingInventory.Models;
 
@@ -37,11 +36,16 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 var dicProduct = new ConcurrentDictionary<string, Product>();
                 var dicCustomer = new ConcurrentDictionary<string, Customer>();
                 var dicPo =
-                    new ConcurrentDictionary<(DateTime DateFc, string ProductCode, string CustomerKeyCode), (
-                        CustomerOrder Order, bool)>();
-                var dicOldPo =
-                    new ConcurrentDictionary<(DateTime DateFc, string ProductCode, string CustomerKeyCode), (
-                        CustomerOrder Order, bool)>();
+                    new ConcurrentDictionary<(DateTime DatePo, string ProductCode, string CustomerKeyCode),
+                        (CustomerOrder Order, bool)>();
+                //var dicOldPo =
+                //    new Dictionary<(DateTime DateFc, string ProductCode, string CustomerKeyCode),
+                //        (CustomerOrder Order, bool)>();
+
+                // Todo - Implement this instead of a Dictionary because resizing is being a bitch.
+                var listOldPo
+                    = new List<((DateTime datePo, string ProductCode, string CustomerKeyCode) Key,
+                        (CustomerOrder Order, bool) Value)>();
 
                 #endregion
 
@@ -52,99 +56,124 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 // ReSharper disable ImplicitlyCapturedClosure
                 // ReSharper disable HeapView.DelegateAllocation
 
-                var taskReadProducts = new Task(delegate
+                var readTasks = new[]
                 {
-                    if (!File.Exists($@"{_applicationPath}\Database\Products.xlsb")) return;
-
-                    using (var xlWb = new Workbook($@"{_applicationPath}\Database\Products.xlsb",
-                        new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
+                    // Products
+                    new Task(delegate
                     {
-                        Worksheet xlWs = xlWb.Worksheets[0];
-                        using (DataTable table = xlWs.Cells.ExportDataTable(0, 0, xlWs.Cells.MaxDataRow + 1,
-                            xlWs.Cells.MaxDataColumn + 1, _globalExportTableOptionsopts))
+                        if (!File.Exists($@"{_applicationPath}\Database\Products.xlsb")) return;
+
+                        using (var xlWb = new Workbook($@"{_applicationPath}\Database\Products.xlsb",
+                            new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
                         {
-                            foreach (DataRow row in table.Select())
-                                dicProduct.TryAdd(_ulti.ObjectToString(row["ProductCode"]), new Product
+                            Worksheet xlWs = xlWb.Worksheets[0];
+                            using (DataTable table = xlWs.Cells.ExportDataTable(0, 0, xlWs.Cells.MaxDataRow + 1,
+                                xlWs.Cells.MaxDataColumn + 1, _globalExportTableOptionsopts))
+                            {
+                                foreach (DataRow row in table.Select())
+                                    dicProduct.TryAdd(_ulti.ObjectToString(row["ProductCode"]), new Product
+                                    {
+                                        ProductCode = _ulti.ObjectToString(row["ProductCode"]),
+                                        ProductName = _ulti.ObjectToString(row["ProductName"])
+                                    });
+                            }
+                        }
+                    }),
+
+                    // Customers
+                    new Task(delegate
+                    {
+                        if (!File.Exists($@"{_applicationPath}\Database\Customers.xlsb")) return;
+
+                        using (var xlWb = new Workbook($@"{_applicationPath}\Database\Customers.xlsb",
+                            new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
+                        {
+                            Worksheet xlWs = xlWb.Worksheets[0];
+                            using (DataTable table = xlWs.Cells.ExportDataTable(0, 0, xlWs.Cells.MaxDataRow + 1,
+                                xlWs.Cells.MaxDataColumn + 1, _globalExportTableOptionsopts))
+                            {
+                                foreach (DataRow row in table.Select())
+                                    dicCustomer.TryAdd(_ulti.ObjectToString(row["Key"]), new Customer
+                                    {
+                                        CustomerKeyCode = _ulti.ObjectToString(row["Code"]),
+                                        CustomerCode = _ulti.ObjectToString(row["Code"]),
+                                        CustomerName = _ulti.ObjectToString(row["Name"]),
+                                        CustomerBigRegion = _ulti.ObjectToString(row["Region"]),
+                                        CustomerRegion = _ulti.ObjectToString(row["SubRegion"]),
+                                        Company = _ulti.ObjectToString(row["P&L"]),
+                                        CustomerType = _ulti.ObjectToString(row["Type"])
+                                    });
+                            }
+                        }
+                    }),
+
+                    // Orders
+                    new Task(delegate
+                {
+                    try
+                    {
+                        string path = $@"{_applicationPath}\Database\Orders.xlsb";
+                        if (!File.Exists(path)) return;
+
+                        using (var xlWb = new Workbook(path,
+                            new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
+                        {
+                            Worksheet xlWs = xlWb.Worksheets[0];
+                            using (DataTable table = xlWs.Cells.ExportDataTable(0, 0, xlWs.Cells.MaxDataRow + 1,
+                                xlWs.Cells.MaxDataColumn + 1, _globalExportTableOptionsopts))
+                            {
+                                foreach (DataRow row in table.Select())
                                 {
-                                    ProductCode = _ulti.ObjectToString(row["ProductCode"]),
-                                    ProductName = _ulti.ObjectToString(row["ProductName"])
-                                });
+                                    string productCode = _ulti.ObjectToString(row["ProductCode"]);
+                                    string cusKeyCode = _ulti.ObjectToString(row["CustomerKeyCode"]);
+
+                                    for (var colIndex = 0; colIndex < table.Columns.Count; colIndex++)
+                                        using (DataColumn column = table.Columns[colIndex])
+                                        {
+                                            // First check point. Is it a valid date?
+                                            // ReSharper disable once PossibleInvalidOperationException
+                                            // Because I'm confident about that.
+                                            // ... it's my fucking database.
+                                            DateTime? dateFc = _ulti.StringToDate(column.ColumnName);
+                                            if (dateFc == null) continue;
+
+                                            // Second check point. Is it a valid forecast value?
+                                            double poValue = _ulti.ObjectToDouble(row[colIndex]);
+                                            if (poValue <= 0) continue;
+
+                                            //dicOldPo.Add(
+                                            //    ((DateTime) dateFc, productCode, cusKeyCode),
+                                            //    (new CustomerOrder
+                                            //    {
+                                            //        CustomerKeyCode = cusKeyCode,
+                                            //        QuantityOrder = poValue
+                                            //    }, false));
+
+                                            listOldPo.Add(
+                                                (((DateTime) dateFc, productCode, cusKeyCode),
+                                                (new CustomerOrder
+                                                {
+                                                    CustomerKeyCode = cusKeyCode,
+                                                    QuantityOrder = poValue
+                                                }, false)));
+                                        }
+                                }
+                            }
                         }
                     }
-                });
+                    catch (Exception ex)
+                    {
+                        WriteToRichTextBoxOutput(ex.Message);
+                        throw;
+                    }
+                })
+                };
 
-                //var taskReadSuppliers = new Task(delegate
-                //{
-                //    if (!File.Exists($@"{_applicationPath}\Database\Customers.xlsb")) return;
+                // Here we go.
+                Parallel.ForEach(readTasks, new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount},
+                    task => { task.Start(); });
 
-                //    using (var xlWb = new Workbook($@"{_applicationPath}\Database\Customers.xlsb",
-                //        new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
-                //    {
-                //        Worksheet xlWs = xlWb.Worksheets[0];
-                //        using (DataTable table = xlWs.Cells.ExportDataTable(0, 0, xlWs.Cells.MaxDataRow + 1,
-                //            xlWs.Cells.MaxDataColumn + 1, _globalExportTableOptionsopts))
-                //        {
-                //            foreach (DataRow row in table.Select())
-                //                dicCustomer.TryAdd(_ulti.ObjectToString(row["SupplierCode"]), new Supplier
-                //                {
-                //                    SupplierRegion = _ulti.ObjectToString(row["SupplierRegion"]),
-                //                    SupplierType = _ulti.ObjectToString(row["SupplierType"]),
-                //                    SupplierCode = _ulti.ObjectToString(row["SupplierCode"]),
-                //                    SupplierName = _ulti.ObjectToString(row["SupplierName"])
-                //                });
-                //        }
-                //    }
-                //});
-
-                //var taskReadForecasts = new Task(delegate
-                //{
-                //    if (!File.Exists($@"{_applicationPath}\Database\Forecasts.xlsb")) return;
-
-                //    using (var xlWb = new Workbook($@"{_applicationPath}\Database\Forecasts.xlsb",
-                //        new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
-                //    {
-                //        Worksheet xlWs = xlWb.Worksheets[0];
-                //        using (DataTable table = xlWs.Cells.ExportDataTable(0, 0, xlWs.Cells.MaxDataRow + 1,
-                //            xlWs.Cells.MaxDataColumn + 1, _globalExportTableOptionsopts))
-                //        {
-                //            foreach (DataRow row in table.Select())
-                //            {
-                //                string productCode = _ulti.ObjectToString(row["ProductCode"]);
-                //                string supplierCode = _ulti.ObjectToString(row["SupplierCode"]);
-
-                //                for (var colIndex = 0; colIndex < table.Columns.Count; colIndex++)
-                //                    using (DataColumn column = table.Columns[colIndex])
-                //                    {
-                //                        // First check point. Is it a valid date?
-                //                        DateTime? dateFc = _ulti.StringToDate(column.ColumnName);
-                //                        if (dateFc == null) continue;
-
-                //                        // Second check point. Is it a valid forecast value?
-                //                        double fcValue = _ulti.ObjectToDouble(row[colIndex]);
-                //                        if (fcValue <= 0) continue;
-
-                //                        dicOldFc.Add(
-                //                            ((DateTime) dateFc, productCode, supplierCode),
-                //                            (new SupplierForecast
-                //                            {
-                //                                QualityControlPass = true,
-                //                                SupplierCode = supplierCode,
-                //                                FullOrder = _ulti.ObjectToInt(row["FullOrder"]) == 1,
-                //                                CrossRegion = _ulti.ObjectToInt(row["CrossRegion"]) == 1,
-                //                                LabelVinEco = _ulti.ObjectToInt(row["Label"]) == 1,
-                //                                Level = (byte) _ulti.ObjectToInt(row["Level"])
-                //                            }, false));
-                //                    }
-                //            }
-                //        }
-                //    }
-                //});
-
-                taskReadProducts.Start();
-                //taskReadSuppliers.Start();
-                //taskReadForecasts.Start();
-
-                await Task.WhenAll(taskReadProducts/*, taskReadSuppliers, taskReadForecasts*/);
+                await Task.WhenAll(readTasks);
 
                 // ReSharper restore HeapView.DelegateAllocation
                 // ReSharper restore ImplicitlyCapturedClosure
@@ -154,6 +183,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 var listDt = new List<DataTable>();
 
                 WriteToRichTextBoxOutput("Bắt đầu đọc Đơn hàng mới.", 1);
+
+                TryClear();
 
                 #region Reading new data.
 
@@ -249,6 +280,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                 WriteToRichTextBoxOutput("Bắt đầu xử lý Đơn hàng.", 1);
 
+                TryClear();
+
                 #region Handling Data.
 
                 // Here comes the data handling.
@@ -264,8 +297,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                 if (string.IsNullOrEmpty(_ulti.ObjectToString(row["PCODE"]))) continue;
 
                                 // Less conversion.
-                                string cusKeyCode = string.Intern(
-                                    $"{_ulti.ObjectToString(row["StoreCode"])}{_ulti.ObjectToString(row["P&L"])}");
+                                string cusKeyCode = _ulti.GetString(
+                                    $"{_ulti.ObjectToString(row["StoreCode"])} | {_ulti.ObjectToString(row["StoreType"])} | {_ulti.ObjectToString(row["P&L"])}");
 
                                 string pCode = string.Intern(_ulti.ObjectToString(row["PCODE"]));
 
@@ -312,19 +345,35 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         double poValue = _ulti.ObjectToDouble(row[colIndex]);
                                         if (poValue <= 0) continue;
 
-                                        CustomerOrder order = dicPo.GetOrAdd(
-                                            ((DateTime) datePo, pCode, cusKeyCode), (new CustomerOrder
-                                            {
-                                                Company = customer.Company,
-                                                CustomerKeyCode = cusKeyCode,
-                                                CustomerCode = customer.CustomerCode
-                                            }, false)).Order;
+                                        //CustomerOrder order = dicPo.AddOrUpdate(
+                                        //    ((DateTime) datePo, pCode, cusKeyCode), (new CustomerOrder
+                                        //    {
+                                        //        //Company = customer.Company,
+                                        //        CustomerKeyCode = cusKeyCode,
+                                        //        CustomerCode = customer.CustomerCode
+                                        //    }, false));
 
-                                        lock (order)
+                                        dicPo.AddOrUpdate(((DateTime) datePo, pCode, cusKeyCode), (new CustomerOrder
                                         {
-                                            order.QuantityOrder += poValue;
-                                            order.QuantityOrderKg += poValue;
-                                        }
+                                            //Company = customer.Company,
+                                            CustomerKeyCode = cusKeyCode,
+                                            CustomerCode = customer.CustomerCode,
+                                            QuantityOrder = poValue
+                                        }, false), (key, oldValue) => (new CustomerOrder
+                                        {
+                                            CustomerKeyCode = cusKeyCode,
+                                            CustomerCode = customer.CustomerCode,
+                                            QuantityOrder = oldValue.Order.QuantityOrder + poValue
+                                        }, false));
+
+                                        //lock (myLock)
+                                        //    order.QuantityOrder += poValue;
+
+                                        //lock (order)
+                                        //{
+                                        //    order.QuantityOrder += poValue;
+                                        //    //order.QuantityOrderKg += poValue;
+                                        //}
                                     }
                             }
                         }
@@ -341,158 +390,208 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     $"Xử lý xong Đơn hàng, mất: {Math.Round(watch.Elapsed.TotalSeconds, 2).ToString(CultureInfo.InvariantCulture)}s!",
                     2);
 
+                TryClear();
+
                 #region Write down Data.
 
                 // ReSharper disable ImplicitlyCapturedClosure
                 // ReSharper disable HeapView.DelegateAllocation
 
-                // Orders
-                var dbOrders = new Task(delegate
+                var writeTasks = new[]
                 {
-                    try
+                    // Orders
+                    new Task(delegate
                     {
-                        var listColumns = new List<string>();
-                        var listTypes = new List<Type>();
-
-                        foreach ((string colName, Type colType) in new[]
+                        try
                         {
-                            ("ProductCode", typeof(string)),
-                            ("CustomerKeyCode", typeof(string))
-                        })
-                        {
-                            listColumns.Add(colName);
-                            listTypes.Add(colType);
-                        }
+                            var listColumns = new List<string>();
+                            var listTypes = new List<Type>();
 
-                        var listDateFc = new List<DateTime>();
-
-                        // Count DateFc.
-                        foreach ((DateTime dateFc, string _, string _) in dicPo.Keys)
-                            if (!listDateFc.Contains(dateFc))
-                                listDateFc.Add(dateFc);
-
-                        // ... and then add the same amount of columns.
-                        foreach (DateTime dateFc in
-                            from dateFc in listDateFc
-                            orderby dateFc
-                            select dateFc)
-                        {
-                            //// Also remove all old items.
-                            //foreach ((DateTime dateOldFc, string productCode, string supplierCode) key in dicOldFc
-                            //    .Keys.ToList())
-                            //    if (key.dateOldFc == dateFc)
-                            //        dicOldFc.Remove(key);
-                            listColumns.Add(_ulti.DateToString(dateFc, "dd-MMM-yyyy"));
-                            listTypes.Add(typeof(double));
-                        }
-
-                        // Dictionary of rowIndex.
-                        var dicRow =
-                            new Dictionary<string, int>(dicProduct.Count, StringComparer.OrdinalIgnoreCase);
-
-                        //// Hour of truth.
-                        //foreach ((DateTime DateFc, string ProductCode, string SupplierCode) key in dicFc.Keys)
-                        //    dicOldFc.Add(key, dicFc[key]);
-
-                        var rowIndex = 0;
-                        foreach ((DateTime _, string productCode, string customerKeyCode) in
-                            from key in dicPo.Keys
-                            orderby key.ProductCode, key.CustomerKeyCode
-                            select key)
-                        {
-                            string rowKey = $"{productCode}{customerKeyCode}";
-                            if (dicRow.ContainsKey(rowKey)) continue;
-
-                            dicRow.Add(rowKey, rowIndex);
-                            rowIndex++;
-                        }
-
-                        var orders = new object[dicRow.Count, listColumns.Count];
-                        foreach ((DateTime _, string productCode, string customerKeyCode) in dicPo.Keys)
-                        {
-                            string rowKey = $"{productCode}{customerKeyCode}";
-                            orders[dicRow[rowKey], 0] = productCode;
-                            orders[dicRow[rowKey], 1] = customerKeyCode;
-                        }
-
-                        Parallel.ForEach(dicPo.Keys,
-                            new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount},
-                            key =>
+                            foreach ((string colName, Type colType) in new[]
                             {
-                                try
+                                ("ProductCode", typeof(string)),
+                                ("CustomerKeyCode", typeof(string))
+                            })
+                            {
+                                listColumns.Add(colName);
+                                listTypes.Add(colType);
+                            }
+
+                            var listDatePo = new List<DateTime>();
+
+                            // Count DateFc.
+                            foreach ((DateTime datePo, string _, string _) in dicPo.Keys)
+                                if (!listDatePo.Contains(datePo))
+                                    listDatePo.Add(datePo);
+
+                            // ... and then add the same amount of columns.
+                            foreach (DateTime datePo in
+                                from dateFc in listDatePo
+                                orderby dateFc
+                                select dateFc)
+                            {
+                                // Also remove all old items.
+                                //foreach (((DateTime dateOldPo, string ProductCode, string CustomerKeyCode) key, (CustomerOrder _, bool)) oldPo in listOldPo.ToList())
+                                //{
+                                //    if (oldPo.key.dateOldPo == datePo)
+                                //        listOldPo.Remove(oldPo);
+                                //}
+
+                                listOldPo.RemoveAll(x => x.Key.datePo == datePo);
+                                listColumns.Add(_ulti.DateToString(datePo, "dd-MMM-yyyy"));
+                                listTypes.Add(typeof(double));
+                            }
+
+                            // Dictionary of rowIndex.
+                            var dicRow =
+                                new Dictionary<string, int>(dicProduct.Count, StringComparer.OrdinalIgnoreCase);
+
+                            // Hour of truth.
+                            listOldPo.AddRange(dicPo.Keys.Select(key => (key, dicPo[key])));
+
+                            var rowIndex = 0;
+                            foreach ((DateTime _, string productCode, string customerKeyCode) in
+                                from po in listOldPo
+                                orderby po.Key.ProductCode, po.Key.CustomerKeyCode
+                                select po.Key)
+                            {
+                                string rowKey = $"{productCode}{customerKeyCode}";
+                                if (dicRow.ContainsKey(rowKey)) continue;
+
+                                dicRow.Add(rowKey, rowIndex);
+                                rowIndex++;
+                            }
+
+                            var orders = new object[dicRow.Count, listColumns.Count];
+                            foreach (((DateTime _, string ProductCode, string CustomerKeyCode) Key, (CustomerOrder _,
+                                bool)) po in listOldPo)
+                            {
+                                string rowKey = $"{po.Key.ProductCode}{po.Key.CustomerKeyCode}";
+                                orders[dicRow[rowKey], 0] = po.Key.ProductCode;
+                                orders[dicRow[rowKey], 1] = po.Key.CustomerKeyCode;
+                            }
+
+                            Parallel.ForEach(listOldPo,
+                                new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount},
+                                po =>
                                 {
-                                    string rowKey = $"{key.ProductCode}{key.CustomerKeyCode}";
-                                    CustomerOrder order =
-                                        dicPo[(key.DateFc, key.ProductCode, key.CustomerKeyCode)].Order;
+                                    try
+                                    {
+                                        (DateTime datePo, string productCode, string customerKeyCode) = po.Key;
+                                        string rowKey = $"{productCode}{customerKeyCode}";
+                                        CustomerOrder order = po.Value.Order;
 
-                                    orders[dicRow[rowKey],
-                                            listColumns.IndexOf(_ulti.DateToString(key.DateFc, "dd-MMM-yyyy"))] =
-                                        _ulti.DoubleToObject(order.QuantityOrder);
-                                }
-                                catch (Exception ex)
-                                {
-                                    WriteToRichTextBoxOutput(ex.Message);
-                                    throw;
-                                }
-                            });
+                                        orders[dicRow[rowKey],
+                                                listColumns.IndexOf(_ulti.DateToString(datePo, "dd-MMM-yyyy"))] =
+                                            _ulti.DoubleToObject(order.QuantityOrder);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        WriteToRichTextBoxOutput(ex.Message);
+                                        throw;
+                                    }
+                                });
 
-                        string path = $@"{_applicationPath}\Database\Orders.xlsx";
-                        _ulti.ExportXmlArray(
-                            filePath: path,
-                            theName: "Orders",
-                            listArrays: new[] {orders},
-                            listColumnNames: listColumns,
-                            listTypes: listTypes,
-                            yesHeader: true);
-                        //_ulti.LargeExportOneWorkbook(path, new List<DataTable> { table }, true, true);
-                        _ulti.ConvertExcelTypeInterop(path, "xlsx",
-                            "xlsb"); // Otherwise it's super fucking hard to open the file.
-                    }
-
-                    catch (Exception ex)
-                    {
-                        WriteToRichTextBoxOutput(ex.Message);
-                        throw;
-                    }
-                });
-
-                // Products
-                var dbProducts = new Task(delegate
-                {
-                    using (var table = new DataTable { TableName = "Products" })
-                    {
-                        foreach ((string colName, Type colType) in new[]
-                        {
-                            ("ProductCode", typeof(string)),
-                            ("ProductName", typeof(string))
-                        })
-                            table.Columns.Add(colName, colType);
-
-                        foreach (Product product in
-                            from value in dicProduct.Values
-                            orderby value.ProductCode
-                            select value)
-                        {
-                            DataRow row = table.NewRow();
-
-                            row["ProductCode"] = product.ProductCode;
-                            row["ProductName"] = product.ProductName;
-
-                            table.Rows.Add(row);
+                            string path = $@"{_applicationPath}\Database\Orders.xlsx";
+                            _ulti.ExportXmlArray(
+                                filePath: path,
+                                theName: "Orders",
+                                listArrays: new[] {orders},
+                                listColumnNames: listColumns,
+                                listTypes: listTypes,
+                                yesHeader: true);
+                            //_ulti.LargeExportOneWorkbook(path, new List<DataTable> { table }, true, true);
+                            _ulti.ConvertExcelTypeInterop(path, "xlsx",
+                                "xlsb"); // Otherwise it's super fucking hard to open the file.
                         }
 
-                        string path = $@"{_applicationPath}\Database\{table.TableName}.xlsx";
-                        _ulti.LargeExportOneWorkbook(path, new List<DataTable> { table }, true, true);
-                        _ulti.ConvertExcelTypeInterop(path, "xlsx", "xlsb");
-                    }
-                });
+                        catch (Exception ex)
+                        {
+                            WriteToRichTextBoxOutput(ex.Message);
+                            throw;
+                        }
+                    }),
+
+                    // Products
+                    new Task(delegate
+                    {
+                        using (var table = new DataTable {TableName = "Products"})
+                        {
+                            foreach ((string colName, Type colType) in new[]
+                            {
+                                ("ProductCode", typeof(string)),
+                                ("ProductName", typeof(string))
+                            })
+                                table.Columns.Add(colName, colType);
+
+                            foreach (Product product in
+                                from value in dicProduct.Values
+                                orderby value.ProductCode
+                                select value)
+                            {
+                                DataRow row = table.NewRow();
+
+                                row["ProductCode"] = product.ProductCode;
+                                row["ProductName"] = product.ProductName;
+
+                                table.Rows.Add(row);
+                            }
+
+                            string path = $@"{_applicationPath}\Database\{table.TableName}.xlsx";
+                            _ulti.LargeExportOneWorkbook(path, new List<DataTable> {table}, true, true);
+                            _ulti.ConvertExcelTypeInterop(path, "xlsx", "xlsb");
+                        }
+                    }),
+
+                    // Customers
+                    new Task(delegate
+                    {
+                        using (var table = new DataTable {TableName = "Customers"})
+                        {
+                            foreach ((string colName, Type colType) in new[]
+                            {
+                                ("Code", typeof(string)),
+                                ("Name", typeof(string)),
+                                ("SubRegion", typeof(string)),
+                                ("Region", typeof(string)),
+                                ("Type", typeof(string)),
+                                ("P&L", typeof(string)),
+                                ("Key", typeof(string)),
+
+                            })
+                                table.Columns.Add(colName, colType);
+
+                            foreach (Customer customer in
+                                from value in dicCustomer.Values
+                                orderby value.CustomerCode
+                                select value)
+                            {
+                                DataRow row = table.NewRow();
+
+                                row["Code"] = customer.CustomerCode;
+                                row["Name"] = customer.CustomerName;
+                                row["SubRegion"] = customer.CustomerRegion;
+                                row["Region"] = customer.CustomerBigRegion;
+                                row["Type"] = customer.CustomerType;
+                                row["P&L"] = customer.Company;
+                                row["Key"] = customer.CustomerKeyCode;
+
+                                table.Rows.Add(row);
+                            }
+
+                            string path = $@"{_applicationPath}\Database\{table.TableName}.xlsx";
+                            _ulti.LargeExportOneWorkbook(path, new List<DataTable> {table}, true, true);
+                            _ulti.ConvertExcelTypeInterop(path, "xlsx", "xlsb");
+                        }
+                    })
+                };
 
                 // Here we go.
-                dbOrders.Start();
-                dbProducts.Start();
+                Parallel.ForEach(writeTasks, new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount},
+                    task => { task.Start(); });
 
                 // Making sure every Tasks finished before proceeding.
-                await Task.WhenAll(dbOrders, dbProducts);
+                await Task.WhenAll(writeTasks);
 
                 // ReSharper restore HeapView.DelegateAllocation
                 // ReSharper restore ImplicitlyCapturedClosure
@@ -514,6 +613,10 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             {
                 WriteToRichTextBoxOutput(ex.Message);
                 throw;
+            }
+            finally
+            {
+                TryClear();
             }
         }
 

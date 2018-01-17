@@ -82,13 +82,16 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="AllocatingInventory\Functions\Behaviours.cs" />
+    <Compile Include="AllocatingInventory\Functions\FiteMoi.cs" />
     <Compile Include="AllocatingInventory\Functions\ReadForecast.cs" />
     <Compile Include="AllocatingInventory\Functions\ReadPurchaseOrder.cs" />
+    <Compile Include="AllocatingInventory\Functions\Ultilities\Cache.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ConvertExcel.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ConvertToUnsigned.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\DeleteEvaluationSheetInterop.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ExportExcelXmlStyle_Array.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ExportExcelXmlStyle.cs" />
+    <Compile Include="AllocatingInventory\Functions\Ultilities\ProperString.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ReturnInitials.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ToNumber.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ToDate.cs" />
@@ -173,10 +176,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Data\Forecast\ThuMua.xlsb">
+    <None Include="bin\Data\Forecast\ThuMua.xlsb">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Data\Forecast\VinEco.xlsb">
+    <None Include="bin\Data\Forecast\VinEco.xlsb">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />

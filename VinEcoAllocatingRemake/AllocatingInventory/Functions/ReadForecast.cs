@@ -51,99 +51,105 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 // ReSharper disable ImplicitlyCapturedClosure
                 // ReSharper disable HeapView.DelegateAllocation
 
-                var taskReadProducts = new Task(delegate
+                var readTasks = new[]
                 {
-                    if (!File.Exists($@"{_applicationPath}\Database\Products.xlsb")) return;
-
-                    using (var xlWb = new Workbook($@"{_applicationPath}\Database\Products.xlsb",
-                        new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
+                    // Products
+                    new Task(delegate
                     {
-                        Worksheet xlWs = xlWb.Worksheets[0];
-                        using (DataTable table = xlWs.Cells.ExportDataTable(0, 0, xlWs.Cells.MaxDataRow + 1,
-                            xlWs.Cells.MaxDataColumn + 1, _globalExportTableOptionsopts))
+                        if (!File.Exists($@"{_applicationPath}\Database\Products.xlsb")) return;
+
+                        using (var xlWb = new Workbook($@"{_applicationPath}\Database\Products.xlsb",
+                            new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
                         {
-                            foreach (DataRow row in table.Select())
-                                dicProduct.TryAdd(_ulti.ObjectToString(row["ProductCode"]), new Product
-                                {
-                                    ProductCode = _ulti.ObjectToString(row["ProductCode"]),
-                                    ProductName = _ulti.ObjectToString(row["ProductName"])
-                                });
-                        }
-                    }
-                });
-
-                var taskReadSuppliers = new Task(delegate
-                {
-                    if (!File.Exists($@"{_applicationPath}\Database\Suppliers.xlsb")) return;
-
-                    using (var xlWb = new Workbook($@"{_applicationPath}\Database\Suppliers.xlsb",
-                        new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
-                    {
-                        Worksheet xlWs = xlWb.Worksheets[0];
-                        using (DataTable table = xlWs.Cells.ExportDataTable(0, 0, xlWs.Cells.MaxDataRow + 1,
-                            xlWs.Cells.MaxDataColumn + 1, _globalExportTableOptionsopts))
-                        {
-                            foreach (DataRow row in table.Select())
-                                dicSupplier.TryAdd(_ulti.ObjectToString(row["SupplierCode"]), new Supplier
-                                {
-                                    SupplierRegion = _ulti.ObjectToString(row["SupplierRegion"]),
-                                    SupplierType = _ulti.ObjectToString(row["SupplierType"]),
-                                    SupplierCode = _ulti.ObjectToString(row["SupplierCode"]),
-                                    SupplierName = _ulti.ObjectToString(row["SupplierName"])
-                                });
-                        }
-                    }
-                });
-
-                var taskReadForecasts = new Task(delegate
-                {
-                    if (!File.Exists($@"{_applicationPath}\Database\Forecasts.xlsb")) return;
-
-                    using (var xlWb = new Workbook($@"{_applicationPath}\Database\Forecasts.xlsb",
-                        new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
-                    {
-                        Worksheet xlWs = xlWb.Worksheets[0];
-                        using (DataTable table = xlWs.Cells.ExportDataTable(0, 0, xlWs.Cells.MaxDataRow + 1,
-                            xlWs.Cells.MaxDataColumn + 1, _globalExportTableOptionsopts))
-                        {
-                            foreach (DataRow row in table.Select())
+                            Worksheet xlWs = xlWb.Worksheets[0];
+                            using (DataTable table = xlWs.Cells.ExportDataTable(0, 0, xlWs.Cells.MaxDataRow + 1,
+                                xlWs.Cells.MaxDataColumn + 1, _globalExportTableOptionsopts))
                             {
-                                string productCode = _ulti.ObjectToString(row["ProductCode"]);
-                                string supplierCode = _ulti.ObjectToString(row["SupplierCode"]);
-
-                                for (var colIndex = 0; colIndex < table.Columns.Count; colIndex++)
-                                    using (DataColumn column = table.Columns[colIndex])
+                                foreach (DataRow row in table.Select())
+                                    dicProduct.TryAdd(_ulti.ObjectToString(row["ProductCode"]), new Product
                                     {
-                                        // First check point. Is it a valid date?
-                                        DateTime? dateFc = _ulti.StringToDate(column.ColumnName);
-                                        if (dateFc == null) continue;
-
-                                        // Second check point. Is it a valid forecast value?
-                                        double fcValue = _ulti.ObjectToDouble(row[colIndex]);
-                                        if (fcValue <= 0) continue;
-
-                                        dicOldFc.Add(
-                                            ((DateTime) dateFc, productCode, supplierCode),
-                                            (new SupplierForecast
-                                            {
-                                                QualityControlPass = true,
-                                                SupplierCode = supplierCode,
-                                                FullOrder = _ulti.ObjectToInt(row["FullOrder"]) == 1,
-                                                CrossRegion = _ulti.ObjectToInt(row["CrossRegion"]) == 1,
-                                                LabelVinEco = _ulti.ObjectToInt(row["Label"]) == 1,
-                                                Level = (byte) _ulti.ObjectToInt(row["Level"])
-                                            }, false));
-                                    }
+                                        ProductCode = _ulti.ObjectToString(row["ProductCode"]),
+                                        ProductName = _ulti.ObjectToString(row["ProductName"])
+                                    });
                             }
                         }
-                    }
-                });
+                    }),
 
-                taskReadProducts.Start();
-                taskReadSuppliers.Start();
-                taskReadForecasts.Start();
+                    // Suppliers
+                    new Task(delegate
+                    {
+                        if (!File.Exists($@"{_applicationPath}\Database\Suppliers.xlsb")) return;
 
-                await Task.WhenAll(taskReadProducts, taskReadSuppliers, taskReadForecasts);
+                        using (var xlWb = new Workbook($@"{_applicationPath}\Database\Suppliers.xlsb",
+                            new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
+                        {
+                            Worksheet xlWs = xlWb.Worksheets[0];
+                            using (DataTable table = xlWs.Cells.ExportDataTable(0, 0, xlWs.Cells.MaxDataRow + 1,
+                                xlWs.Cells.MaxDataColumn + 1, _globalExportTableOptionsopts))
+                            {
+                                foreach (DataRow row in table.Select())
+                                    dicSupplier.TryAdd(_ulti.ObjectToString(row["SupplierCode"]), new Supplier
+                                    {
+                                        SupplierRegion = _ulti.ObjectToString(row["SupplierRegion"]),
+                                        SupplierType = _ulti.ObjectToString(row["SupplierType"]),
+                                        SupplierCode = _ulti.ObjectToString(row["SupplierCode"]),
+                                        SupplierName = _ulti.ObjectToString(row["SupplierName"])
+                                    });
+                            }
+                        }
+                    }),
+
+                    // Forecasts
+                    new Task(delegate
+                    {
+                        if (!File.Exists($@"{_applicationPath}\Database\Forecasts.xlsb")) return;
+
+                        using (var xlWb = new Workbook($@"{_applicationPath}\Database\Forecasts.xlsb",
+                            new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
+                        {
+                            Worksheet xlWs = xlWb.Worksheets[0];
+                            using (DataTable table = xlWs.Cells.ExportDataTable(0, 0, xlWs.Cells.MaxDataRow + 1,
+                                xlWs.Cells.MaxDataColumn + 1, _globalExportTableOptionsopts))
+                            {
+                                foreach (DataRow row in table.Select())
+                                {
+                                    string productCode = _ulti.ObjectToString(row["ProductCode"]);
+                                    string supplierCode = _ulti.ObjectToString(row["SupplierCode"]);
+
+                                    for (var colIndex = 0; colIndex < table.Columns.Count; colIndex++)
+                                        using (DataColumn column = table.Columns[colIndex])
+                                        {
+                                            // First check point. Is it a valid date?
+                                            DateTime? dateFc = _ulti.StringToDate(column.ColumnName);
+                                            if (dateFc == null) continue;
+
+                                            // Second check point. Is it a valid forecast value?
+                                            double fcValue = _ulti.ObjectToDouble(row[colIndex]);
+                                            if (fcValue <= 0) continue;
+
+                                            dicOldFc.Add(
+                                                ((DateTime) dateFc, productCode, supplierCode),
+                                                (new SupplierForecast
+                                                {
+                                                    QualityControlPass = true,
+                                                    SupplierCode = supplierCode,
+                                                    FullOrder = _ulti.ObjectToInt(row["FullOrder"]) == 1,
+                                                    CrossRegion = _ulti.ObjectToInt(row["CrossRegion"]) == 1,
+                                                    LabelVinEco = _ulti.ObjectToInt(row["Label"]) == 1,
+                                                    Level = (byte) _ulti.ObjectToInt(row["Level"])
+                                                }, false));
+                                        }
+                                }
+                            }
+                        }
+                    })
+                };
+
+                // Here we go.
+                Parallel.ForEach(readTasks, new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount},
+                    task => { task.Start(); });
+
+                await Task.WhenAll(readTasks);
 
                 // ReSharper restore HeapView.DelegateAllocation
                 // ReSharper restore ImplicitlyCapturedClosure
@@ -264,17 +270,31 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                 // Less conversion.
                                 string supCode = _ulti.ObjectToString(row["SCODE"]);
                                 string pCode = _ulti.ObjectToString(row["PCODE"]);
+                                string pName = _ulti.ObjectToString(row["PNAME"]).Replace("KH-", string.Empty);
 
-                                // Product information.
-                                Product product = dicProduct.GetOrAdd(pCode, new Product
+                                //// Product information.
+                                //Product product = dicProduct.GetOrAdd(pCode, new Product
+                                //{
+                                //    ProductCode = pCode,
+                                //    ProductName = _ulti.ObjectToString(row["PNAME"])
+                                //});
+
+                                dicProduct.AddOrUpdate(pCode, new Product
                                 {
                                     ProductCode = pCode,
-                                    ProductName = _ulti.ObjectToString(row["PNAME"])
+                                    ProductName = pName
+                                }, (key, oldProduct) => new Product
+                                {
+                                    ProductCode = pCode,
+                                    ProductName =
+                                        string.CompareOrdinal(oldProduct.ProductName, pName) < 0
+                                            ? pName
+                                            : oldProduct.ProductName
                                 });
 
-                                // Quality of life. Get the pseudo 'best' Product Name.
-                                if (string.CompareOrdinal(product.ProductName, _ulti.ObjectToString(row["PNAME"])) < 0)
-                                    product.ProductName = _ulti.ObjectToString(row["PNAME"]);
+                                //// Quality of life. Get the pseudo 'best' Product Name.
+                                //if (string.CompareOrdinal(product.ProductName, _ulti.ObjectToString(row["PNAME"])) < 0)
+                                //    product.ProductName = _ulti.ObjectToString(row["PNAME"]);
 
                                 // Optimization, dealing with region.
                                 string region = _ulti.ObjectToString(row["Region"]);
@@ -307,36 +327,64 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         double fcValue = _ulti.ObjectToDouble(row[colIndex]);
                                         if (fcValue <= 0) continue;
 
-                                        SupplierForecast supply = dicFc.GetOrAdd(((DateTime) dateFc, pCode, supCode),
-                                            (new SupplierForecast
-                                            {
-                                                SupplierCode = supCode
-                                            }, false)).Supply;
-
-                                        supply.Availability = table.Columns.Contains("Availability")
-                                            ? _ulti.ObjectToString("Availability")
-                                            : "1234567";
-
-                                        supply.FullOrder = CheckCol("100%", "Yes");
-                                        supply.LabelVinEco = CheckCol("Label VE", "Yes");
-                                        supply.CrossRegion = CheckCol("CrossRegion", "Yes");
-                                        supply.QualityControlPass = true;
-                                        supply.Level = (byte) (table.Columns.Contains("Level")
-                                            ? row["Level"] as byte? ?? 1
-                                            : 1);
-
-                                        lock (supply)
+                                        var supply = new SupplierForecast
                                         {
-                                            if (isKpi)
+                                            Availability = table.Columns.Contains("Availability")
+                                                ? _ulti.ObjectToString("Availability")
+                                                : "1234567",
+                                            FullOrder = CheckCol("100%", "Yes"),
+                                            LabelVinEco = CheckCol("Label VE", "Yes"),
+                                            CrossRegion = CheckCol("CrossRegion", "Yes"),
+                                            QualityControlPass = true,
+                                            Level = (byte) (table.Columns.Contains("Level")
+                                                ? row["Level"] as byte? ?? 1
+                                                : 1),
+                                            QuantityForecast = isKpi ? 0 : fcValue,
+                                            QuantityForecastPlanned = !isKpi ? 0 : fcValue,
+                                            HasKpi = isKpi
+                                        };
+
+                                        //dicFc.GetOrAdd(((DateTime) dateFc, pCode, supCode),
+                                        //    (new SupplierForecast
+                                        //    {
+                                        //        SupplierCode = supCode,
+                                        //        Target = "All",
+                                        //        Availability = "1234567"
+                                        //    }, false)).Supply;
+
+                                        dicFc.AddOrUpdate(((DateTime) dateFc, pCode, supCode), (supply, false),
+                                            (key, oldValue) => (new SupplierForecast
                                             {
-                                                supply.HasKpi = true;
-                                                supply.QuantityForecastPlanned += fcValue;
-                                            }
-                                            else
-                                            {
-                                                supply.QuantityForecast += fcValue;
-                                            }
-                                        }
+                                                Availability = table.Columns.Contains("Availability")
+                                                    ? _ulti.ObjectToString("Availability")
+                                                    : "1234567",
+                                                FullOrder = CheckCol("100%", "Yes"),
+                                                LabelVinEco = CheckCol("Label VE", "Yes"),
+                                                CrossRegion = CheckCol("CrossRegion", "Yes"),
+                                                QualityControlPass = true,
+                                                Level = (byte) (table.Columns.Contains("Level")
+                                                    ? row["Level"] as byte? ?? 1
+                                                    : 1),
+                                                QuantityForecast =
+                                                    oldValue.Supply.QuantityForecast + (isKpi ? 0 : fcValue),
+                                                QuantityForecastPlanned =
+                                                    oldValue.Supply.QuantityForecast + (!isKpi ? 0 : fcValue),
+                                                HasKpi = isKpi
+                                            }, false));
+
+                                        //var myLock = new object();
+                                        //lock (myLock)
+                                        //{
+                                        //    if (isKpi)
+                                        //    {
+                                        //        supply.HasKpi = true;
+                                        //        supply.QuantityForecastPlanned += fcValue;
+                                        //    }
+                                        //    else
+                                        //    {
+                                        //        supply.QuantityForecast += fcValue;
+                                        //    }
+                                        //}
                                     }
                             }
                         }
@@ -358,8 +406,10 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 // ReSharper disable ImplicitlyCapturedClosure
                 // ReSharper disable HeapView.DelegateAllocation
 
-                // Forecasts
-                var dbForecasts = new Task(delegate
+                var writeTasks = new[]
+                {
+                    // Forecasts
+                    new Task(delegate
                 {
                     try
                     {
@@ -461,93 +511,89 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                         WriteToRichTextBoxOutput(ex.Message);
                         throw;
                     }
-                });
+                }),
 
-                // Products
-                var dbProducts = new Task(delegate
-                {
-                    using (var table = new DataTable {TableName = "Products"})
+                    // Products
+                    new Task(delegate
                     {
-                        foreach ((string colName, Type colType) in new[]
+                        using (var table = new DataTable {TableName = "Products"})
                         {
-                            ("ProductCode", typeof(string)),
-                            ("ProductName", typeof(string))
-                        })
-                            table.Columns.Add(colName, colType);
+                            foreach ((string colName, Type colType) in new[]
+                            {
+                                ("ProductCode", typeof(string)),
+                                ("ProductName", typeof(string))
+                            })
+                                table.Columns.Add(colName, colType);
 
-                        foreach (Product product in
-                            from value in dicProduct.Values
-                            orderby value.ProductCode
-                            select value)
-                        {
-                            DataRow row = table.NewRow();
+                            foreach (Product product in
+                                from value in dicProduct.Values
+                                orderby value.ProductCode
+                                select value)
+                            {
+                                DataRow row = table.NewRow();
 
-                            row["ProductCode"] = product.ProductCode;
-                            row["ProductName"] = product.ProductName;
+                                row["ProductCode"] = product.ProductCode;
+                                row["ProductName"] = product.ProductName;
 
-                            table.Rows.Add(row);
+                                table.Rows.Add(row);
+                            }
+
+                            string path = $@"{_applicationPath}\Database\{table.TableName}.xlsx";
+                            _ulti.LargeExportOneWorkbook(path, new List<DataTable> {table}, true, true);
+                            _ulti.ConvertExcelTypeInterop(path, "xlsx", "xlsb");
                         }
+                    }),
 
-                        string path = $@"{_applicationPath}\Database\{table.TableName}.xlsx";
-                        _ulti.LargeExportOneWorkbook(path, new List<DataTable> {table}, true, true);
-                        _ulti.ConvertExcelTypeInterop(path, "xlsx", "xlsb");
-                    }
-                });
-
-                // Suppliers
-                var dbSuppliers = new Task(delegate
-                {
-                    using (var table = new DataTable {TableName = "Suppliers"})
+                    // Suppliers
+                    new Task(delegate
                     {
-                        foreach ((string colName, Type colType) in new[]
+                        using (var table = new DataTable {TableName = "Suppliers"})
                         {
-                            ("SupplierType", typeof(string)),
-                            ("SupplierRegion", typeof(string)),
-                            ("SupplierCode", typeof(string)),
-                            ("SupplierName", typeof(string))
-                        })
-                            table.Columns.Add(colName, colType);
+                            foreach ((string colName, Type colType) in new[]
+                            {
+                                ("SupplierType", typeof(string)),
+                                ("SupplierRegion", typeof(string)),
+                                ("SupplierCode", typeof(string)),
+                                ("SupplierName", typeof(string))
+                            })
+                                table.Columns.Add(colName, colType);
 
-                        foreach (Supplier supplier in
-                            from supplier in dicSupplier.Values
-                            orderby
-                                supplier.SupplierType,
-                                supplier.SupplierRegion,
-                                supplier.SupplierCode
-                            select supplier)
-                        {
-                            DataRow row = table.NewRow();
+                            foreach (Supplier supplier in
+                                from supplier in dicSupplier.Values
+                                orderby
+                                    supplier.SupplierType,
+                                    supplier.SupplierRegion,
+                                    supplier.SupplierCode
+                                select supplier)
+                            {
+                                DataRow row = table.NewRow();
 
-                            row["SupplierType"] = supplier.SupplierType;
-                            row["SupplierRegion"] = supplier.SupplierRegion;
-                            row["SupplierCode"] = supplier.SupplierCode;
-                            row["SupplierName"] = supplier.SupplierName;
+                                row["SupplierType"] = supplier.SupplierType;
+                                row["SupplierRegion"] = supplier.SupplierRegion;
+                                row["SupplierCode"] = supplier.SupplierCode;
+                                row["SupplierName"] = supplier.SupplierName;
 
-                            table.Rows.Add(row);
+                                table.Rows.Add(row);
+                            }
+
+                            string path = $@"{_applicationPath}\Database\{table.TableName}.xlsx";
+                            _ulti.LargeExportOneWorkbook(path, new List<DataTable> {table}, true, true);
+                            _ulti.ConvertExcelTypeInterop(path, "xlsx", "xlsb");
                         }
-
-                        string path = $@"{_applicationPath}\Database\{table.TableName}.xlsx";
-                        _ulti.LargeExportOneWorkbook(path, new List<DataTable> {table}, true, true);
-                        _ulti.ConvertExcelTypeInterop(path, "xlsx", "xlsb");
-                    }
-                });
+                    })
+                };
 
                 // Here we go.
-                dbForecasts.Start();
-                dbProducts.Start();
-                dbSuppliers.Start();
+                Parallel.ForEach(writeTasks, new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount},
+                    task => { task.Start(); });
 
                 // Making sure every Tasks finished before proceeding.
-                await Task.WhenAll(dbForecasts, dbProducts, dbSuppliers);
+                await Task.WhenAll(writeTasks);
 
                 // ReSharper restore HeapView.DelegateAllocation
                 // ReSharper restore ImplicitlyCapturedClosure
 
                 #endregion
-
-                dicFc.Clear();
-                dicSupplier.Clear();
-                dicProduct.Clear();
 
                 // The final flag.
                 watch.Stop();
@@ -560,6 +606,10 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             {
                 WriteToRichTextBoxOutput(ex.Message);
                 throw;
+            }
+            finally
+            {
+                TryClear();
             }
         }
     }

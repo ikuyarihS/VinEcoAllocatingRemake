@@ -11,6 +11,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         private readonly ConcurrentDictionary<object, string> _dicObjectString =
             new ConcurrentDictionary<object, string>();
 
+        private readonly ConcurrentDictionary<string, string> _dicString = 
+            new ConcurrentDictionary<string, string>();
+
         /// <summary>
         ///     Pretty much a cache for converting Object to String.
         /// </summary>
@@ -19,16 +22,27 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         {
             // Check if exists.
             if (_dicObjectString.TryGetValue(obj, out string value))
-                return value;
+                return GetString(value);
 
             // If not, well, convert.
+            if (_dicString.TryGetValue(obj.ToString(), out string valueNew))
+            {
+                _dicObjectString.TryAdd(obj, valueNew);
+                return GetString(valueNew);
+            }
+
             value = obj.ToString();
+            _dicString.TryAdd(value, value);
+            _dicObjectString.TryAdd(obj, value);
+            return GetString(value);
+
+            //value =  ? valueNew : obj.ToString();
 
             // ... and store the result.
-            _dicObjectString.TryAdd(obj, value);
+            //_dicObjectString.TryAdd(obj, value);
 
             // Then return it.
-            return value;
+            //return value;
         }
 
         /// <summary>
@@ -38,7 +52,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         {
             // Check if exists.
             if (_dicDateString.TryGetValue(date, out string value))
-                return value;
+                return GetString(value);
 
             // If not, well, convert.
             value = date.ToString(dateFormat);
@@ -47,7 +61,17 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             _dicDateString.TryAdd(date, value);
 
             // Then return it.
-            return value;
+            return GetString(value);
+        }
+
+        public string GetString(string suspect)
+        {
+            if (_dicString.TryGetValue(suspect, out string result))
+                return result;
+
+            _dicString.TryAdd(suspect, suspect);
+
+            return suspect;
         }
     }
 }

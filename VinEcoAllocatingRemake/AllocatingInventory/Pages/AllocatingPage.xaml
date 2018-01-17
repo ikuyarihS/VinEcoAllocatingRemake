@@ -26,22 +26,82 @@
                                Text="{Binding ElementName=ProgressStatusBar, Path=Value, StringFormat={}{0:0}%}" />
                 </Grid>
 
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+
+                    <!--<StackPanel.Resources>
+                        <Style TargetType="{x:Type DatePicker}" BasedOn="{StaticResource {x:Type DatePicker}}">
+                            <Setter Property="DisplayMode" Value="Month" />
+                            <Setter Property="SelectionMode" Value="SingleDate" />
+                            <Setter Property="SelectedDate" Value="{x:Static sys:DateTime.Now}" />
+                        </Style>
+                    </StackPanel.Resources>-->
+
+                    <DatePicker Name="DateFromCalendar" SelectedDate="{x:Static sys:DateTime.Today}" />
+                    <DatePicker Margin="7,0,0,0" Name="DateToCalendar" SelectedDate="{x:Static sys:DateTime.Today}" />
+                </StackPanel>
+
                 <WrapPanel DockPanel.Dock="Top" HorizontalAlignment="Left">
 
-                    <!--The "Welcome to the wrong neighbourhood" button.-->
-                    <Button Width="107" Height="37" FontFamily="Helvetia" Click="HereWeGo" Content="Đọc DBSL.">
-                        <Button.ToolTip>
-                            <StackPanel>
-                                <TextBlock FontWeight="Bold" Text="Cập nhật DBSL." Margin="0,0,0,1" />
+                    <TreeView>
+                        <TreeViewItem Header="Update">
+                            <!--The "Welcome to the wrong neighbourhood" button.-->
+                            <Button Width="107" Height="37" FontFamily="Helvetia" Click="ForecastHandler"
+                                    Content="Forecasts">
+                                <Button.ToolTip>
+                                    <StackPanel>
+                                        <TextBlock FontWeight="Bold" Text="Cập nhật Dự báo sản lượng." Margin="0,0,0,1" />
+                                    </StackPanel>
+                                </Button.ToolTip>
+                            </Button>
+                            <!--The "Welcome (still) to the wrong neighbourhood" button.-->
+                            <Button Width="107" Height="37" FontFamily="Helvetia" Click="OrderHandler"
+                                    Content="Orders">
+                                <Button.ToolTip>
+                                    <StackPanel>
+                                        <TextBlock FontWeight="Bold" Text="Cập nhật Đơn hàng." Margin="0,0,0,1" />
+                                    </StackPanel>
+                                </Button.ToolTip>
+                            </Button>
+                        </TreeViewItem>
+                    </TreeView>
+
+                    <TreeView>
+                        <TreeViewItem Header="Day distance">
+                            <StackPanel Margin="7,0,0,0" Orientation="Vertical" VerticalAlignment="Center"
+                                        HorizontalAlignment="Left">
+                                <mui:BBCodeBlock BBCode="MB -> MB" Height="23" />
+                                <mui:BBCodeBlock BBCode="MN -> MN" Height="23" />
+                                <mui:BBCodeBlock BBCode="LĐ -> MB" Height="23" />
+                                <mui:BBCodeBlock BBCode="LĐ -> MN" Height="23" />
                             </StackPanel>
-                        </Button.ToolTip>
-                    </Button>
-                    
-                    <!--The "Welcome (still) to the wrong neighbourhood" button.-->
-                    <Button Width="107" Height="37" FontFamily="Helvetia" Click="PoHandler" Content="Đọc PO.">
+
+                            <StackPanel Margin="7,0,0,0" Orientation="Vertical" VerticalAlignment="Center"
+                                        HorizontalAlignment="Right">
+                                <StackPanel.Resources>
+                                    <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
+                                        <Setter Property="TextAlignment" Value="Right" />
+                                        <Setter Property="Height" Value="23" />
+                                        <Setter Property="Width" Value="23" />
+                                    </Style>
+                                </StackPanel.Resources>
+
+                                <TextBox Name="NorthNorth"
+                                         Text="{Binding Source={x:Static p:Settings.Default}, Path=North_North, Mode=TwoWay}" />
+                                <TextBox Name="SouthSouth"
+                                         Text="{Binding Source={x:Static p:Settings.Default}, Path=South_South, Mode=TwoWay}" />
+                                <TextBox Name="MidNorth"
+                                         Text="{Binding Source={x:Static p:Settings.Default}, Path=Mid_North, Mode=TwoWay}" />
+                                <TextBox Name="MidSouth"
+                                         Text="{Binding Source={x:Static p:Settings.Default}, Path=Mid_South, Mode=TwoWay}" />
+                            </StackPanel>
+                        </TreeViewItem>
+                    </TreeView>
+
+                    <!--The "Welcome (oh rip you) to the wrong neighbourhood" button.-->
+                    <Button Width="107" Height="37" FontFamily="Helvetia" Click="FiteMoiHandler" Content="We fite!">
                         <Button.ToolTip>
                             <StackPanel>
-                                <TextBlock FontWeight="Bold" Text="Cập nhật PO." Margin="0,0,0,1" />
+                                <TextBlock FontWeight="Bold" Text="Chia hàng!." Margin="0,0,0,1" />
                             </StackPanel>
                         </Button.ToolTip>
                     </Button>
@@ -93,7 +153,7 @@
                 </WrapPanel>
 
                 <!--RichTextBoxOutput, who said I can't have one?-->
-                <RichTextBox Name="RichTextBoxOutput" MaxHeight="170" TextChanged="RichTextBoxOutput_TextChanged" />
+                <RichTextBox Name="RichTextBoxOutput" MaxHeight="270" TextChanged="RichTextBoxOutput_TextChanged" />
 
             </StackPanel>
         </ScrollViewer>

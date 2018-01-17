@@ -58,5 +58,53 @@ namespace VinEcoAllocatingRemake.Properties {
                 this["LastPage"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public int North_North {
+            get {
+                return ((int)(this["North_North"]));
+            }
+            set {
+                this["North_North"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int South_South {
+            get {
+                return ((int)(this["South_South"]));
+            }
+            set {
+                this["South_South"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3")]
+        public int Mid_North {
+            get {
+                return ((int)(this["Mid_North"]));
+            }
+            set {
+                this["Mid_North"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Mid_South {
+            get {
+                return ((int)(this["Mid_South"]));
+            }
+            set {
+                this["Mid_South"] = value;
+            }
+        }
     }
 }

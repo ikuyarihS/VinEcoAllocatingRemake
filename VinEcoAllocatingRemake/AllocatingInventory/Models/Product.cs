@@ -2,23 +2,23 @@
 
 namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 {
-    public class Product
+    public struct Product
     {
-        public Product()
-        {
-            Id = Guid.NewGuid();
-            ProductId = Id;
+        //public Product()
+        //{
+        //    Id = Guid.NewGuid();
+        //    ProductId = Id;
 
-            //ProductClassification = "???";
-            //ProductOrientation = "???";
-            //ProductClimate = "???";
-            //ProductionGroup = "???";
+        //    //ProductClassification = "???";
+        //    //ProductOrientation = "???";
+        //    //ProductClimate = "???";
+        //    //ProductionGroup = "???";
 
-            //ProductNote = new List<string>();
-        }
+        //    //ProductNote = new List<string>();
+        //}
 
-        public Guid Id { get; set; }
-        public Guid ProductId { get; set; }
+        //public Guid Id { get; set; }
+        //public Guid ProductId { get; set; }
         public string ProductCode { get; set; }
         public string ProductName { get; set; }
         public string ProductVECode { get; set; }

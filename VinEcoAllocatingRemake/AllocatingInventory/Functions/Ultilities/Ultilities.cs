@@ -92,5 +92,11 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 throw;
             }
         }
+
+        private void TryClear()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
     }
 }

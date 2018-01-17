@@ -2,22 +2,22 @@
 
 namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 {
-    public class SupplierForecast
+    public struct SupplierForecast
     {
-        public SupplierForecast()
-        {
-            Id = Guid.NewGuid();
-            SupplierForecastId = Id;
+        //public SupplierForecast()
+        //{
+        //    Id = Guid.NewGuid();
+        //    SupplierForecastId = Id;
 
-            Level = 1;
-            Availability = "1234567";
-            Target = "All";
-        }
+        //    Level = 1;
+        //    Availability = "1234567";
+        //    Target = "All";
+        //}
 
-        public Guid Id { get; set; }
+        //public Guid Id { get; set; }
 
-        public Guid SupplierForecastId { get; set; }
-        public Guid SupplierId { get; set; }
+        //public Guid SupplierForecastId { get; set; }
+        //public Guid SupplierId { get; set; }
         public string SupplierCode { get; set; }
         public bool LabelVinEco { get; set; }
         public bool FullOrder { get; set; }

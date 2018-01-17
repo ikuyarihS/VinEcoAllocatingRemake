@@ -127,7 +127,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             }
         }
 
-        private void HereWeGo(object sender, RoutedEventArgs e)
+        private void ForecastHandler(object sender, RoutedEventArgs e)
         {
             if (!_bgw.IsBusy && _isBackgroundworkerIdle)
             {
@@ -145,13 +145,31 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             }
         }
 
-        private void PoHandler(object sender, RoutedEventArgs e)
+        private void OrderHandler(object sender, RoutedEventArgs e)
         {
             if (!_bgw.IsBusy && _isBackgroundworkerIdle)
             {
                 if (_isBackgroundworkerIdle)
                 {
                     _bgw.DoWork += ReadPurchaseOrder;
+                    _isBackgroundworkerIdle = false;
+                }
+
+                _bgw.RunWorkerAsync();
+            }
+            else
+            {
+                MessageBox.Show("Đang uýnh nhau, đợi xíu!");
+            }
+        }
+
+        private void FiteMoiHandler(object sender, RoutedEventArgs e)
+        {
+            if (!_bgw.IsBusy && _isBackgroundworkerIdle)
+            {
+                if (_isBackgroundworkerIdle)
+                {
+                    _bgw.DoWork += FiteMoi;
                     _isBackgroundworkerIdle = false;
                 }
 
