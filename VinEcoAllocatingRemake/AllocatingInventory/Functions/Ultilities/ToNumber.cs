@@ -16,18 +16,18 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <summary>
         ///     The dic object double.
         /// </summary>
-        private readonly ConcurrentDictionary<object, double> dicObjectDouble =
+        private readonly ConcurrentDictionary<object, double> _dicObjectDouble =
             new ConcurrentDictionary<object, double>();
 
         /// <summary>
         ///     The dic object int.
         /// </summary>
-        private readonly ConcurrentDictionary<object, int> dicObjectInt = new ConcurrentDictionary<object, int>();
+        private readonly ConcurrentDictionary<object, int> _dicObjectInt = new ConcurrentDictionary<object, int>();
 
         /// <summary>
         ///     The dic string double.
         /// </summary>
-        private readonly ConcurrentDictionary<object, double> dicStringDouble =
+        private readonly ConcurrentDictionary<object, double> _dicStringDouble =
             new ConcurrentDictionary<object, double>();
 
         /// <summary>
@@ -42,12 +42,12 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         public double ObjectToDouble(object obj)
         {
             // Check if exists.
-            if (dicObjectDouble.TryGetValue(obj, out double value)) return value;
+            if (_dicObjectDouble.TryGetValue(obj, out double value)) return value;
 
             // Goddamn it.
             if (obj == DBNull.Value)
             {
-                dicObjectDouble.TryAdd(obj, 0);
+                _dicObjectDouble.TryAdd(obj, 0);
                 return 0;
             }
 
@@ -63,7 +63,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             }
 
             // ... and store the result.
-            dicObjectDouble.TryAdd(obj, value);
+            _dicObjectDouble.TryAdd(obj, value);
 
             // Then return it.
             return value;
@@ -81,12 +81,12 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         public int ObjectToInt(object suspect)
         {
             // Check if exists.
-            if (dicObjectInt.TryGetValue(suspect, out int value)) return value;
+            if (_dicObjectInt.TryGetValue(suspect, out int value)) return value;
 
             // Goddamn it.
             if (suspect == DBNull.Value)
             {
-                dicObjectDouble.TryAdd(suspect, 0);
+                _dicObjectDouble.TryAdd(suspect, 0);
                 return 0;
             }
 
@@ -94,7 +94,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             value = Convert.ToInt32(suspect);
 
             // ... and store the result.
-            dicObjectInt.TryAdd(suspect, value);
+            _dicObjectInt.TryAdd(suspect, value);
 
             // Then return it.
             return value;
@@ -112,13 +112,13 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         public double StringToDouble(string key)
         {
             // Check if exists.
-            if (dicStringDouble.TryGetValue(key, out double value)) return value;
+            if (_dicStringDouble.TryGetValue(key, out double value)) return value;
 
             // If not, well, convert.
             value = Convert.ToDouble(key);
 
             // ... and store the result.
-            dicStringDouble.TryAdd(key, value);
+            _dicStringDouble.TryAdd(key, value);
 
             // Then return it.
             return value;

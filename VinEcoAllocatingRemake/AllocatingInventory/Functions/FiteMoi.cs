@@ -447,10 +447,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                                     return null;
                                 }
-
-                                Dictionary<CustomerOrder, bool> orderNorth = GetOrderDictionary(
-                                    datePo,
-                                    "MB");
+                                
+                                Dictionary<CustomerOrder, bool> orderNorth = GetOrderDictionary(datePo, "MB");
 
                                 Dictionary<CustomerOrder, bool> orderSouth = GetOrderDictionary(
                                     datePo.AddDays(-distance[("LD", "MB")] + distance[("LD", "MN")]),
@@ -494,9 +492,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                                 double SumForecast(Dictionary<SupplierForecast, bool> source)
                                 {
-                                    return source?.AsParallel()
-                                               .Sum(fc => fc.Key.QuantityForecast) ??
-                                           0;
+                                    return source?.AsParallel().Sum(fc => fc.Key.QuantityForecast) ?? 0;
                                 }
 
                                 double sumFcNorth = SumForecast(forecastNorth);
@@ -557,6 +553,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         }
 
                                         if (orderNorth != null && sumFcNorth + sumFcMid >= 0)
+                                        {
                                             foreach (CustomerOrder customerOrder in orderNorth.Keys.OrderByDescending(po => po.QuantityOrder).ToList())
                                             {
                                                 if (forecastNorth != null)
@@ -572,6 +569,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                     PairSupplyOrder(customerOrder, orderNorth, forecastMid, rateNorth);
                                                 }
                                             }
+                                        }
                                     }
                                     catch (Exception ex)
                                     {

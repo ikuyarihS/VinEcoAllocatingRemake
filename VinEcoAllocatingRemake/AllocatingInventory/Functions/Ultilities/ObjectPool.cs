@@ -22,12 +22,12 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <summary>
         ///     The object generator.
         /// </summary>
-        private readonly Func<T> objectGenerator;
+        private readonly Func<T> _objectGenerator;
 
         /// <summary>
         ///     The objects.
         /// </summary>
-        private readonly ConcurrentBag<T> objects;
+        private readonly ConcurrentBag<T> _objects;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="ObjectPool{T}" /> class.
@@ -37,8 +37,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// </param>
         public ObjectPool(Func<T> objectGenerator)
         {
-            objects = new ConcurrentBag<T>();
-            this.objectGenerator = objectGenerator ?? throw new ArgumentNullException(nameof(objectGenerator));
+            _objects = new ConcurrentBag<T>();
+            _objectGenerator = objectGenerator ?? throw new ArgumentNullException(nameof(objectGenerator));
         }
 
         /// <summary>
@@ -49,9 +49,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// </returns>
         public T GetObject()
         {
-            return objects.TryTake(out T item)
+            return _objects.TryTake(out T item)
                 ? item
-                : objectGenerator();
+                : _objectGenerator();
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// </param>
         public void PutObject(T item)
         {
-            objects.Add(item);
+            _objects.Add(item);
         }
     }
 }

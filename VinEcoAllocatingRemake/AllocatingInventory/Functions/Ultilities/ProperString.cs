@@ -19,7 +19,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <summary>
         ///     The dic string proper.
         /// </summary>
-        private readonly Dictionary<string, string> dicStringProper = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _dicStringProper = new Dictionary<string, string>();
 
         /// <summary>
         ///     Proper a string
@@ -32,7 +32,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// </returns>
         public string ProperStr(string myString)
         {
-            if (dicStringProper.TryGetValue(myString, out string myProperString)) return myProperString;
+            if (_dicStringProper.TryGetValue(myString, out string myProperString)) return myProperString;
 
             // Creates a TextInfo based on the "en-US" culture.
             TextInfo myTi = new CultureInfo("en-US", false).TextInfo;
@@ -46,7 +46,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             //// Changes a string to titlecase.
             // WriteToRichTextBoxOutput("\"{0}\" to titlecase: {1}", myString, myTI.ToTitleCase(myString));
             myProperString = myTi.ToTitleCase(myString.ToLower());
-            dicStringProper.Add(myString, myProperString);
+            _dicStringProper.Add(myString, myProperString);
             return myProperString;
         }
     }

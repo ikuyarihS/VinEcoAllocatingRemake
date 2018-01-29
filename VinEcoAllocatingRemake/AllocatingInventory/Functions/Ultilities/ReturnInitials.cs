@@ -19,7 +19,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <summary>
         ///     The dic string initials.
         /// </summary>
-        private readonly ConcurrentDictionary<string, string> dicStringInitials =
+        private readonly ConcurrentDictionary<string, string> _dicStringInitials =
             new ConcurrentDictionary<string, string>();
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         public string ReturnInitials(string suspect)
         {
             // Uhm, have we met before?
-            if (dicStringInitials.TryGetValue(suspect, out string result)) return result;
+            if (_dicStringInitials.TryGetValue(suspect, out string result)) return result;
 
             // Oh ok. Here's a punch.
             var resultToBe = new StringBuilder();
@@ -51,7 +51,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
             // result = string.Join(string.Empty, suspect.Split(' ').Select(x => x.First()));
             // It was super effective.
-            dicStringInitials.TryAdd(suspect, result);
+            _dicStringInitials.TryAdd(suspect, result);
             return result;
         }
     }

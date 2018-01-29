@@ -15,7 +15,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <summary>
         ///     The dic string date.
         /// </summary>
-        private readonly ConcurrentDictionary<string, DateTime> dicStringDate =
+        private readonly ConcurrentDictionary<string, DateTime> _dicStringDate =
             new ConcurrentDictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
@@ -27,14 +27,14 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         public DateTime? StringToDate(string suspect)
         {
             // If string has been converted before.
-            if (dicStringDate.TryGetValue(suspect, out DateTime dateResult)) return dateResult;
+            if (_dicStringDate.TryGetValue(suspect, out DateTime dateResult)) return dateResult;
 
             // Otherwise, check if it's even a date.
             if (!DateTime.TryParse(suspect, out DateTime date))
             {
                 // Looks like it isn't.
                 // Return null, and also record string used.
-                dicStringDate.TryAdd(
+                _dicStringDate.TryAdd(
                     suspect,
                     DateTime.MinValue);
                 return null;
@@ -42,7 +42,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
             // Welp, it's actually a date.
             // Record the string anyway. Dis many importanto.
-            dicStringDate.TryAdd(
+            _dicStringDate.TryAdd(
                 suspect,
                 date);
             return date;

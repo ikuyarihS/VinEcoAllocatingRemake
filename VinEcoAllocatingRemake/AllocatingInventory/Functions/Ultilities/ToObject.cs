@@ -19,22 +19,22 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <summary>
         ///     The dic bool object.
         /// </summary>
-        private readonly ConcurrentDictionary<bool, object> dicBoolObject = new ConcurrentDictionary<bool, object>();
+        private readonly ConcurrentDictionary<bool, object> _dicBoolObject = new ConcurrentDictionary<bool, object>();
 
         /// <summary>
         ///     The dic date object.
         /// </summary>
-        private readonly ConcurrentDictionary<DateTime, object> dicDateObject = new ConcurrentDictionary<DateTime, object>();
+        private readonly ConcurrentDictionary<DateTime, object> _dicDateObject = new ConcurrentDictionary<DateTime, object>();
 
         /// <summary>
         ///     The dic double object.
         /// </summary>
-        private readonly ConcurrentDictionary<double, object> dicDoubleObject = new ConcurrentDictionary<double, object>();
+        private readonly ConcurrentDictionary<double, object> _dicDoubleObject = new ConcurrentDictionary<double, object>();
 
         /// <summary>
         ///     The dic int object.
         /// </summary>
-        private readonly ConcurrentDictionary<int, object> dicIntObject = new ConcurrentDictionary<int, object>();
+        private readonly ConcurrentDictionary<int, object> _dicIntObject = new ConcurrentDictionary<int, object>();
 
         /// <summary>
         ///     Convert Boolean to Object.
@@ -49,13 +49,13 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         public object BoolToObject(bool suspect)
         {
             // If string has been converted before.
-            if (dicBoolObject.TryGetValue(suspect, out object obj)) return obj;
+            if (_dicBoolObject.TryGetValue(suspect, out object obj)) return obj;
 
             obj = GetString(suspect.ToString());
 
             // Welp, it's actually a bool.
             // Record the string anyway. Dis many importanto.
-            dicBoolObject.TryAdd(suspect, obj);
+            _dicBoolObject.TryAdd(suspect, obj);
             return obj;
         }
 
@@ -75,13 +75,13 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         public object DateToObject(DateTime suspect, string dateFormat = "")
         {
             // If string has been converted before.
-            if (dicDateObject.TryGetValue(suspect, out object obj)) return obj;
+            if (_dicDateObject.TryGetValue(suspect, out object obj)) return obj;
 
             obj = GetString(suspect.ToString(dateFormat));
 
             // Welp, it's actually a date.
             // Record the string anyway. Dis many importanto.
-            dicDateObject.TryAdd(suspect, obj);
+            _dicDateObject.TryAdd(suspect, obj);
             return obj;
         }
 
@@ -98,14 +98,14 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         public object DoubleToObject(double suspect)
         {
             // If string has been converted before.
-            if (dicDoubleObject.TryGetValue(suspect, out object obj)) return obj;
+            if (_dicDoubleObject.TryGetValue(suspect, out object obj)) return obj;
 
             // This feels like cheating tbh.
             obj = GetString(suspect.ToString(string.Empty));
 
             // Welp, it's actually a date.
             // Record the string anyway. Dis many importanto.
-            dicDoubleObject.TryAdd(suspect, obj);
+            _dicDoubleObject.TryAdd(suspect, obj);
             return obj;
         }
 
@@ -122,14 +122,14 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         public object IntToObject(int suspect)
         {
             // If string has been converted before.
-            if (dicIntObject.TryGetValue(suspect, out object obj)) return obj;
+            if (_dicIntObject.TryGetValue(suspect, out object obj)) return obj;
 
             // Definitely cheating.
             obj = GetString(suspect.ToString());
 
             // Welp, it's actually a date.
             // Record the string anyway. Dis many importanto.
-            dicIntObject.TryAdd(suspect, obj);
+            _dicIntObject.TryAdd(suspect, obj);
             return obj;
         }
     }
