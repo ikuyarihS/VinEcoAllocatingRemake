@@ -1,4 +1,6 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,11 +13,31 @@ using System.Threading.Tasks;
 using Aspose.Cells;
 using VinEcoAllocatingRemake.AllocatingInventory.Models;
 
+#endregion
+
 namespace VinEcoAllocatingRemake.AllocatingInventory
 {
+    #region
+
+    #endregion
+
+    /// <summary>
+    ///     The allocating inventory.
+    /// </summary>
     public partial class AllocatingInventory
     {
-        private async void FiteMoi(object sender, DoWorkEventArgs e)
+        /// <summary>
+        ///     Fite moi!.
+        /// </summary>
+        /// <param name="sender">
+        ///     The sender.
+        /// </param>
+        /// <param name="e">
+        ///     The e.
+        /// </param>
+        private async void FiteMoi(
+            object sender,
+            DoWorkEventArgs e)
         {
             try
             {
@@ -26,44 +48,52 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 DateTime dateFrom = DateTime.Today;
                 DateTime dateTo = DateTime.Today;
 
-                var distance = new Dictionary<(string supRegion, string cusRegion), int>(4)
-                {
-                    {("MB", "MB"), 1},
-                    {("MN", "MN"), 0},
-                    {("LD", "MB"), 3},
-                    {("LD", "MN"), 0},
-                };
-
-                await Dispatcher.BeginInvoke((Action)(() =>
-                {
-                    dateFrom = DateFromCalendar.DisplayDate;
-                    dateTo = DateToCalendar.DisplayDate;
-
-                    distance = new Dictionary<(string supRegion, string cusRegion), int>(4)
+                var distance =
+                    new Dictionary<(string supRegion, string cusRegion), int>(4)
                     {
-                        {("MB", "MB"), int.Parse(NorthNorth.Text)},
-                        {("MN", "MN"), int.Parse(SouthSouth.Text)},
-                        {("LD", "MB"), int.Parse(MidNorth.Text)},
-                        {("LD", "MN"), int.Parse(MidSouth.Text)},
+                        {("MB", "MB"), 1},
+                        {("MN", "MN"), 0},
+                        {("LD", "MB"), 3},
+                        {("LD", "MN"), 0}
                     };
-                }));
+
+                // ReSharper disable once AsyncConverter.ConfigureAwaitHighlighting
+                await Dispatcher.BeginInvoke(
+                    (Action) (() =>
+                    {
+                        dateFrom = DateFromCalendar.DisplayDate;
+                        dateTo = DateToCalendar.DisplayDate;
+
+                        distance = new Dictionary<(string supRegion, string cusRegion), int>(4)
+                        {
+                            {("MB", "MB"), int.Parse(NorthNorth.Text)},
+                            {("MN", "MN"), int.Parse(SouthSouth.Text)},
+                            {("LD", "MB"), int.Parse(MidNorth.Text)},
+                            {("LD", "MN"), int.Parse(MidSouth.Text)}
+                        };
+                    }));
 
                 int maxDistance = distance.Values.Max();
 
-                dateTo = dateTo > dateFrom ? dateTo : dateFrom;
-                
-                #region Initializing variables
+                dateTo = dateTo > dateFrom
+                    ? dateTo
+                    : dateFrom;
 
-                var products = new ConcurrentDictionary<string, Product>();
-                var suppliers = new ConcurrentDictionary<string, Supplier>();
-                var dicFc =
-                    new Dictionary<(DateTime DateFc, string Region, string ProductCode), 
-                        (SupplierForecast Supply, bool)>();
-                
-                var customers = new ConcurrentDictionary<string, Customer>();
+                var products = new Dictionary<string, Product>();
+                var suppliers = new Dictionary<string, Supplier>();
+
+                // var dicFc = new Dictionary<(DateTime DateFc, string SupplierCode, string ProductCode), (SupplierForecast Supply, bool)>();
+
+                // Date Forecast - Region - ProductCode - Supply & Valid
+                var dicFc = new Dictionary<DateTime, Dictionary<string, Dictionary<string, Dictionary<SupplierForecast, bool>>>>();
+
+                var customers = new Dictionary<string, Customer>();
+
+                //// var dicPo = new Dictionary<(DateTime DatePo, string CusKeyCode, string ProductCode), (CustomerOrder Order, bool)>();
+
+                // Date Order - Region - ProductCode - Order & Valid
                 var dicPo =
-                    new Dictionary<(DateTime DatePo, string Region, string ProductCode), 
-                        (CustomerOrder Order, bool)>();
+                    new Dictionary<DateTime, Dictionary<string, Dictionary<string, Dictionary<CustomerOrder, bool>>>>();
 
                 var dicMoq = new Dictionary<string, double>
                 {
@@ -74,484 +104,488 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     {"C07301", 0.1}, // Ớt ngọt ( chuông ) xanh
                     {"B00201", 0.3}, // Dọc mùng ( bạc hà )
                     {"C01801", 0.3}, // Cà chua cherry đỏ
-                    {"C04401", 0.3}, // Đậu bắp xanh
+                    {"C04401", 0.3} // Đậu bắp xanh
                 };
 
-                #endregion
-
-                WriteToRichTextBoxOutput("Bắt đầu đọc Data", 1);
+                WriteToRichTextBoxOutput(
+                    "Bắt đầu đọc Data",
+                    1);
 
                 var readTasks = new[]
                 {
                     // Products
-                    new Task(delegate
-                    {
-                        if (!File.Exists($@"{_applicationPath}\Database\Products.xlsb")) return;
-
-                        using (var xlWb = new Workbook($@"{_applicationPath}\Database\Products.xlsb",
-                            new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
-                        {
-                            Worksheet xlWs = xlWb.Worksheets[0];
-                            using (DataTable table = xlWs.Cells.ExportDataTable(0, 0, xlWs.Cells.MaxDataRow + 1,
-                                xlWs.Cells.MaxDataColumn + 1, _globalExportTableOptionsopts))
-                            {
-                                foreach (DataRow row in table.Select())
-                                    products.TryAdd(_ulti.ObjectToString(row["ProductCode"]), new Product
-                                    {
-                                        ProductCode = _ulti.ObjectToString(row["ProductCode"]),
-                                        ProductName = _ulti.ObjectToString(row["ProductName"])
-                                    });
-                            }
-                        }
-                    }),
+                    new Task(delegate { products = ReadProducts(); }),
 
                     // Suppliers
-                    new Task(delegate
-                    {
-                        if (!File.Exists($@"{_applicationPath}\Database\Suppliers.xlsb")) return;
-
-                        using (var xlWb = new Workbook($@"{_applicationPath}\Database\Suppliers.xlsb",
-                            new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
-                        {
-                            Worksheet xlWs = xlWb.Worksheets[0];
-                            using (DataTable table = xlWs.Cells.ExportDataTable(0, 0, xlWs.Cells.MaxDataRow + 1,
-                                xlWs.Cells.MaxDataColumn + 1, _globalExportTableOptionsopts))
-                            {
-                                foreach (DataRow row in table.Select())
-                                    suppliers.TryAdd(_ulti.ObjectToString(row["SupplierCode"]), new Supplier
-                                    {
-                                        SupplierRegion = _ulti.ObjectToString(row["SupplierRegion"]),
-                                        SupplierType = _ulti.ObjectToString(row["SupplierType"]),
-                                        SupplierCode = _ulti.ObjectToString(row["SupplierCode"]),
-                                        SupplierName = _ulti.ObjectToString(row["SupplierName"])
-                                    });
-                            }
-                        }
-                    }),
+                    new Task(delegate { suppliers = ReadSuppliers(); }),
 
                     // Customers
-                    new Task(delegate
-                    {
-                        if (!File.Exists($@"{_applicationPath}\Database\Customers.xlsb")) return;
-
-                        using (var xlWb = new Workbook($@"{_applicationPath}\Database\Customers.xlsb",
-                            new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
-                        {
-                            Worksheet xlWs = xlWb.Worksheets[0];
-                            using (DataTable table = xlWs.Cells.ExportDataTable(0, 0, xlWs.Cells.MaxDataRow + 1,
-                                xlWs.Cells.MaxDataColumn + 1, _globalExportTableOptionsopts))
-                            {
-                                foreach (DataRow row in table.Select())
-                                    customers.TryAdd(_ulti.ObjectToString(row["Key"]), new Customer
-                                    {
-                                        CustomerKeyCode = _ulti.ObjectToString(row["Code"]),
-                                        CustomerCode = _ulti.ObjectToString(row["Code"]),
-                                        CustomerName = _ulti.ObjectToString(row["Name"]),
-                                        CustomerBigRegion = _ulti.ObjectToString(row["Region"]),
-                                        CustomerRegion = _ulti.ObjectToString(row["SubRegion"]),
-                                        Company = _ulti.ObjectToString(row["P&L"]),
-                                        CustomerType = _ulti.ObjectToString(row["Type"])
-                                    });
-                            }
-                        }
-                    }),
+                    new Task(delegate { customers = ReadCustomers(); })
                 };
 
                 // Here we go.
-                Parallel.ForEach(readTasks, new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount},
+                Parallel.ForEach(
+                    readTasks,
+                    new ParallelOptions
+                    {
+                        MaxDegreeOfParallelism = Environment.ProcessorCount
+                    },
                     task => { task.Start(); });
 
                 // Gonna wait for all reading tasks to finish.
-                await Task.WhenAll(readTasks);
-                WriteToRichTextBoxOutput("Đọc xong Data - Phần 1.", 2);
+                await Task.WhenAll(readTasks).ConfigureAwait(true);
+                WriteToRichTextBoxOutput(
+                    "Đọc xong Data - Phần 1.",
+                    2);
 
                 readTasks = new[]
                 {
                     // Forecasts
-                    new Task(delegate
-                    {
-                        // Safeguard
-                        if (!File.Exists($@"{_applicationPath}\Database\Forecasts.xlsb"))
+                    new Task(
+                        delegate
                         {
-                            WriteToRichTextBoxOutput("Không có Database Forecast.");
-                            return;
-                        }
-
-                        using (var xlWb = new Workbook($@"{_applicationPath}\Database\Forecasts.xlsb",
-                            new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
-                        {
-                            Worksheet xlWs = xlWb.Worksheets[0];
-                            using (DataTable table = xlWs.Cells.ExportDataTable(0, 0, xlWs.Cells.MaxDataRow + 1,
-                                xlWs.Cells.MaxDataColumn + 1, _globalExportTableOptionsopts))
+                            // Safeguard
+                            if (!File.Exists($@"{_applicationPath}\Database\Forecasts.xlsb"))
                             {
-                                var colFirst = 0;
-                                var colLast = 0;
-
-                                for (var colIndex = 0; colIndex < table.Columns.Count; colIndex++)
-                                {
-                                    using (DataColumn column = table.Columns[colIndex])
-                                    {
-                                        DateTime? dateFc = _ulti.StringToDate(_ulti.GetString(column.ColumnName));
-                                        if (dateFc == null) continue;
-
-                                        if (dateFc == dateFrom.AddDays(-maxDistance))
-                                            colFirst = colIndex;
-
-                                        if (dateFc != dateTo.AddDays(maxDistance)) continue;
-
-                                        colLast = colIndex;
-                                        break;
-                                    }
-                                }
-
-                                foreach (DataRow row in table.Select())
-                                {
-                                    string productCode = _ulti.ObjectToString(row["ProductCode"]);
-                                    string supplierCode = _ulti.ObjectToString(row["SupplierCode"]);
-
-                                    for (int colIndex = colFirst; colIndex <= colLast; colIndex++)
-                                        using (DataColumn column = table.Columns[colIndex])
-                                        {
-                                            // First check point. Is it a valid date?
-                                            DateTime? dateFc = _ulti.StringToDate(column.ColumnName);
-                                            // FiteMoi specific Validation for date.
-                                            //if (dateFc == null || dateFc > dateTo || dateFc < dateFrom) continue;
-
-                                            // Second check point. Is it a valid forecast value?
-                                            double fcValue = _ulti.ObjectToDouble(row[colIndex]);
-                                            if (fcValue <= 0) continue;
-
-                                            dicFc.Add(
-                                                // ReSharper disable once PossibleInvalidOperationException
-                                                ((DateTime) dateFc, supplierCode, productCode),
-                                                (new SupplierForecast
-                                                {
-                                                    QualityControlPass = true,
-                                                    SupplierCode = supplierCode,
-                                                    FullOrder = _ulti.ObjectToInt(row["FullOrder"]) == 1,
-                                                    CrossRegion = _ulti.ObjectToInt(row["CrossRegion"]) == 1,
-                                                    LabelVinEco = _ulti.ObjectToInt(row["Label"]) == 1,
-                                                    Level = (byte) _ulti.ObjectToInt(row["Level"])
-                                                }, false));
-                                        }
-                                }
+                                WriteToRichTextBoxOutput("Không có Database Forecast.");
+                                return;
                             }
-                        }
-                    }),
 
-                    // Orders
-                    new Task(delegate
-                    {
-                        try
-                        {
-                            string path = $@"{_applicationPath}\Database\Orders.xlsb";
-                            if (!File.Exists(path)) return;
-
-                            using (var xlWb = new Workbook(path,
-                                new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
+                            using (var workbook = new Workbook(
+                                $@"{_applicationPath}\Database\Forecasts.xlsb",
+                                new LoadOptions
+                                {
+                                    MemorySetting = MemorySetting.MemoryPreference
+                                }))
                             {
-                                Worksheet xlWs = xlWb.Worksheets[0];
-                                using (DataTable table = xlWs.Cells.ExportDataTable(0, 0, xlWs.Cells.MaxDataRow + 1,
-                                    xlWs.Cells.MaxDataColumn + 1, _globalExportTableOptionsopts))
+                                Worksheet worksheet = workbook.Worksheets[0];
+                                using (DataTable table = worksheet.Cells.ExportDataTable(
+                                    0,
+                                    0,
+                                    worksheet.Cells.MaxDataRow + 1,
+                                    worksheet.Cells.MaxDataColumn + 1,
+                                    _globalExportTableOptionsOpts))
                                 {
                                     var colFirst = 0;
                                     var colLast = 0;
 
-                                    for (var colIndex = 0; colIndex < table.Columns.Count; colIndex++)
-                                    {
+                                    for (var colIndex = 0;
+                                        colIndex < table.Columns.Count;
+                                        colIndex++)
                                         using (DataColumn column = table.Columns[colIndex])
                                         {
-                                            DateTime? dateFc = _ulti.StringToDate(_ulti.GetString(column.ColumnName));
-                                            if (dateFc == null) continue;
+                                            DateTime? dateFc = _ulti.StringToDate(
+                                                _ulti.GetString(column.ColumnName));
+                                            {
+                                                if (dateFc == null) continue;
+                                            }
 
-                                            if (dateFc == dateFrom.AddDays(-maxDistance))
-                                                colFirst = colIndex;
+                                            if (dateFc == dateFrom.AddDays(-maxDistance)) colFirst = colIndex;
 
                                             if (dateFc != dateTo.AddDays(maxDistance)) continue;
 
                                             colLast = colIndex;
                                             break;
                                         }
-                                    }
 
                                     foreach (DataRow row in table.Select())
                                     {
                                         string productCode = _ulti.ObjectToString(row["ProductCode"]);
-                                        string cusKeyCode = _ulti.ObjectToString(row["CustomerKeyCode"]);
+                                        string supplierCode = _ulti.ObjectToString(row["SupplierCode"]);
 
-                                        for (int colIndex = colFirst; colIndex <= colLast; colIndex++)
+                                        for (int colIndex = colFirst;
+                                            colIndex <= colLast;
+                                            colIndex++)
                                             using (DataColumn column = table.Columns[colIndex])
                                             {
                                                 // First check point. Is it a valid date?
-                                                // ReSharper disable once PossibleInvalidOperationException
-                                                // Because I'm confident about that.
-                                                // ... it's my fucking database.
-                                                DateTime? datePo = _ulti.StringToDate(_ulti.GetString(column.ColumnName));
-                                                //if (datePo == null || datePo > dateTo || datePo < dateFrom) continue;
+                                                DateTime? dateFc =
+                                                    _ulti.StringToDate(column.ColumnName);
+
+                                                // FiteMoi specific Validation for date.
+                                                // if (dateFc == null || dateFc > dateTo || dateFc < dateFrom) continue;
 
                                                 // Second check point. Is it a valid forecast value?
-                                                double poValue = _ulti.ObjectToDouble(row[colIndex]);
-                                                if (poValue <= 0) continue;
+                                                double value = _ulti.ObjectToDouble(row[colIndex]);
+                                                if (value <= 0) continue;
 
-                                                dicPo.Add(
-                                                    // ReSharper disable once PossibleInvalidOperationException
-                                                    ((DateTime) datePo, cusKeyCode, productCode),
-                                                    (new CustomerOrder
+                                                // ReSharper disable once PossibleInvalidOperationException
+                                                if (!dicFc.TryGetValue((DateTime) dateFc, out Dictionary<string, Dictionary<string, Dictionary<SupplierForecast, bool>>> fcRegion))
+                                                {
+                                                    fcRegion = new Dictionary<string, Dictionary<string, Dictionary<SupplierForecast, bool>>>();
+                                                    dicFc.Add(
+                                                        (DateTime) dateFc,
+                                                        fcRegion);
+                                                }
+
+                                                if (!fcRegion.TryGetValue(suppliers[supplierCode].SupplierRegion, out Dictionary<string, Dictionary<SupplierForecast, bool>> fcProducts))
+                                                {
+                                                    fcProducts = new Dictionary<string, Dictionary<SupplierForecast, bool>>();
+                                                    fcRegion.Add(
+                                                        suppliers[supplierCode]
+                                                            .SupplierRegion,
+                                                        fcProducts);
+                                                }
+
+                                                if (!fcProducts.TryGetValue(productCode, out Dictionary<SupplierForecast, bool> fcSupplies))
+                                                {
+                                                    fcSupplies = new Dictionary<SupplierForecast, bool>();
+                                                    fcProducts.Add(
+                                                        productCode,
+                                                        fcSupplies);
+                                                }
+
+                                                fcSupplies.Add(
+                                                    new SupplierForecast
                                                     {
-                                                        CustomerKeyCode = cusKeyCode,
-                                                        QuantityOrder = poValue
-                                                    }, false));
+                                                        QualityControlPass = true,
+                                                        SupplierCode = supplierCode,
+                                                        FullOrder = _ulti.ObjectToInt(row["FullOrder"]) == 1,
+                                                        CrossRegion = _ulti.ObjectToInt(row["CrossRegion"]) == 1,
+                                                        LabelVinEco = _ulti.ObjectToInt(row["Label"]) == 1,
+                                                        Level = (byte) _ulti.ObjectToInt(row["Level"])
+                                                    },
+                                                    false);
                                             }
                                     }
                                 }
                             }
-                        }
-                        catch (Exception ex)
+                        }),
+
+                    // Orders
+                    new Task(
+                        delegate
                         {
-                            WriteToRichTextBoxOutput(ex.Message);
-                            throw;
-                        }
-                    })
+                            try
+                            {
+                                string path = $@"{_applicationPath}\Database\Orders.xlsb";
+                                if (!File.Exists(path)) return;
+
+                                using (var workbook = new Workbook(
+                                    path,
+                                    new LoadOptions
+                                    {
+                                        MemorySetting =
+                                            MemorySetting.MemoryPreference
+                                    }))
+                                {
+                                    Worksheet worksheet = workbook.Worksheets[0];
+                                    using (DataTable table = worksheet.Cells.ExportDataTable(
+                                        0,
+                                        0,
+                                        worksheet.Cells.MaxDataRow + 1,
+                                        worksheet.Cells.MaxDataColumn + 1,
+                                        _globalExportTableOptionsOpts))
+                                    {
+                                        var colFirst = 0;
+                                        var colLast = 0;
+
+                                        for (var colIndex = 0;
+                                            colIndex < table.Columns.Count;
+                                            colIndex++)
+                                            using (DataColumn column = table.Columns[colIndex])
+                                            {
+                                                DateTime? dateFc = _ulti.StringToDate(
+                                                    _ulti.GetString(column.ColumnName));
+                                                if (dateFc == null) continue;
+
+                                                if (dateFc == dateFrom.AddDays(-maxDistance)) colFirst = colIndex;
+
+                                                if (dateFc != dateTo.AddDays(maxDistance)) continue;
+
+                                                // Once encounter dateTo, break, and record its location.
+                                                // Further optimization, coz it IS my database.
+                                                colLast = colIndex;
+                                                break;
+                                            }
+
+                                        foreach (DataRow row in table.Select())
+                                        {
+                                            string productCode =
+                                                _ulti.ObjectToString(row["ProductCode"]);
+                                            string cusKeyCode =
+                                                _ulti.ObjectToString(row["CustomerKeyCode"]);
+
+                                            for (int colIndex = colFirst;
+                                                colIndex <= colLast;
+                                                colIndex++)
+                                                using (DataColumn column = table.Columns[colIndex])
+                                                {
+                                                    // First check point. Is it a valid date?
+                                                    // ReSharper disable once PossibleInvalidOperationException
+                                                    // Because I'm confident about that.
+                                                    // ... it's my fucking database.
+                                                    DateTime? datePo = _ulti.StringToDate(
+                                                        _ulti.GetString(column.ColumnName));
+
+                                                    // if (datePo == null || datePo > dateTo || datePo < dateFrom) continue;
+
+                                                    // Second check point. Is it a valid forecast value?
+                                                    double value = _ulti.ObjectToDouble(row[colIndex]);
+                                                    if (value <= 0) continue;
+
+                                                    // ReSharper disable once PossibleInvalidOperationException
+                                                    if (!dicPo.TryGetValue((DateTime) datePo, out Dictionary<string, Dictionary<string, Dictionary<CustomerOrder, bool>>> poRegion))
+                                                    {
+                                                        poRegion = new Dictionary<string, Dictionary<string, Dictionary<CustomerOrder, bool>>>();
+                                                        dicPo.Add(
+                                                            (DateTime) datePo,
+                                                            poRegion);
+                                                    }
+
+                                                    if (!poRegion.TryGetValue(customers[cusKeyCode].CustomerBigRegion, out Dictionary<string, Dictionary<CustomerOrder, bool>> poProducts))
+                                                    {
+                                                        poProducts = new Dictionary<string, Dictionary<CustomerOrder, bool>>();
+                                                        poRegion.Add(
+                                                            customers[cusKeyCode]
+                                                                .CustomerBigRegion,
+                                                            poProducts);
+                                                    }
+
+                                                    if (!poProducts.TryGetValue(productCode, out Dictionary<CustomerOrder, bool> poOrders))
+                                                    {
+                                                        poOrders = new Dictionary<CustomerOrder, bool>();
+                                                        poProducts.Add(
+                                                            productCode,
+                                                            poOrders);
+                                                    }
+
+                                                    poOrders.Add(
+                                                        new CustomerOrder
+                                                        {
+                                                            CustomerKeyCode =
+                                                                cusKeyCode,
+                                                            QuantityOrder = value
+                                                        },
+                                                        false);
+
+                                                    // dicPo.Add(
+                                                    // // ReSharper disable once PossibleInvalidOperationException
+                                                    // ((DateTime)datePo, cusKeyCode, productCode
+                                                    // ),
+                                                    // (new CustomerOrder
+                                                    // {
+                                                    // CustomerKeyCode =
+                                                    // cusKeyCode,
+                                                    // QuantityOrder =
+                                                    // poValue
+                                                    // }, false));
+                                                }
+                                        }
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                WriteToRichTextBoxOutput(ex.Message);
+                                throw;
+                            }
+                        })
                 };
 
                 // Here we go.
-                Parallel.ForEach(readTasks, new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount},
+                Parallel.ForEach(
+                    readTasks,
+                    new ParallelOptions
+                    {
+                        MaxDegreeOfParallelism = Environment.ProcessorCount
+                    },
                     task => { task.Start(); });
 
                 // Gonna wait for all reading tasks to finish.
-                await Task.WhenAll(readTasks);
-                WriteToRichTextBoxOutput("Đọc xong Data - Phần 2.", 2);
+                await Task.WhenAll(readTasks).ConfigureAwait(true);
+                WriteToRichTextBoxOutput(
+                    "Đọc xong Data - Phần 2.",
+                    2);
 
-                var listDatePo = new List<DateTime>();
-                foreach ((DateTime datePo, string _, string _) in dicPo.Keys)
-                {
-                    if (!listDatePo.Contains(datePo))
-                        listDatePo.Add(datePo);
-                }
+                List<DateTime> listDatePo = dicPo.Keys.ToList();
 
                 WriteToRichTextBoxOutput("Here goes nothing.");
+
+                var coordResult = new Dictionary<string, Dictionary<(DateTime DatePo, string ProductCode, CustomerOrder Order), (DateTime DateFc, SupplierForecast Supply)>>();
 
                 foreach (string priority in new[]
                 {
                     "B2B",
-                    //"VM+ VinEco Priority",
+
+                    // "VM+ VinEco Priority",
                     "VM+ VinEco",
-                    //"VM Priority",
-                    //"VM+",
-                    //"VM",
+
+                    // "VM Priority",
+                    // "VM+",
+                    // "VM",
                     string.Empty
                 })
                     Coord(priority);
 
-                void Coord(string priority = "")
+                void Coord(
+                    string priority = "")
                 {
                     try
                     {
+                        var localCustomers = new ConcurrentDictionary<string, Customer>(customers);
+                        var localSuppliers = new ConcurrentDictionary<string, Supplier>(suppliers);
                         var localWatch = new Stopwatch();
 
                         foreach (DateTime datePo in listDatePo)
                         {
                             localWatch.Restart();
 
-                            foreach (string pCode in products.Keys)
+                            foreach (string productCode in products.Keys)
                             {
-                                //if (!listPo.Any(po =>
-                                //    po.Key.ProductCode == pCode &&
-                                //    (priority == string.Empty ||
-                                //     //po.Value.Order.CustomerCode.IndexOf($"| {priority} |",
-                                //     //    StringComparison.OrdinalIgnoreCase) >= 0)))
-                                //     (po.Value.Order.CustomerCode?.Contains($"| {priority} |") ?? false))))
-                                //    continue;
-
-                                //if (listFc.All(fc => fc.Key.ProductCode != pCode))
-                                //    continue;
-
-                                Dictionary<(DateTime DatePo, string CusKeyCode, string ProductCode),
-                                    (CustomerOrder Order, bool)> localPo =
-                                    dicPo.Where(po =>
-                                            po.Key.ProductCode == pCode &&
-                                            (priority == string.Empty ||
-                                             /*customers[po.Value.Order.CustomerCode].CustomerType == priority*/
-                                             (po.Value.Order.CustomerCode?.Contains($"| {priority} |") ?? false)))
-                                        .ToDictionary(x => x.Key, x => x.Value);
-
-                                Dictionary<(DateTime DateFc, string SupplierCode, string ProductCode),
-                                    (SupplierForecast Supply, bool)> localFc =
-                                    dicFc.Where(fc => fc.Key.ProductCode == pCode)
-                                        .ToDictionary(x => x.Key, x => x.Value);
-
-                                //localFc.RemoveAll(fc => fc.Key.ProductCode != pCode);
-
-                                if (!localFc.Any()) continue;
-
-                                //localPo.RemoveAll(po => po.Key.ProductCode != pCode ||
-                                //                        (priority != string.Empty ||
-                                //                         customers[po.Value.Order.CustomerCode].CustomerType != priority));
-
-                                // Just, skip.
-                                if (!localPo.Any()) continue;
-
-                                //var poNorth =
-                                //    new List<((DateTime DatePo, string Region, string ProductCode) Key, (CustomerOrder
-                                //        Order, bool) Value)>(localPo);
-                                //poNorth.RemoveAll(po =>
-                                //    po.Key.DatePo != datePo || 
-                                //    po.Key.Region != _ulti.GetString("MB"));
-
-                                //var poSouth =
-                                //    new List<((DateTime DatePo, string Region, string ProductCode) Key, (CustomerOrder
-                                //        Order, bool) Value)>(localPo);
-                                //poSouth.RemoveAll(po =>
-                                //    po.Key.DatePo != datePo.AddDays(-distance[("LD", "MB")] + distance[("LD", "MN")]) || 
-                                //    po.Key.Region != _ulti.GetString("MN"));
-
-                                var poNorth =
-                                    new Dictionary<(DateTime DatePo, string Region, string ProductCode),
-                                        (CustomerOrder Order, bool)>();
-
-                                var poSouth =
-                                    new Dictionary<(DateTime DatePo, string Region, string ProductCode),
-                                        (CustomerOrder Order, bool)>();
-
-                                double sumPoNorth = 0;
-                                double sumPoSouth = 0;
-                                // ReSharper disable once ForCanBeConvertedToForeach
-                                foreach ((DateTime DatePo, string CusKeyCode, string ProductCode) key in localPo.Keys)
+                                Dictionary<CustomerOrder, bool> GetOrderDictionary(DateTime date, string region)
                                 {
-                                    (CustomerOrder Order, bool) value = localPo[key];
-                                    if (key.DatePo == datePo && customers[key.CusKeyCode].CustomerBigRegion == _ulti.GetString("MB"))
-                                        //if ((x.Key.DatePo, x.Key.Region, x.Key.ProductCode).Equals((datePo, "MB", pCode)))
+                                    if (dicPo.TryGetValue(date, out Dictionary<string, Dictionary<string, Dictionary<CustomerOrder, bool>>> orderRegions) && orderRegions.TryGetValue(region, out Dictionary<string, Dictionary<CustomerOrder, bool>> orderRegionProducts) && orderRegionProducts.TryGetValue(productCode, out Dictionary<CustomerOrder, bool> result))
+                                        return result.Where(
+                                                po => priority == string.Empty ||
+                                                      localCustomers[po.Key.CustomerKeyCode]
+                                                          .CustomerType ==
+                                                      priority)
+                                            .ToDictionary(
+                                                po => po.Key,
+                                                po => false);
+
+                                    return null;
+                                }
+
+                                Dictionary<CustomerOrder, bool> orderNorth = GetOrderDictionary(
+                                    datePo,
+                                    "MB");
+
+                                Dictionary<CustomerOrder, bool> orderSouth = GetOrderDictionary(
+                                    datePo.AddDays(-distance[("LD", "MB")] + distance[("LD", "MN")]),
+                                    "MN");
+
+                                double SumOrder(Dictionary<CustomerOrder, bool> source)
+                                {
+                                    return source?.AsParallel()
+                                               .Sum(po => po.Key.QuantityOrder) ??
+                                           0;
+                                }
+
+                                double sumPoNorth = SumOrder(orderNorth);
+                                double sumPoSouth = SumOrder(orderSouth);
+
+                                Dictionary<SupplierForecast, bool> GetForecastDictionary(DateTime date, string region)
+                                {
+                                    if (dicFc.TryGetValue(date, out Dictionary<string, Dictionary<string, Dictionary<SupplierForecast, bool>>> forecastRegions) && forecastRegions.TryGetValue(region, out Dictionary<string, Dictionary<SupplierForecast, bool>> forecastRegionProducts) && forecastRegionProducts.TryGetValue(productCode, out Dictionary<SupplierForecast, bool> result))
+                                        return result.OrderBy(fc => fc.Key.QuantityForecast)
+                                            .ToDictionary(
+                                                fc => fc.Key,
+                                                fc => true);
+
+                                    return null;
+                                }
+
+                                Dictionary<SupplierForecast, bool> forecastNorth = GetForecastDictionary(
+                                    datePo.AddDays(distance[("MB", "MB")]),
+                                    "MB");
+
+                                Dictionary<SupplierForecast, bool> forecastMid = GetForecastDictionary(
+                                    datePo.AddDays(
+                                        -Math.Max(
+                                            distance[("LD", "MB")],
+                                            distance[("LD", "MN")])),
+                                    "LD");
+
+                                Dictionary<SupplierForecast, bool> forecastSouth = GetForecastDictionary(
+                                    datePo.AddDays(-distance[("MN", "MN")]),
+                                    "MN");
+
+                                double SumForecast(Dictionary<SupplierForecast, bool> source)
+                                {
+                                    return source?.AsParallel()
+                                               .Sum(fc => fc.Key.QuantityForecast) ??
+                                           0;
+                                }
+
+                                double sumFcNorth = SumForecast(forecastNorth);
+                                double sumFcMid = SumForecast(forecastMid);
+                                double sumFcSouth = SumForecast(forecastSouth);
+
+                                // Todo - Implement Rate
+                                // Working on this.
+                                CalculateRate();
+
+                                void CalculateRate()
+                                {
+                                    try
                                     {
-                                        poNorth.Add(key, value);
-                                        sumPoNorth += value.Order.QuantityOrder;
+                                        double northMissing = sumPoNorth - sumFcNorth;
+                                        double southMissing = sumPoSouth - sumFcSouth;
+
+                                        double rateNorth = (sumFcNorth + sumFcMid * (northMissing / (northMissing + southMissing))) / sumPoNorth;
+                                        double rateSouth = (sumFcSouth + sumFcMid * (southMissing / (northMissing + southMissing))) / sumPoSouth;
+
+                                        void PairSupplyOrder(CustomerOrder customerOrder, IDictionary<CustomerOrder, bool> orders, IDictionary<SupplierForecast, bool> forecasts, double rate)
+                                        {
+                                            try
+                                            {
+                                                // Validation.
+                                                // Why the heck is this empty in the first place?
+                                                if (!forecasts.Any()) return;
+
+                                                SupplierForecast supply = forecasts.Aggregate((current, next) => current.Key.QuantityForecast > next.Key.QuantityForecast ? current : next).Key;
+                                                forecasts.Remove(supply);
+
+                                                double deliQuantity = Math.Min(
+                                                    customerOrder.QuantityOrder * rate,
+                                                    supply.QuantityForecast);
+
+                                                supply.QuantityForecast -= deliQuantity;
+
+                                                // ReSharper disable once SuggestVarOrType_Elsewhere
+                                                if (!coordResult.TryGetValue(productCode, out var dicCoord))
+                                                {
+                                                    dicCoord = new Dictionary<(DateTime DatePo, string ProductCode, CustomerOrder Order), (DateTime DateFc, SupplierForecast Supply)>();
+                                                    coordResult.Add(productCode, dicCoord);
+                                                }
+
+                                                dicCoord.Add(
+                                                    (datePo, productCode, customerOrder),
+                                                    (datePo.AddDays(-1), supply));
+
+                                                forecasts.Add(supply, false);
+
+                                                orders.Remove(customerOrder);
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                WriteToRichTextBoxOutput(ex.Message);
+                                                throw;
+                                            }
+                                        }
+
+                                        if (orderNorth != null && sumFcNorth + sumFcMid >= 0)
+                                            foreach (CustomerOrder customerOrder in orderNorth.Keys.OrderByDescending(po => po.QuantityOrder).ToList())
+                                            {
+                                                if (forecastNorth != null)
+                                                {
+                                                    PairSupplyOrder(customerOrder, orderNorth, forecastNorth, rateNorth);
+
+                                                    continue;
+                                                }
+
+                                                if (forecastMid == null) continue;
+
+                                                {
+                                                    PairSupplyOrder(customerOrder, orderNorth, forecastMid, rateNorth);
+                                                }
+                                            }
                                     }
-                                    else if (key.DatePo ==
-                                        datePo.AddDays(-distance[("LD", "MB")] + distance[("LD", "MN")]) &&
-                                        customers[key.CusKeyCode].CustomerBigRegion == "MN")
-                                        //if ((x.Key.DatePo, x.Key.Region, x.Key.ProductCode).Equals(
-                                        //    (datePo.AddDays(-dicDistance[("LĐ", "MB")] + dicDistance[("LĐ", "MN")]), "MN",
-                                        //    pCode))) 
+                                    catch (Exception ex)
                                     {
-                                        poSouth.Add(key, value);
-                                        sumPoSouth += value.Order.QuantityOrder;
+                                        WriteToRichTextBoxOutput(ex.Message);
+                                        throw;
                                     }
                                 }
 
-                                //var fcNorth =
-                                //    new List<((DateTime DateFc, string Region, string ProductCode) Key, (
-                                //        SupplierForecast Supply, bool) Value)>(localFc);
-                                //fcNorth.RemoveAll(fc =>
-                                //    fc.Key.DateFc != datePo.AddDays(-distance[("MB", "MB")]) || 
-                                //    fc.Key.Region != "MB");
-
-                                //var fcMid =
-                                //    new List<((DateTime DateFc, string Region, string ProductCode) Key, (
-                                //        SupplierForecast Supply, bool) Value)>(localFc);
-                                //fcMid.RemoveAll(fc =>
-                                //    fc.Key.DateFc != datePo.AddDays(-Math.Max(distance[("LD", "MB")], distance[("LD", "MN")])) || 
-                                //    fc.Key.Region != "LD");
-
-                                //var fcSouth =
-                                //    new List<((DateTime DateFc, string Region, string ProductCode) Key, (
-                                //        SupplierForecast Supply, bool) Value)>(localFc);
-                                //fcSouth.RemoveAll(fc =>
-                                //    fc.Key.DateFc != datePo.AddDays(-distance[("MN", "MN")]) || 
-                                //    fc.Key.Region != "MN");
-
-                                var fcNorth =
-                                    new Dictionary<(DateTime DateFc, string Region, string ProductCode), (
-                                        SupplierForecast Supply, bool)>();
-
-                                var fcMid =
-                                    new Dictionary<(DateTime DateFc, string Region, string ProductCode), (
-                                        SupplierForecast Supply, bool)>();
-
-                                var fcSouth =
-                                    new Dictionary<(DateTime DateFc, string Region, string ProductCode), (
-                                        SupplierForecast Supply, bool)>();
-
-                                double sumFcNorth = 0;
-                                double sumFcMid = 0;
-                                double sumFcSouth = 0;
-                                // ReSharper disable once ForCanBeConvertedToForeach
-                                foreach ((DateTime DateFc, string SupplierCode, string ProductCode) key in localFc.Keys)
-                                {
-                                    (SupplierForecast Supply, bool) value = localFc[key];
-                                    //((DateTime DateFc, string Region, string ProductCode) Key,
-                                    //    (SupplierForecast Supply, bool) Value) fc = listFc[index];
-
-                                    if (key.DateFc == datePo.AddDays(distance[("MB", "MB")]) &&
-                                        suppliers[key.SupplierCode].SupplierRegion == "MB")
-                                    {
-                                        fcNorth.Add(key, value);
-                                        sumFcNorth += value.Supply.QuantityForecast;
-                                    }
-                                    else if (key.DateFc != datePo.AddDays(-Math.Max(distance[("LD", "MB")], distance[("LD", "MN")])) ||
-                                        suppliers[key.SupplierCode].SupplierRegion != "LD")
-                                    {
-                                        fcMid.Add(key, value);
-                                        sumFcMid += value.Supply.QuantityForecast;
-                                    }
-                                    else if (key.DateFc != datePo.AddDays(-distance[("MN", "MN")]) ||
-                                        suppliers[key.SupplierCode].SupplierRegion != "MN")
-                                    {
-                                        fcSouth.Add(key, value);
-                                        sumFcSouth += value.Supply.QuantityForecast;
-                                    }
-                                }
-
-                                //var count = 0;
-                                //for (var index = 0; index < listPo.Count; index++)
-                                //{
-                                //    if (dicPo.Keys.ElementAt(index).DatePo == datePo)
-                                //        count++;
-                                //}
-
-                                //var poNorth = new Dictionary<(DateTime DatePo, string ProductCode, string CustomerKeyCode),
-                                //    (CustomerOrder Order, bool)>(count);
-
-                                //for (var index = 0; index < dicPo.Count; index++)
-                                //{
-                                //    (DateTime DatePo, string ProductCode, string CustomerKeyCode) key =
-                                //        dicPo.Keys.ElementAt(index);
-
-                                //    if (key.DatePo != datePo || dicPo[key].Item2 == false) continue;
-                                //    poNorth.Add(key, dicPo[key]);
-                                //}
-
-                                // Todo - CHECK THIS.
-                                //double sumPoNorth = 0;
-                                //foreach (((DateTime _, string _, string _), (CustomerOrder Order, bool) value) in
-                                //    poNorth) sumPoNorth += value.Order.QuantityOrder;
-
-                                //double sumPoSouth = 0;
-                                //foreach (((DateTime _, string _, string _), (CustomerOrder Order, bool) value) in
-                                //    poSouth) sumPoSouth += value.Order.QuantityOrder;
-
-                                //double sumFcNorth = 0;
-                                //foreach (((DateTime _, string _, string _), (SupplierForecast Supply, bool) value) in
-                                //    fcNorth) sumFcNorth += value.Supply.QuantityForecast;
-
-                                //double sumFcMid = 0;
-                                //foreach (((DateTime _, string _, string _), (SupplierForecast Supply, bool) value) in
-                                //    fcMid) sumFcMid += value.Supply.QuantityForecast;
-
-                                //double sumFcSouth = 0;
-                                //foreach (((DateTime _, string _, string _), (SupplierForecast Supply, bool) value) in
-                                //    fcSouth) sumFcSouth += value.Supply.QuantityForecast;
-
-                                //WriteToRichTextBoxOutput($"Date: {_ulti.DateToString(datePo, "dd-MMM-yy")} || Product: {pCode} - {products[pCode].ProductName}");
-                                //WriteToRichTextBoxOutput($"PO: North: {sumPoNorth} || South: {sumPoSouth}");
-                                //WriteToRichTextBoxOutput($"FC: North: {sumFcNorth} || Mid: {sumFcMid} || South: {sumFcSouth}");
-                                //WriteToRichTextBoxOutput();
-
-                                //listPo = listPo.Except(localPo).ToList();
-
-                                //return;
+                                // Todo - Select Supplier for each Order.
                             }
-                            
-                            WriteToRichTextBoxOutput($"{_ulti.DateToString(datePo, "dd-MMM-yyyy")}: {Math.Round(localWatch.Elapsed.TotalSeconds, 2).ToString(CultureInfo.InvariantCulture)}s!");
                         }
+
+                        WriteToRichTextBoxOutput(
+                            $"{(priority == string.Empty ? "Còn lại" : priority)}: {Math.Round(localWatch.Elapsed.TotalSeconds, 2).ToString(CultureInfo.InvariantCulture)}s!");
 
                         localWatch.Stop();
                     }
@@ -576,6 +610,158 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             finally
             {
                 TryClear();
+            }
+        }
+
+        /// <summary>
+        ///     Reading Customers from database.
+        /// </summary>
+        /// <returns>
+        ///     The <see cref="Task" />.
+        /// </returns>
+        private Dictionary<string, Customer> ReadCustomers()
+        {
+            try
+            {
+                var customers = new Dictionary<string, Customer>();
+                if (!File.Exists($@"{_applicationPath}\Database\Customers.xlsb")) return null;
+
+                using (var workbook = new Workbook(
+                    $@"{_applicationPath}\Database\Customers.xlsb",
+                    new LoadOptions
+                    {
+                        MemorySetting = MemorySetting.MemoryPreference
+                    }))
+                {
+                    Worksheet worksheet = workbook.Worksheets[0];
+                    using (DataTable table = worksheet.Cells.ExportDataTable(
+                        0,
+                        0,
+                        worksheet.Cells.MaxDataRow + 1,
+                        worksheet.Cells.MaxDataColumn + 1,
+                        _globalExportTableOptionsOpts))
+                    {
+                        foreach (DataRow row in table.Select())
+                            customers.Add(
+                                _ulti.ObjectToString(row["Key"]),
+                                new Customer
+                                {
+                                    CustomerKeyCode = _ulti.ObjectToString(row["Code"]),
+                                    CustomerCode = _ulti.ObjectToString(row["Code"]),
+                                    CustomerName = _ulti.ObjectToString(row["Name"]),
+                                    CustomerBigRegion = _ulti.ObjectToString(row["Region"]),
+                                    CustomerRegion = _ulti.ObjectToString(row["SubRegion"]),
+                                    Company = _ulti.ObjectToString(row["P&L"]),
+                                    CustomerType = _ulti.ObjectToString(row["Type"])
+                                });
+                    }
+                }
+
+                return customers;
+            }
+            catch (Exception ex)
+            {
+                WriteToRichTextBoxOutput(ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
+        ///     Reading Products from database.
+        /// </summary>
+        /// <returns>
+        ///     The <see cref="Task" />.
+        /// </returns>
+        private Dictionary<string, Product> ReadProducts()
+        {
+            try
+            {
+                // Products
+                var products = new Dictionary<string, Product>();
+                if (!File.Exists($@"{_applicationPath}\Database\Products.xlsb")) return null;
+
+                using (var workbook = new Workbook(
+                    $@"{_applicationPath}\Database\Products.xlsb",
+                    new LoadOptions
+                    {
+                        MemorySetting = MemorySetting.MemoryPreference
+                    }))
+                {
+                    Worksheet worksheet = workbook.Worksheets[0];
+                    using (DataTable table = worksheet.Cells.ExportDataTable(
+                        0,
+                        0,
+                        worksheet.Cells.MaxDataRow + 1,
+                        worksheet.Cells.MaxDataColumn + 1,
+                        _globalExportTableOptionsOpts))
+                    {
+                        foreach (DataRow row in table.Select())
+                            products.Add(
+                                _ulti.ObjectToString(row["ProductCode"]),
+                                new Product
+                                {
+                                    ProductCode = _ulti.ObjectToString(row["ProductCode"]),
+                                    ProductName = _ulti.ObjectToString(row["ProductName"])
+                                });
+                    }
+                }
+
+                return products;
+            }
+            catch (Exception ex)
+            {
+                WriteToRichTextBoxOutput(ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
+        ///     Reading Suppliers from database.
+        /// </summary>
+        /// <returns>
+        ///     The <see cref="Task" />.
+        /// </returns>
+        private Dictionary<string, Supplier> ReadSuppliers()
+        {
+            try
+            {
+                var suppliers = new Dictionary<string, Supplier>();
+                if (!File.Exists($@"{_applicationPath}\Database\Suppliers.xlsb")) return null;
+
+                using (var workbook = new Workbook(
+                    $@"{_applicationPath}\Database\Suppliers.xlsb",
+                    new LoadOptions
+                    {
+                        MemorySetting = MemorySetting.MemoryPreference
+                    }))
+                {
+                    Worksheet worksheet = workbook.Worksheets[0];
+                    using (DataTable table = worksheet.Cells.ExportDataTable(
+                        0,
+                        0,
+                        worksheet.Cells.MaxDataRow + 1,
+                        worksheet.Cells.MaxDataColumn + 1,
+                        _globalExportTableOptionsOpts))
+                    {
+                        foreach (DataRow row in table.Select())
+                            suppliers.Add(
+                                _ulti.ObjectToString(row["SupplierCode"]),
+                                new Supplier
+                                {
+                                    SupplierRegion = _ulti.ObjectToString(row["SupplierRegion"]),
+                                    SupplierType = _ulti.ObjectToString(row["SupplierType"]),
+                                    SupplierCode = _ulti.ObjectToString(row["SupplierCode"]),
+                                    SupplierName = _ulti.ObjectToString(row["SupplierName"])
+                                });
+                    }
+                }
+
+                return suppliers;
+            }
+            catch (Exception ex)
+            {
+                WriteToRichTextBoxOutput(ex.Message);
+                throw;
             }
         }
     }

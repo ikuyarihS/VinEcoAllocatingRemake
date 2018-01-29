@@ -1,29 +1,41 @@
-﻿using System.Text;
+﻿#region
+
+using System.Text;
 using System.Text.RegularExpressions;
+
+#endregion
 
 namespace VinEcoAllocatingRemake.AllocatingInventory
 {
+    /// <summary>
+    ///     The utilities.
+    /// </summary>
     public partial class Utilities
     {
-        // Convert non-ASCII characters in Vietnamese to unsigned, ASCII equivalents.
+        /// <summary>
+        ///     Convert non-ASCII characters in Vietnamese to unsigned, ASCII equivalents.
+        /// </summary>
+        /// <param name="text">
+        ///     The text.
+        /// </param>
+        /// <returns>
+        ///     The <see cref="string" />.
+        /// </returns>
         public string ConvertToUnsigned(string text)
         {
-            const string excludedChars = "(-)"; // lol.
+            const string ExcludedChars = "(-)"; // lol.
 
             for (var i = 33; i < 48; i++)
-                if (!excludedChars.Contains(((char) i).ToString()))
-                    text = text.Replace(((char) i).ToString(), "");
+                if (!ExcludedChars.Contains(((char) i).ToString()))
+                    text = text.Replace(((char) i).ToString(), string.Empty);
 
-            for (var i = 58; i < 65; i++)
-                text = text.Replace(((char) i).ToString(), "");
+            for (var i = 58; i < 65; i++) text = text.Replace(((char) i).ToString(), string.Empty);
 
-            for (var i = 91; i < 97; i++)
-                text = text.Replace(((char) i).ToString(), "");
+            for (var i = 91; i < 97; i++) text = text.Replace(((char) i).ToString(), string.Empty);
 
-            for (var i = 123; i < 127; i++)
-                text = text.Replace(((char) i).ToString(), "");
+            for (var i = 123; i < 127; i++) text = text.Replace(((char) i).ToString(), string.Empty);
 
-            //text = text.Replace(" ", "-"); //Comment lại để không đưa khoảng trắng thành ký tự -
+            // text = text.Replace(" ", "-"); //Comment lại để không đưa khoảng trắng thành ký tự -
             var regex = new Regex(@"\p{IsCombiningDiacriticalMarks}+");
 
             string strFormD = text.Normalize(NormalizationForm.FormD);

@@ -1,18 +1,22 @@
-﻿using System.ComponentModel;
+﻿#region
+
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Media;
 using FirstFloor.ModernUI.Presentation;
+
+#endregion
 
 namespace VinEcoAllocatingRemake.Pages.Settings
 {
     /// <summary>
     ///     A simple view model for configuring theme, font and accent colors.
     /// </summary>
-    public class AppearanceViewModel
-        : NotifyPropertyChanged
+    public class AppearanceViewModel : NotifyPropertyChanged
     {
-        private const string FontSmall = "small";
         private const string FontLarge = "large";
+
+        private const string FontSmall = "small";
 
         // 9 accent colors from metro design principles
         /*private Color[] accentColors = new Color[]{
@@ -28,9 +32,10 @@ namespace VinEcoAllocatingRemake.Pages.Settings
         };*/
 
         // 20 accent colors from Windows Phone 8
-
         private Color selectedAccentColor;
+
         private string selectedFontSize;
+
         private Link selectedTheme;
 
         public AppearanceViewModel()
@@ -44,10 +49,6 @@ namespace VinEcoAllocatingRemake.Pages.Settings
 
             AppearanceManager.Current.PropertyChanged += OnAppearanceManagerPropertyChanged;
         }
-
-        public LinkCollection Themes { get; } = new LinkCollection();
-
-        public string[] FontSizes => new[] {FontSmall, FontLarge};
 
         public Color[] AccentColors { get; } =
         {
@@ -73,18 +74,19 @@ namespace VinEcoAllocatingRemake.Pages.Settings
             Color.FromRgb(0x87, 0x79, 0x4e) // taupe
         };
 
-        public Link SelectedTheme
+        public string[] FontSizes => new[] {FontSmall, FontLarge};
+
+        public Color SelectedAccentColor
         {
-            get => selectedTheme;
+            get => selectedAccentColor;
             set
             {
-                if (selectedTheme != value)
+                if (selectedAccentColor != value)
                 {
-                    selectedTheme = value;
-                    OnPropertyChanged("SelectedTheme");
+                    selectedAccentColor = value;
+                    OnPropertyChanged("SelectedAccentColor");
 
-                    // and update the actual theme
-                    AppearanceManager.Current.ThemeSource = value.Source;
+                    AppearanceManager.Current.AccentColor = value;
                 }
             }
         }
@@ -104,33 +106,37 @@ namespace VinEcoAllocatingRemake.Pages.Settings
             }
         }
 
-        public Color SelectedAccentColor
+        public Link SelectedTheme
         {
-            get => selectedAccentColor;
+            get => selectedTheme;
             set
             {
-                if (selectedAccentColor != value)
+                if (selectedTheme != value)
                 {
-                    selectedAccentColor = value;
-                    OnPropertyChanged("SelectedAccentColor");
+                    selectedTheme = value;
+                    OnPropertyChanged("SelectedTheme");
 
-                    AppearanceManager.Current.AccentColor = value;
+                    // and update the actual theme
+                    AppearanceManager.Current.ThemeSource = value.Source;
                 }
             }
+        }
+
+        public LinkCollection Themes { get; } = new LinkCollection();
+
+        private void OnAppearanceManagerPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "ThemeSource" || e.PropertyName == "AccentColor") SyncThemeAndColor();
         }
 
         private void SyncThemeAndColor()
         {
             // synchronizes the selected viewmodel theme with the actual theme used by the appearance manager.
-            SelectedTheme = Themes.FirstOrDefault(l => l.Source.Equals(AppearanceManager.Current.ThemeSource));
+            SelectedTheme =
+                Themes.FirstOrDefault(l => l.Source.Equals(AppearanceManager.Current.ThemeSource));
 
             // and make sure accent color is up-to-date
             SelectedAccentColor = AppearanceManager.Current.AccentColor;
-        }
-
-        private void OnAppearanceManagerPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "ThemeSource" || e.PropertyName == "AccentColor") SyncThemeAndColor();
         }
     }
 }

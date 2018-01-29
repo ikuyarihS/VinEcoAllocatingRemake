@@ -1,5 +1,9 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
+
+#endregion
 
 namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 {
@@ -7,8 +11,10 @@ namespace VinEcoAllocatingRemake.AllocatingInventory.Models
     {
         public Guid _id { get; set; }
 
-        public Guid ProductId { get; set; }
-        public string ProductCode { get; set; }
         public List<ProductUnitRegion> ListRegion { get; set; }
+
+        public string ProductCode { get; set; }
+
+        public Guid ProductId { get; set; }
     }
 }

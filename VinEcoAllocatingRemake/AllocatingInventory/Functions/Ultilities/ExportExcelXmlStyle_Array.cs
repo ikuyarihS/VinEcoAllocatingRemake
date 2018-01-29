@@ -1,4 +1,6 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -6,8 +8,17 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 
+#endregion
+
 namespace VinEcoAllocatingRemake.AllocatingInventory
 {
+    #region
+
+    #endregion
+
+    /// <summary>
+    ///     The utilities.
+    /// </summary>
     public partial class Utilities
     {
         /// <summary>
@@ -31,8 +42,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         {
             try
             {
-                using (SpreadsheetDocument document =
-                    SpreadsheetDocument.Create(filePath, SpreadsheetDocumentType.Workbook))
+                using (SpreadsheetDocument document = SpreadsheetDocument.Create(
+                    filePath,
+                    SpreadsheetDocumentType.Workbook))
                 {
                     document.AddWorkbookPart();
 
@@ -71,7 +83,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                             {typeof(bool), "Boolean"}
                         };
 
-                        //this list of attributes will be used when writing a start element
+                        // this list of attributes will be used when writing a start element
                         List<OpenXmlAttribute> attributes;
 
                         var workSheetPart = document.WorkbookPart.AddNewPart<WorksheetPart>();
@@ -82,34 +94,38 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                         if (yesHeader)
                         {
-                            //create a new list of attributes
+                            // create a new list of attributes
                             attributes = new List<OpenXmlAttribute>
                             {
                                 // add the row index attribute to the list
                                 new OpenXmlAttribute("r", null, 1.ToString())
                             };
 
-                            //write the row start element with the row index attribute
+                            // write the row start element with the row index attribute
                             writer.WriteStartElement(new Row(), attributes);
 
                             for (var columnNum = 1; columnNum <= array.GetUpperBound(1); ++columnNum)
                             {
-                                //reset the list of attributes
+                                // reset the list of attributes
                                 attributes = new List<OpenXmlAttribute>
                                 {
                                     new OpenXmlAttribute("t", null, "str"),
-                                    new OpenXmlAttribute("r", "", $"{dicColName[columnNum]}1")
+                                    new OpenXmlAttribute(
+                                        "r",
+                                        string.Empty,
+                                        $"{dicColName[columnNum]}1")
                                 };
-                                // add data type attribute - in this case inline string (you might want to look at the shared strings table)
-                                //add the cell reference attribute
 
-                                //write the cell start element with the type and reference attributes
+                                // add data type attribute - in this case inline string (you might want to look at the shared strings table)
+                                // add the cell reference attribute
+
+                                // write the cell start element with the type and reference attributes
                                 writer.WriteStartElement(new Cell(), attributes);
 
-                                //write the cell value
+                                // write the cell value
                                 writer.WriteElement(new CellValue(listColumnNames[columnNum - 1]));
 
-                                //writer.WriteElement(new CellValue(string.Format("This is Row {0}, Cell {1}", rowNum, columnNum)));
+                                // writer.WriteElement(new CellValue(string.Format("This is Row {0}, Cell {1}", rowNum, columnNum)));
 
                                 // write the end cell element
                                 writer.WriteEndElement();
@@ -121,36 +137,33 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                         for (var rowNum = 1; rowNum <= array.GetUpperBound(0); rowNum++)
                         {
-                            //create a new list of attributes
-                            attributes = new List<OpenXmlAttribute>
-                            {
-                                new OpenXmlAttribute("r", null,
-                                    (yesHeader ? rowNum + 1 : rowNum).ToString())
-                            };
+                            // create a new list of attributes
+                            attributes = new List<OpenXmlAttribute> {new OpenXmlAttribute("r", null, (yesHeader ? rowNum + 1 : rowNum).ToString())};
+
                             // add the row index attribute to the list
 
-                            //write the row start element with the row index attribute
+                            // write the row start element with the row index attribute
                             writer.WriteStartElement(new Row(), attributes);
 
-                            //DataRow dr = dt.Rows[rowNum - 1];
+                            // DataRow dr = dt.Rows[rowNum - 1];
                             for (var columnNum = 1; columnNum <= array.GetUpperBound(1); columnNum++)
                             {
                                 Type type = listTypes[columnNum - 1];
-                                //reset the list of attributes
+
+                                // reset the list of attributes
                                 attributes = new List<OpenXmlAttribute>
                                 {
                                     // Add data type attribute - in this case inline string (you might want to look at the shared strings table)
-                                    new OpenXmlAttribute("t", null,
-                                        type == typeof(string) ? "str" : dicType[type]),
+                                    new OpenXmlAttribute("t", null, type == typeof(string) ? "str" : dicType[type]),
+
                                     // Add the cell reference attribute
-                                    new OpenXmlAttribute("r", "",
-                                        $"{dicColName[columnNum]}{(yesHeader ? rowNum + 1 : rowNum).ToString(CultureInfo.InvariantCulture)}")
+                                    new OpenXmlAttribute("r", string.Empty, $"{dicColName[columnNum]}{(yesHeader ? rowNum + 1 : rowNum).ToString(CultureInfo.InvariantCulture)}")
                                 };
 
-                                //write the cell start element with the type and reference attributes
+                                // write the cell start element with the type and reference attributes
                                 writer.WriteStartElement(new Cell(), attributes);
 
-                                //write the cell value
+                                // write the cell value
                                 if (!yesZero && array[rowNum - 1, columnNum - 1] != null && array[rowNum - 1, columnNum - 1].ToString() != "0")
                                     writer.WriteElement(new CellValue(array[rowNum - 1, columnNum - 1].ToString()));
 
@@ -164,22 +177,25 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                         // write the end SheetData element
                         writer.WriteEndElement();
+
                         // write the end Worksheet element
                         writer.WriteEndElement();
                         writer.Close();
 
-                        writerXb.WriteElement(new Sheet
-                        {
-                            Name = theName,
-                            SheetId = Convert.ToUInt32(count + 1),
-                            Id = document.WorkbookPart.GetIdOfPart(workSheetPart)
-                        });
+                        writerXb.WriteElement(
+                            new Sheet
+                            {
+                                Name = theName,
+                                SheetId = Convert.ToUInt32(count + 1),
+                                Id = document.WorkbookPart.GetIdOfPart(workSheetPart)
+                            });
 
                         count++;
                     }
 
                     // End Sheets
                     writerXb.WriteEndElement();
+
                     // End Workbook
                     writerXb.WriteEndElement();
 

@@ -1,11 +1,21 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.Office.Interop.Excel;
 
+#endregion
+
 namespace VinEcoAllocatingRemake.AllocatingInventory
 {
+    #region
+
+    #endregion
+
+    /// <summary>
+    ///     The delete evaluation sheet interop.
+    /// </summary>
     public class DeleteEvaluationSheetInterop
     {
         /// <summary>
@@ -13,13 +23,12 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         ///     Pirate life ftw.
         /// </summary>
         /// <param name="filePath">Path of file saved and closed by Aspose.Cells.</param>
-        [SuppressMessage("ReSharper", "ArgumentsStyleNamedExpression")]
-        private void Delete_Evaluation_Sheet_Interop(string filePath)
+        private void LetMeAtIt(string filePath)
         {
             try
             {
                 // Initialize new instance of Interop Excel.Application.
-                var xlApp = new Application
+                var excelApp = new Application
                 {
                     ScreenUpdating = false,
                     EnableEvents = false,
@@ -29,29 +38,29 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     Visible = false
                 };
 
-                Workbooks xlWbs = xlApp.Workbooks;
+                Workbooks workbooks = excelApp.Workbooks;
 
                 // This is hilarious.
                 string falseStr = false.ToString();
                 string trueStr = true.ToString();
 
-                Workbook xlWb = xlWbs.Open(
-                    Filename: filePath,
-                    UpdateLinks: falseStr,
-                    ReadOnly: falseStr,
+                Workbook workbook = workbooks.Open(
+                    filePath,
+                    falseStr,
+                    falseStr,
                     IgnoreReadOnlyRecommended: trueStr,
                     Origin: XlPlatform.xlWindows,
                     Notify: falseStr,
                     Converter: "0");
 
-                xlApp.Calculation = XlCalculation.xlCalculationManual;
+                excelApp.Calculation = XlCalculation.xlCalculationManual;
 
-                Sheets xlWss = xlWb.Worksheets;
+                Sheets worksheets = workbook.Worksheets;
 
-                //foreach (ExcelInterop.Worksheet worksheet in xlWb.Worksheets)
-                for (var sheetIndex = 1; sheetIndex <= xlWss.Count; sheetIndex++)
+                // foreach (ExcelInterop.Worksheet worksheet in xlWb.Worksheets)
+                for (var sheetIndex = 1; sheetIndex <= worksheets.Count; sheetIndex++)
                 {
-                    dynamic worksheet = xlWss[sheetIndex.ToString()];
+                    dynamic worksheet = worksheets[sheetIndex.ToString()];
                     switch (worksheet.Name)
                     {
                         case "Config":
@@ -60,6 +69,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                         case "Evaluation Warning":
                             worksheet.Delete();
                             break;
+
                         // ReSharper disable once RedundantEmptySwitchSection
                         default:
                             break;
@@ -68,14 +78,14 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     Marshal.ReleaseComObject(worksheet);
                 }
 
-                xlWss["1"].Activate();
+                worksheets["1"].Activate();
 
-                Marshal.ReleaseComObject(xlWss);
-                xlWb.Close(trueStr);
-                Marshal.ReleaseComObject(xlWb);
-                Marshal.ReleaseComObject(xlWbs);
-                xlApp.Quit();
-                Marshal.ReleaseComObject(xlApp);
+                Marshal.ReleaseComObject(worksheets);
+                workbook.Close(trueStr);
+                Marshal.ReleaseComObject(workbook);
+                Marshal.ReleaseComObject(workbooks);
+                excelApp.Quit();
+                Marshal.ReleaseComObject(excelApp);
             }
             catch (Exception ex)
             {

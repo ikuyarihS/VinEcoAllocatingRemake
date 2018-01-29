@@ -1,35 +1,53 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
+#endregion
+
 namespace VinEcoAllocatingRemake.AllocatingInventory
 {
+    /// <summary>
+    ///     The utilities.
+    /// </summary>
     public partial class Utilities
     {
-        private readonly ConcurrentDictionary<object, double> _dicObjectDouble =
+        /// <summary>
+        ///     The dic object double.
+        /// </summary>
+        private readonly ConcurrentDictionary<object, double> dicObjectDouble =
             new ConcurrentDictionary<object, double>();
 
-        private readonly ConcurrentDictionary<object, int> _dicObjectInt =
-            new ConcurrentDictionary<object, int>();
+        /// <summary>
+        ///     The dic object int.
+        /// </summary>
+        private readonly ConcurrentDictionary<object, int> dicObjectInt = new ConcurrentDictionary<object, int>();
 
-        private readonly ConcurrentDictionary<object, double> _dicStringDouble =
+        /// <summary>
+        ///     The dic string double.
+        /// </summary>
+        private readonly ConcurrentDictionary<object, double> dicStringDouble =
             new ConcurrentDictionary<object, double>();
 
         /// <summary>
         ///     Pretty much a cache for converting double.
         /// </summary>
-        /// <param name="obj"></param>
+        /// <param name="obj">
+        ///     Object to convert to Double.
+        /// </param>
+        /// <returns>
+        ///     The <see cref="double" />.
+        /// </returns>
         public double ObjectToDouble(object obj)
         {
-            
             // Check if exists.
-            if (_dicObjectDouble.TryGetValue(obj, out double value))
-                return value;
+            if (dicObjectDouble.TryGetValue(obj, out double value)) return value;
 
             // Goddamn it.
             if (obj == DBNull.Value)
             {
-                _dicObjectDouble.TryAdd(obj, 0);
+                dicObjectDouble.TryAdd(obj, 0);
                 return 0;
             }
 
@@ -45,27 +63,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             }
 
             // ... and store the result.
-            _dicObjectDouble.TryAdd(obj, value);
-
-            // Then return it.
-            return value;
-        }
-
-        /// <summary>
-        ///     Pretty much a cache for converting double.
-        /// </summary>
-        /// <param name="key"></param>
-        public double StringToDouble(string key)
-        {
-            // Check if exists.
-            if (_dicStringDouble.TryGetValue(key, out double value))
-                return value;
-
-            // If not, well, convert.
-            value = Convert.ToDouble(key);
-
-            // ... and store the result.
-            _dicStringDouble.TryAdd(key, value);
+            dicObjectDouble.TryAdd(obj, value);
 
             // Then return it.
             return value;
@@ -74,17 +72,21 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <summary>
         ///     Pretty much a cache for converting Int.
         /// </summary>
-        /// <param name="suspect"></param>
+        /// <param name="suspect">
+        ///     Object to convert to Int32.
+        /// </param>
+        /// <returns>
+        ///     The <see cref="int" />.
+        /// </returns>
         public int ObjectToInt(object suspect)
         {
             // Check if exists.
-            if (_dicObjectInt.TryGetValue(suspect, out int value))
-                return value;
+            if (dicObjectInt.TryGetValue(suspect, out int value)) return value;
 
             // Goddamn it.
             if (suspect == DBNull.Value)
             {
-                _dicObjectDouble.TryAdd(suspect, 0);
+                dicObjectDouble.TryAdd(suspect, 0);
                 return 0;
             }
 
@@ -92,7 +94,31 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             value = Convert.ToInt32(suspect);
 
             // ... and store the result.
-            _dicObjectInt.TryAdd(suspect, value);
+            dicObjectInt.TryAdd(suspect, value);
+
+            // Then return it.
+            return value;
+        }
+
+        /// <summary>
+        ///     Pretty much a cache for converting double.
+        /// </summary>
+        /// <param name="key">
+        ///     String to convert to Double.
+        /// </param>
+        /// <returns>
+        ///     The <see cref="double" />.
+        /// </returns>
+        public double StringToDouble(string key)
+        {
+            // Check if exists.
+            if (dicStringDouble.TryGetValue(key, out double value)) return value;
+
+            // If not, well, convert.
+            value = Convert.ToDouble(key);
+
+            // ... and store the result.
+            dicStringDouble.TryAdd(key, value);
 
             // Then return it.
             return value;

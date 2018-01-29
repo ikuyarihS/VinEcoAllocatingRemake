@@ -1,6 +1,10 @@
-﻿using System.ComponentModel;
+﻿#region
+
+using System.ComponentModel;
 using System.Windows.Shell;
 using VinEcoAllocatingRemake.Properties;
+
+#endregion
 
 namespace VinEcoAllocatingRemake
 {

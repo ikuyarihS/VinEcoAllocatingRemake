@@ -1,4 +1,6 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -9,104 +11,67 @@ using System.Windows.Media.Animation;
 using Aspose.Cells;
 using VinEcoAllocatingRemake.Properties;
 
-//using System.Runtime.Caching;
+#endregion
 
 namespace VinEcoAllocatingRemake.AllocatingInventory
 {
+    #region
+
+    #endregion
+
+    /// <summary>
+    ///     The allocating inventory.
+    /// </summary>
     public partial class AllocatingInventory
     {
+        /// <summary>
+        ///     The application path.
+        /// </summary>
         private readonly string _applicationPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-        private readonly BackgroundWorker _bgw = new BackgroundWorker
-        {
-            WorkerReportsProgress = true,
-            WorkerSupportsCancellation = true
-        };
+        /// <summary>
+        ///     The bgw.
+        /// </summary>
+        private readonly BackgroundWorker _bgw =
+            new BackgroundWorker {WorkerReportsProgress = true, WorkerSupportsCancellation = true};
 
-        // Optimization stuff.
+        /// <summary>
+        ///     The global export table options opts.
+        /// </summary>
+        private readonly ExportTableOptions _globalExportTableOptionsOpts =
+            new ExportTableOptions
+            {
+                CheckMixedValueType = true,
+                ExportAsString = false,
+                FormatStrategy = CellValueFormatStrategy.None,
+                ExportColumnName = true
+            };
 
-        private readonly ExportTableOptions _globalExportTableOptionsopts = new ExportTableOptions
-        {
-            CheckMixedValueType = true,
-            ExportAsString = false,
-            FormatStrategy = CellValueFormatStrategy.None,
-            ExportColumnName = true
-        };
-
+        /// <summary>
+        ///     The ulti.
+        /// </summary>
         private readonly Utilities _ulti = new Utilities();
 
-        //private ObjectCache _cache = MemoryCache.Default;
-
+        /// <summary>
+        ///     The is backgroundworker idle.
+        /// </summary>
         private bool _isBackgroundworkerIdle = true;
 
         /// <summary>
-        ///     A simple Function to open the folder where the program is.
-        ///     Quality of life.
+        ///     The background worker process changed.
         /// </summary>
-        private void OpenApplicationPath(object sender, RoutedEventArgs e)
-        {
-            Process[] processExcel = Process.GetProcessesByName("excel");
-
-            foreach (Process process in processExcel)
-                process.Kill();
-
-            WriteToRichTextBoxOutput("Vừng ơi mở ra!!!");
-
-            Process.Start(_applicationPath);
-        }
-
-        private void Cancel_OnClick(object sender, RoutedEventArgs e)
-        {
-            if (!_bgw.IsBusy)
-            {
-                WriteToRichTextBoxOutput("Ủa còn chưa kịp làm gì mà :<");
-                return;
-            }
-
-            _bgw.CancelAsync();
-
-            if (Application.Current.MainWindow is MainWindow mainWindow) mainWindow.MyTaskBarInfo.ProgressValue = 0;
-            ProgressStatusBar.Value = 0;
-            ProgressStatusBarLabel.Text = "Canceled!";
-
-            WriteToRichTextBoxOutput();
-            WriteToRichTextBoxOutput("Hoãn! Hoãn ngay! Không có chơi bời gì hết nữa!");
-            WriteToRichTextBoxOutput();
-        }
-
-        /// <summary>
-        ///     Memorize last openned page. Quality of Life.
-        /// </summary>
-        private void ScoutingPrice_OnLoaded(object sender, RoutedEventArgs e)
-        {
-            Settings.Default.LastPage = "AllocatingInventory/Pages/AllocatingPage.xaml";
-        }
-
-        private void Initializer()
-        {
-            _bgw.ProgressChanged += BackgroundWorker_ProcessChanged;
-
-            _bgw.RunWorkerCompleted += BackgroundWorker_RunWorkerCompleted;
-
-            ProgressStatusBarLabel.Text = string.Empty;
-
-            WriteToRichTextBoxOutput();
-            WriteToRichTextBoxOutput("Sẵn sàng oánh nhau!", 1);
-        }
-
-        private void BackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            _bgw.DoWork -= ReadForecast;
-            _bgw.DoWork -= ReadPurchaseOrder;
-            _isBackgroundworkerIdle = true;
-            WriteToRichTextBoxOutput("Done!");
-            WriteToRichTextBoxOutput();
-        }
-
-        private void BackgroundWorker_ProcessChanged(object sender, ProgressChangedEventArgs e)
+        /// <param name="sender">
+        ///     The sender.
+        /// </param>
+        /// <param name="e">
+        ///     The e.
+        /// </param>
+        private void BackgroundWorkerProcessChanged(object sender, ProgressChangedEventArgs e)
         {
             if (ProgressStatusBar.Value >= 1) ProgressStatusBar.Value = 0;
-            ProgressStatusBar.BeginAnimation(RangeBase.ValueProperty,
+
+            ProgressStatusBar.BeginAnimation(
+                RangeBase.ValueProperty,
                 new DoubleAnimation(e.ProgressPercentage, new Duration(TimeSpan.FromSeconds(1))));
 
             var mainWindow = Application.Current.MainWindow as MainWindow;
@@ -119,50 +84,72 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 case 100:
                     ProgressStatusBarLabel.Text = "Done!";
                     if (mainWindow != null) mainWindow.MyTaskBarInfo.ProgressValue = 0;
+
                     break;
                 default:
                     ProgressStatusBarLabel.Text = $"{e.ProgressPercentage.ToString(string.Empty)}%";
                     if (mainWindow != null) mainWindow.MyTaskBarInfo.ProgressValue = e.ProgressPercentage / 100d;
+
                     break;
             }
         }
 
-        private void ForecastHandler(object sender, RoutedEventArgs e)
+        /// <summary>
+        ///     The background worker run worker completed.
+        /// </summary>
+        /// <param name="sender">
+        ///     The sender.
+        /// </param>
+        /// <param name="e">
+        ///     The e.
+        /// </param>
+        private void BackgroundWorkerRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (!_bgw.IsBusy && _isBackgroundworkerIdle)
-            {
-                if (_isBackgroundworkerIdle)
-                {
-                    _bgw.DoWork += ReadForecast;
-                    _isBackgroundworkerIdle = false;
-                }
-
-                _bgw.RunWorkerAsync();
-            }
-            else
-            {
-                MessageBox.Show("Đang uýnh nhau, đợi xíu!");
-            }
+            _bgw.DoWork -= ReadForecast;
+            _bgw.DoWork -= ReadPurchaseOrder;
+            _isBackgroundworkerIdle = true;
+            WriteToRichTextBoxOutput("Done!");
+            WriteToRichTextBoxOutput();
         }
 
-        private void OrderHandler(object sender, RoutedEventArgs e)
+        /// <summary>
+        ///     The cancel_ on click.
+        /// </summary>
+        /// <param name="sender">
+        ///     The sender.
+        /// </param>
+        /// <param name="e">
+        ///     The e.
+        /// </param>
+        private void Cancel_OnClick(object sender, RoutedEventArgs e)
         {
-            if (!_bgw.IsBusy && _isBackgroundworkerIdle)
+            if (!_bgw.IsBusy)
             {
-                if (_isBackgroundworkerIdle)
-                {
-                    _bgw.DoWork += ReadPurchaseOrder;
-                    _isBackgroundworkerIdle = false;
-                }
+                WriteToRichTextBoxOutput("Ủa còn chưa kịp làm gì mà :<");
+                return;
+            }
 
-                _bgw.RunWorkerAsync();
-            }
-            else
-            {
-                MessageBox.Show("Đang uýnh nhau, đợi xíu!");
-            }
+            _bgw.CancelAsync();
+
+            if (Application.Current.MainWindow is MainWindow mainWindow) mainWindow.MyTaskBarInfo.ProgressValue = 0;
+
+            ProgressStatusBar.Value = 0;
+            ProgressStatusBarLabel.Text = "Canceled!";
+
+            WriteToRichTextBoxOutput();
+            WriteToRichTextBoxOutput("Hoãn! Hoãn ngay! Không có chơi bời gì hết nữa!");
+            WriteToRichTextBoxOutput();
         }
 
+        /// <summary>
+        ///     The fite moi handler.
+        /// </summary>
+        /// <param name="sender">
+        ///     The sender.
+        /// </param>
+        /// <param name="e">
+        ///     The e.
+        /// </param>
         private void FiteMoiHandler(object sender, RoutedEventArgs e)
         {
             if (!_bgw.IsBusy && _isBackgroundworkerIdle)
@@ -181,18 +168,122 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             }
         }
 
-        //private void ProcessData(object sender, RoutedEventArgs e)
-        //{
-        //    if (!_bgw.IsBusy)
-        //    {
-        //        if (_isBackgroundworkerIdle) _isBackgroundworkerIdle = false;
+        /// <summary>
+        ///     The forecast handler.
+        /// </summary>
+        /// <param name="sender">
+        ///     The sender.
+        /// </param>
+        /// <param name="e">
+        ///     The e.
+        /// </param>
+        private void ForecastHandler(object sender, RoutedEventArgs e)
+        {
+            if (!_bgw.IsBusy && _isBackgroundworkerIdle)
+            {
+                if (_isBackgroundworkerIdle)
+                {
+                    _bgw.DoWork += ReadForecast;
+                    _isBackgroundworkerIdle = false;
+                }
 
-        //        _bgw.RunWorkerAsync();
-        //    }
-        //    else
-        //    {
-        //        MessageBox.Show("Đang uýnh nhau, đợi xíu!");
-        //    }
-        //}
+                _bgw.RunWorkerAsync();
+            }
+            else
+            {
+                MessageBox.Show("Đang uýnh nhau, đợi xíu!");
+            }
+        }
+
+        /// <summary>
+        ///     The initializer.
+        /// </summary>
+        private void Initializer()
+        {
+            _bgw.ProgressChanged += BackgroundWorkerProcessChanged;
+
+            _bgw.RunWorkerCompleted += BackgroundWorkerRunWorkerCompleted;
+
+            ProgressStatusBarLabel.Text = string.Empty;
+
+            WriteToRichTextBoxOutput();
+            WriteToRichTextBoxOutput("Sẵn sàng oánh nhau!", 1);
+        }
+
+        /// <summary>
+        ///     A simple Function to open the folder where the program is.
+        ///     Quality of life.
+        /// </summary>
+        /// <param name="sender">
+        ///     The sender.
+        /// </param>
+        /// <param name="e">
+        ///     The e.
+        /// </param>
+        private void OpenApplicationPath(object sender, RoutedEventArgs e)
+        {
+            Process[] processExcel = Process.GetProcessesByName("excel");
+
+            foreach (Process process in processExcel) process.Kill();
+
+            WriteToRichTextBoxOutput("Vừng ơi mở ra!!!");
+
+            Process.Start(_applicationPath);
+        }
+
+        /// <summary>
+        ///     The order handler.
+        /// </summary>
+        /// <param name="sender">
+        ///     The sender.
+        /// </param>
+        /// <param name="e">
+        ///     The e.
+        /// </param>
+        private void OrderHandler(object sender, RoutedEventArgs e)
+        {
+            if (!_bgw.IsBusy && _isBackgroundworkerIdle)
+            {
+                if (_isBackgroundworkerIdle)
+                {
+                    _bgw.DoWork += ReadPurchaseOrder;
+                    _isBackgroundworkerIdle = false;
+                }
+
+                _bgw.RunWorkerAsync();
+            }
+            else
+            {
+                MessageBox.Show("Đang uýnh nhau, đợi xíu!");
+            }
+        }
+
+        /// <summary>
+        ///     Memorize last opened page. Quality of Life.
+        /// </summary>
+        /// <param name="sender">
+        ///     The sender.
+        /// </param>
+        /// <param name="e">
+        ///     The e.
+        /// </param>
+        private void ScoutingPrice_OnLoaded(object sender, RoutedEventArgs e)
+        {
+            Settings.Default.LastPage = "AllocatingInventory/Pages/AllocatingPage.xaml";
+        }
+
+        // private void ProcessData(object sender, RoutedEventArgs e)
+        // {
+        // if (!_bgw.IsBusy)
+        // {
+        // if (_isBackgroundworkerIdle) _isBackgroundworkerIdle = false;
+
+        // _bgw.RunWorkerAsync();
+        // }
+        // else
+        // {
+        // MessageBox.Show("Đang uýnh nhau, đợi xíu!");
+        // }
+        // }
     }
 }

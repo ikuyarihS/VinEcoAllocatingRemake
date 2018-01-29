@@ -1,4 +1,8 @@
-﻿using System;
+﻿#region
+
+using System;
+
+#endregion
 
 namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 {
@@ -6,9 +10,12 @@ namespace VinEcoAllocatingRemake.AllocatingInventory.Models
     {
         public Guid _id { get; set; }
 
-        public Guid ProductId { get; set; }
         public string ProductCode { get; set; }
+
+        public Guid ProductId { get; set; }
+
         public double ToNorth { get; set; }
+
         public double ToSouth { get; set; }
     }
 }
