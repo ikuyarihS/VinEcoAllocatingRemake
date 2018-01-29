@@ -9,9 +9,10 @@
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>VinEcoAllocatingRemake</RootNamespace>
-    <AssemblyName>Chia hàng 2.0</AssemblyName>
+    <AssemblyName>AllocatingRemake</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -53,8 +54,8 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Buffers.4.4.0\lib\netstandard1.1\System.Buffers.dll</HintPath>
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
+      <HintPath>..\packages\System.Buffers.4.5.0-preview1-25914-04\lib\netstandard1.1\System.Buffers.dll</HintPath>
     </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -98,6 +99,7 @@
     <Compile Include="AllocatingInventory\Functions\Ultilities\ToObject.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ToString.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\Ultilities.cs" />
+    <Compile Include="AllocatingInventory\Functions\Ultilities\ZeroIfNegative.cs" />
     <Compile Include="AllocatingInventory\Models\CoordinateDate.cs" />
     <Compile Include="AllocatingInventory\Models\CoordResult.cs" />
     <Compile Include="AllocatingInventory\Models\CoordResultDate.cs" />

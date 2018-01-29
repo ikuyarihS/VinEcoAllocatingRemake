@@ -1,4 +1,10 @@
-﻿namespace VinEcoAllocatingRemake.AllocatingInventory.Models
+﻿#region
+
+using System.Collections.Generic;
+
+#endregion
+
+namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 {
     /// <summary>
     ///     The product.
@@ -56,6 +62,10 @@
         /// </summary>
         public string ProductionGroup { get; set; }
 
-        // public List<string> ProductNote { get; set; }
+        // Todo - Figure out what the fuck this is.
+        /// <summary>
+        ///     Product's Notes, like, idk, I actually forgot what this is for
+        /// </summary>
+        public List<string> ProductNote { get; set; }
     }
 }
