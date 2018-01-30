@@ -23,7 +23,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         ///     Pirate life ftw.
         /// </summary>
         /// <param name="filePath">Path of file saved and closed by Aspose.Cells.</param>
-        private void LetMeAtIt(string filePath)
+        public void LetMeAtIt(string filePath)
         {
             try
             {
@@ -78,7 +78,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     Marshal.ReleaseComObject(worksheet);
                 }
 
-                worksheets["1"].Activate();
+                worksheets[1].Activate();
 
                 Marshal.ReleaseComObject(worksheets);
                 workbook.Close(trueStr);

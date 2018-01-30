@@ -433,6 +433,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                             foreach (string productCode in products.Keys)
                             {
+                                // Coz Repeating myself is uncool.
+                                // Return the dictionary of orders for selected regions.
+                                // Dictionary as collectio of choice due to performance.
                                 Dictionary<CustomerOrder, bool> GetOrderDictionary(DateTime date, string region)
                                 {
                                     if (dicPo.TryGetValue(date,
@@ -456,30 +459,39 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                                     return null;
                                 }
-                                
+
                                 Dictionary<CustomerOrder, bool> orderNorth = GetOrderDictionary(datePo, "MB");
 
                                 Dictionary<CustomerOrder, bool> orderSouth = GetOrderDictionary(
                                     datePo.AddDays(-distance[("LD", "MB")] + distance[("LD", "MN")]),
                                     "MN");
 
+                                // Same deal. Not gonna repeat myself.
+                                // Return sum of total orders.
                                 double SumOrder(Dictionary<CustomerOrder, bool> source)
                                 {
-                                    return source?.AsParallel()
-                                               .Sum(po => po.Key.QuantityOrder) ??
-                                           0;
+                                    return source?.AsParallel().Sum(po => po.Key.QuantityOrder) ?? 0;
                                 }
-
+                                
                                 double sumPoNorth = SumOrder(orderNorth);
                                 double sumPoSouth = SumOrder(orderSouth);
 
+                                // Validation. If there's no order, well, skip.
+                                if (sumPoNorth + sumPoSouth <= 0d)
+                                {
+                                    continue;
+                                }
+
+                                // Counterpart of GetOrderDictionary.
                                 Dictionary<SupplierForecast, bool> GetForecastDictionary(DateTime date, string region)
                                 {
                                     if (dicFc.TryGetValue(date, out Dictionary<string, Dictionary<string, Dictionary<SupplierForecast, bool>>> forecastRegions) && forecastRegions.TryGetValue(region, out Dictionary<string, Dictionary<SupplierForecast, bool>> forecastRegionProducts) && forecastRegionProducts.TryGetValue(productCode, out Dictionary<SupplierForecast, bool> result))
+                                    {
                                         return result.OrderBy(fc => fc.Key.QuantityForecast)
                                             .ToDictionary(
                                                 fc => fc.Key,
                                                 fc => true);
+                                    }
 
                                     return null;
                                 }
@@ -499,6 +511,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                     datePo.AddDays(-distance[("MN", "MN")]),
                                     "MN");
 
+                                // Not gonna repeat myself vol.3
+                                // Sum of total supplies.
                                 double SumForecast(Dictionary<SupplierForecast, bool> source)
                                 {
                                     return source?.AsParallel().Sum(fc => fc.Key.QuantityForecast) ?? 0;
@@ -507,6 +521,12 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                 double sumFcNorth = SumForecast(forecastNorth);
                                 double sumFcMid = SumForecast(forecastMid);
                                 double sumFcSouth = SumForecast(forecastSouth);
+
+                                // Validation - If there's no supply, also skip.
+                                if (sumFcNorth + sumFcMid + sumFcSouth <= 0d)
+                                {
+                                    continue;
+                                }
 
                                 // Todo - Implement Rate
                                 // Working on this.
@@ -524,15 +544,25 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                                         void PairSupplyOrder(CustomerOrder customerOrder,
                                             IDictionary<CustomerOrder, bool> orders,
-                                            IDictionary<SupplierForecast, bool> forecasts, double rate)
+                                            IDictionary<SupplierForecast, bool> forecasts, 
+                                            double rate)
                                         {
+                                            // Just in case.
+                                            if (rate <= 0)
+                                            {
+                                                return;
+                                            }
+                                            
                                             try
                                             {
                                                 // Validation.
                                                 // Why the heck is this empty in the first place?
                                                 if (!forecasts.Any()) return;
 
-                                                SupplierForecast supply = forecasts.Aggregate((current, next) => current.Key.QuantityForecast > next.Key.QuantityForecast ? current : next).Key;
+                                                forecasts = forecasts.OrderByDescending(s => s.Key.QuantityForecast)
+                                                    .ToDictionary(x => x.Key, x => x.Value);
+
+                                                SupplierForecast supply = forecasts.First().Key;
                                                 forecasts.Remove(supply);
 
                                                 double deliQuantity = Math.Min(
@@ -544,7 +574,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                 // ReSharper disable once SuggestVarOrType_Elsewhere
                                                 if (!coordResult.TryGetValue(productCode, out var dicCoord))
                                                 {
-                                                    dicCoord = new Dictionary<(DateTime DatePo, CustomerOrder Order), (DateTime DateFc, SupplierForecast Supply)>();
+                                                    dicCoord = new Dictionary<(DateTime DatePo, CustomerOrder Order), 
+                                                                              (DateTime DateFc, SupplierForecast Supply)>();
                                                     coordResult.Add(productCode, dicCoord);
                                                 }
 
@@ -575,7 +606,6 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                 }
 
                                                 if (forecastMid == null) continue;
-
                                                 {
                                                     PairSupplyOrder(customerOrder, orderNorth, forecastMid, rateNorth);
                                                 }
@@ -607,13 +637,33 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                         throw;
                     }
                 }
-                
-                ExportResult(coordResult, products);
+
+                DataTable tableMastahCompact = ToDataTableMastahCompact(coordResult, products, customers, suppliers);
+
+                string fileName =
+                    $"Mastah Compact 100% {_ulti.DateToString(dateFrom.AddDays(maxDistance), "dd.MM")} - {_ulti.DateToString(dateTo.AddDays(-maxDistance), "dd.MM")} ({_ulti.DateToString(DateTime.Now, "yyyyMMdd HH\\hmm")}).xlsb";
+                string exportPath = $@"{_applicationPath}\Output\{fileName}";
+
+                using (var xlWb = new Workbook())
+                {
+                    xlWb.Settings.MemorySetting = MemorySetting.MemoryPreference;
+
+                    // Mastah
+                    _ulti.OutputExcelAspose(tableMastahCompact, xlWb, true, 1);
+
+                    xlWb.Worksheets.RemoveAt("sheet1");
+
+                    xlWb.CalculateFormula();
+                    xlWb.Save(exportPath, SaveFormat.Xlsb);
+                }
+
+                var deleteJob = new DeleteEvaluationSheetInterop();
+                deleteJob.LetMeAtIt(exportPath);
 
                 // The final flag.
                 watch.Stop();
                 WriteToRichTextBoxOutput(
-                    $"Đã ghi vào cơ sở dữ liệu. Tổng thời gian chạy: {Math.Round(watch.Elapsed.TotalSeconds, 2).ToString(CultureInfo.InvariantCulture)}s!",
+                    $"Tổng thời gian chạy: {Math.Round(watch.Elapsed.TotalSeconds, 2).ToString(CultureInfo.InvariantCulture)}s!",
                     1);
             }
             catch (Exception ex)
@@ -630,212 +680,153 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <summary>
         ///     Exporting CoordResult to Excel Files.
         /// </summary>
-        private void ExportResult(
+        private DataTable ToDataTableMastahCompact(
             Dictionary<string,
                 Dictionary<(DateTime DatePo, CustomerOrder Order),
                     (DateTime DateFc, SupplierForecast Supply)>> coordResult,
-            Dictionary<string, Product> products,
-            Dictionary<string, Customer> customers,
-            Dictionary<string, Supplier> suppliers)
+            IReadOnlyDictionary<string, Product> products,
+            IReadOnlyDictionary<string, Customer> customers,
+            IReadOnlyDictionary<string, Supplier> suppliers)
         {
+            // Todo - Do this. Obviously.
+            string YesNoFromString(bool expression)
+            {
+                return expression ? "Yes" : "No";
+            }
+
+            string StringFromNullableString(string source)
+            {
+                return source ?? "Any";
+            }
+
             try
             {
-                // Todo - Do this. Obviously.
-                string YesNoFromString(bool expression)
+                using (var table = new DataTable {TableName = "Mastah Compact"})
                 {
-                    return expression ? "Yes" : "No";
-                }
-
-                string StringFromNullableString(string source)
-                {
-                    return source ?? "Any";
-                }
-
-                DataTable tableMastahCompact = ExportMastahCompact();
-
-                DataTable ExportMastahCompact()
-                {
-                    try
+                    foreach ((string columnName, Type columnType, object columnDefaultValue) details in new[]
                     {
-                        using (var table = new DataTable {TableName = "Mastah Compact"})
+                        ("Mã 6 ký tự", typeof(string), null),
+                        ("Tên sản phẩm", typeof(string), null),
+                        ("ProductOrientation", typeof(string), null),
+                        ("ProductClimate", typeof(string), null),
+                        ("ProductionGroup", typeof(string), null),
+                        ("Nhóm sản phẩm", typeof(string), null),
+                        ("Ghi chú", typeof(string), null),
+                        ("Loại cửa hàng", typeof(string), null),
+                        ("P&L", typeof(string), null),
+                        ("Ngày tiêu thụ", typeof(DateTime), null),
+                        ("Tỉnh tiêu thụ", typeof(string), null),
+                        ("Vùng tiêu thụ", typeof(string), null),
+                        ("Vùng SX yêu cầu", typeof(string), null),
+                        ("Nguồn yêu cầu", typeof(string), null),
+                        ("Nhu cầu", typeof(double), _ulti.DoubleToObject(0)),
+                        ("Đáp ứng", typeof(double), _ulti.DoubleToObject(0)),
+                        ("Nguồn", typeof(string), null),
+                        ("Vùng sản xuất", typeof(string), null),
+                        ("Mã NCC", typeof(string), null),
+                        ("Tên NCC", typeof(string), null),
+                        ("Ngày sơ chế", typeof(DateTime), null),
+                        ("NoSup", typeof(double), _ulti.DoubleToObject(0)),
+                        ("KPI", typeof(double), _ulti.DoubleToObject(0)),
+                        ("Label", typeof(string), null),
+                        ("CodeSFG", typeof(string), null),
+                        ("IsNoSup", typeof(bool), _ulti.BoolToObject(false)),
+                    })
+                    {
+                        table.Columns.Add(details.columnName, details.columnType).DefaultValue = details.columnDefaultValue;
+                    }
+
+                    // Dictionaries for row.
+                    // Just in case, dupplicated row happens.
+                    // In which case, happens a fucking lot for Mastah Compact
+                    var dicRow = new Dictionary<string, int>();
+
+                    foreach (string productCode in coordResult.Keys)
+                    {
+                        foreach (KeyValuePair<(DateTime DatePo, CustomerOrder Order), (DateTime DateFc, SupplierForecast Supply)> pair in coordResult[productCode])
                         {
-                            foreach ((string columnName, Type columnType, object columnDefaultValue) details in new[]
+                            Product product = products[productCode];
+                            Customer customer = customers[pair.Key.Order.CustomerKeyCode];
+                            Supplier supplier = suppliers[pair.Value.Supply.SupplierCode];
+
+                            // Building 'unique' rowKey to identify rows.
+                            string rowKey = $"{_ulti.DateToString(pair.Key.DatePo, "yyyyMMdd")}-{customer.CustomerKeyCode}-{_ulti.DateToString(pair.Value.DateFc, "yyyyMMdd")}-{supplier.SupplierCode}";
+
+                            // Initializing
+                            DataRow dr;
+
+                            // ... And check if row exists yet
+                            if (!dicRow.TryGetValue(rowKey, out int rowIndex))
                             {
-                                ("Mã 6 ký tự", typeof(string), null),
-                                ("Tên sản phẩm", typeof(string), null),
-                                ("ProductOrientation", typeof(string), null),
-                                ("ProductClimate", typeof(string), null),
-                                ("ProductionGroup", typeof(string), null),
-                                ("Nhóm sản phẩm", typeof(string), null),
-                                ("Ghi chú", typeof(string), null),
-                                ("Loại cửa hàng", typeof(string), null),
-                                ("P&L", typeof(string), null),
-                                ("Ngày tiêu thụ", typeof(DateTime), null),
-                                ("Tỉnh tiêu thụ", typeof(string), null),
-                                ("Vùng tiêu thụ", typeof(string), null),
-                                ("Vùng SX yêu cầu", typeof(string), null),
-                                ("Nguồn yêu cầu", typeof(string), null),
-                                ("Nhu cầu", typeof(double), _ulti.DoubleToObject(0)),
-                                ("Đáp ứng", typeof(double), _ulti.DoubleToObject(0)),
-                                ("Nguồn", typeof(string), null),
-                                ("Vùng sản xuất", typeof(string), null),
-                                ("Mã NCC", typeof(string), null),
-                                ("Tên NCC", typeof(string), null),
-                                ("Ngày sơ chế", typeof(DateTime), null),
-                                ("NoSup", typeof(double), _ulti.DoubleToObject(0)),
-                                ("KPI", typeof(double), _ulti.DoubleToObject(0)),
-                                ("Label", typeof(string), null),
-                                ("CodeSFG", typeof(string), null),
-                                ("IsNoSup", typeof(bool), _ulti.BoolToObject(false)),
-                            })
+                                // If not.
+                                dr = table.NewRow();
+                                dicRow.Add(rowKey, table.Rows.Count);
+                                table.Rows.Add(dr);
+                                dr = table.Rows[table.Rows.Count - 1];
+                            }
+                            else
                             {
-                                table.Columns.Add(details.columnName, details.columnType).DefaultValue = details.columnDefaultValue;
+                                // If exists.
+                                dr = table.Rows[rowIndex];
+
+                                dr["Mã 6 ký tự"] = productCode;
+                                dr["Tên sản phẩm"] = product.ProductName;
+                                dr["Nhóm sản phẩm"] = product.ProductClassification;
+                                dr["ProductOrientation"] = product.ProductOrientation;
+                                dr["ProductClimate"] = product.ProductClimate;
+                                dr["ProductionGroup"] = product.ProductionGroup;
+                                dr["Ghi chú"] =
+                                    product.ProductNote.Contains(customer.CustomerBigRegion == "Miền Nam"
+                                        ? "South"
+                                        : "North")
+                                        ? "Ok"
+                                        : "Out of List";
+                                dr["Loại cửa hàng"] = customer.CustomerType;
+                                dr["P&L"] = customer.Company;
+
+                                //dr["Ngày tiêu thụ"] = (int)(DatePO.Date - _dateBase).TotalDays + 2;
+                                dr["Ngày tiêu thụ"] = _ulti.DateToObject(pair.Key.DatePo, "yyyyMMdd");
+                                dr["Vùng tiêu thụ"] = customer.CustomerBigRegion;
+
+                                // Todo - Add YesNoSubRegion here.
+                                // dr["Tỉnh tiêu thụ"] = YesNoSubRegion ? customer.CustomerRegion : null;
+                                dr["Vùng SX yêu cầu"] = StringFromNullableString(pair.Key.Order.DesiredRegion);
+                                dr["Nguồn yêu cầu"] = StringFromNullableString(pair.Key.Order.DesiredSource);
+
+                                dr["Nhu cầu"] = _ulti.DoubleToObject((double) dr["Nhu cầu"] + pair.Key.Order.QuantityOrder);
+                                dr["Đáp ứng"] = _ulti.DoubleToObject((double) dr["Đáp ứng"] + pair.Value.Supply.QuantityForecast);
                             }
 
-                            // Dictionaries for row.
-                            // Just in case, dupplicated row happens.
-                            // In which case, happens a fucking lot for Mastah Compact
-                            var dicRow = new Dictionary<string, int>();
-
-                            foreach (string productCode in coordResult.Keys)
+                            if (pair.Key.Order.QuantityOrder > 0)
                             {
-                                foreach (KeyValuePair<(DateTime DatePo, CustomerOrder Order), (DateTime DateFc, SupplierForecast Supply)> pair in coordResult[productCode)
-                                {
-                                    Product product = products[productCode];
-                                    Customer customer = customers[pair.Key.Order.CustomerKeyCode];
-                                    Supplier supplier = suppliers[pair.Value.Supply.SupplierCode];
-                                    
-                                    // Building 'unique' rowKey to identify rows.
-                                    string rowKey = $"{_ulti.DateToString(pair.Key.DatePo, "yyyyMMdd")}-{customer.CustomerKeyCode}-{_ulti.DateToString(pair.Value.DateFc, "yyyyMMdd")}-{supplier.SupplierCode}";
-
-                                    // Initializing
-                                    DataRow dr;
-                                       
-                                    // ... And check if row exists yet
-                                    if (!dicRow.TryGetValue(rowKey, out int rowIndex))
-                                    {
-                                        // If not.
-                                        dr = table.NewRow();
-                                        dicRow.Add(rowKey, table.Rows.Count);
-                                        table.Rows.Add(dr);
-                                        dr = table.Rows[table.Rows.Count - 1];
-                                    }
-                                    else
-                                    {
-                                        // If exists.
-                                        dr = table.Rows[rowIndex];
-
-                                        dr["Mã 6 ký tự"] = productCode;
-                                        dr["Tên sản phẩm"] = product.ProductName;
-                                        dr["Nhóm sản phẩm"] = product.ProductClassification;
-                                        dr["ProductOrientation"] = product.ProductOrientation;
-                                        dr["ProductClimate"] = product.ProductClimate;
-                                        dr["ProductionGroup"] = product.ProductionGroup;
-                                        dr["Ghi chú"] =
-                                            product.ProductNote.Contains(customer.CustomerBigRegion == "Miền Nam"
-                                                ? "South"
-                                                : "North")
-                                                ? "Ok"
-                                                : "Out of List";
-                                        dr["Loại cửa hàng"] = customer.CustomerType;
-                                        dr["P&L"] = customer.Company;
-                                        //dr["Ngày tiêu thụ"] = (int)(DatePO.Date - _dateBase).TotalDays + 2;
-                                        dr["Ngày tiêu thụ"] = _ulti.DateToObject(pair.Key.DatePo, "yyyyMMdd");
-                                        dr["Vùng tiêu thụ"] = customer.CustomerBigRegion;
-                                        // Todo - Add YesNoSubRegion here.
-                                        // dr["Tỉnh tiêu thụ"] = YesNoSubRegion ? customer.CustomerRegion : null;
-                                        dr["Vùng SX yêu cầu"] = StringFromNullableString(pair.Key.Order.DesiredRegion);
-                                        dr["Nguồn yêu cầu"] = StringFromNullableString(pair.Key.Order.DesiredSource);
-
-                                        dr["Nhu cầu"] = _ulti.DoubleToObject((double) dr["Nhu cầu"] + pair.Key.Order.QuantityOrder);
-                                        dr["Đáp ứng"] = _ulti.DoubleToObject((double) dr["Đáp ứng"] + pair.Value.Supply.QuantityForecast);
-                                    }
-
-                                    if (pair.Key.Order.QuantityOrder > 0)
-                                    {
-                                        dr["Nguồn"] = supplier.SupplierType;
-                                        dr["Vùng sản xuất"] = supplier.SupplierRegion;
-                                        dr["Mã NCC"] = supplier.SupplierCode;
-                                        dr["Tên NCC"] = supplier.SupplierName;
-                                        dr["Ngày sơ chế"] = _ulti.DateToObject(pair.Value.DateFc, "yyyyMMdd");
-                                        dr["Label"] = YesNoFromString(pair.Value.Supply.LabelVinEco);
-                                        dr["CodeSFG"] = $"{productCode}1{_ulti.IntToObject((supplier.SupplierRegion == "Lâm Đồng" ? 0 : 2) + (pair.Value.Supply.LabelVinEco ? 1 : 0))}";
-                                    }
-                                    else
-                                    {
-                                        dr["Nguồn"] = "Không đáp ứng";
-                                    }
-                                }
+                                // If there's a supplier.
+                                dr["Nguồn"] = supplier.SupplierType;
+                                dr["Vùng sản xuất"] = supplier.SupplierRegion;
+                                dr["Mã NCC"] = supplier.SupplierCode;
+                                dr["Tên NCC"] = supplier.SupplierName;
+                                dr["Ngày sơ chế"] = _ulti.DateToObject(pair.Value.DateFc, "yyyyMMdd");
+                                dr["Label"] = YesNoFromString(pair.Value.Supply.LabelVinEco);
+                                dr["CodeSFG"] = $"{productCode}1{_ulti.IntToObject((supplier.SupplierRegion == "Lâm Đồng" ? 0 : 2) + (pair.Value.Supply.LabelVinEco ? 1 : 0))}";
                             }
-                            
-                            foreach (DataRow dr in table.Select())
+                            else
                             {
-                                dr["NoSup"] = _ulti.DoubleToObject(_ulti.ZeroIfNegative(dr["Nhu cầu"], dr["Đáp ứng"]));
-                                if ((double) dr["NoSup"] > 1)
-                                {
-                                    dr["IsNoSup"] = _ulti.BoolToObject(true);
-                                }
+                                // Otherwise.
+                                dr["Nguồn"] = "Không đáp ứng";
                             }
-
-                            return table;
                         }
                     }
-                    catch (Exception ex)
+
+                    foreach (DataRow dr in table.Select())
                     {
-                        WriteToRichTextBoxOutput(ex.Message);
-                        throw;
+                        dr["NoSup"] = _ulti.DoubleToObject(_ulti.ZeroIfNegative(dr["Nhu cầu"], dr["Đáp ứng"]));
+                        if ((double) dr["NoSup"] > 1)
+                        {
+                            dr["IsNoSup"] = _ulti.BoolToObject(true);
+                        }
                     }
+
+                    return table;
                 }
-
-                foreach (DataRow dr in table.Rows)
-                {
-                    dr["NoSup"] = Math.Max((double) dr["Nhu cầu"] - (double) dr["Đáp ứng"], 0);
-                    if ((double) dr["NoSup"] > 1) dr["IsNoSup"] = true;
-                }
-
-                IOrderedEnumerable<ForecastDate> _FC = db.GetCollection<ForecastDate>("Forecast")
-                    .Find(x =>
-                        x.DateForecast >= DateFrom.Date &&
-                        x.DateForecast <= DateTo.Date)
-                    .ToList()
-                    .OrderByDescending(x => x.DateForecast);
-
-                foreach (ForecastDate _ForecastDate in _FC)
-                foreach (ProductForecast _ProductForecast in _ForecastDate.ListProductForecast)
-                foreach (SupplierForecast _SupplierForecast in _ProductForecast.ListSupplierForecast.Where(
-                    x =>
-                        x.QualityControlPass && x.QuantityForecastPlanned > 0))
-                {
-                    DataRow dr = table.NewRow();
-
-                    Product _Product = coreStructure.dicProduct[_ProductForecast.ProductId];
-                    Supplier _Supplier = coreStructure.dicSupplier[_SupplierForecast.SupplierId];
-
-                    if (FruitOnly)
-                        if (_Product.ProductCode != "K" && _Product.ProductCode != "D01401")
-                            continue;
-
-                    dr["Mã 6 ký tự"] = _Product.ProductCode;
-                    dr["Tên sản phẩm"] = _Product.ProductName;
-                    dr["Nhóm sản phẩm"] = _Product.ProductClassification;
-                    dr["ProductOrientation"] = _Product.ProductOrientation;
-                    dr["ProductClimate"] = _Product.ProductClimate;
-                    dr["ProductionGroup"] = _Product.ProductionGroup;
-                    dr["Ghi chú"] = _Product.ProductNote.Count != 0 ? "Ok" : "Out of List";
-
-                    dr["Nguồn"] = _Supplier.SupplierType;
-                    dr["Vùng sản xuất"] = _Supplier.SupplierRegion;
-                    dr["Mã NCC"] = _Supplier.SupplierCode;
-                    dr["Tên NCC"] = _Supplier.SupplierName;
-
-                    //dr["Ngày sơ chế"] = (int)(_ForecastDate.DateForecast.Date - _dateBase).TotalDays + 2;
-                    dr["Ngày sơ chế"] = _ForecastDate.DateForecast.Date;
-                    dr["KPI"] = _SupplierForecast.QuantityForecastPlanned;
-
-                    table.Rows.Add(dr);
-                }
-
-                #endregion
             }
             catch (Exception ex)
             {

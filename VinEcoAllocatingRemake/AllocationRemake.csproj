@@ -89,6 +89,7 @@
     <Compile Include="AllocatingInventory\Functions\Ultilities\ConvertExcel.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ConvertToUnsigned.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\DeleteEvaluationSheetInterop.cs" />
+    <Compile Include="AllocatingInventory\Functions\Ultilities\ExportAspose.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ExportExcelXmlStyle_Array.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ExportExcelXmlStyle.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ObjectPool.cs" />
