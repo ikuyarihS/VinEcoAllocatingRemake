@@ -1,23 +1,22 @@
-﻿#region
-
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Aspose.Cells;
-using VinEcoAllocatingRemake.AllocatingInventory.Models;
-
-#endregion
-
-namespace VinEcoAllocatingRemake.AllocatingInventory
+﻿namespace VinEcoAllocatingRemake.AllocatingInventory
 {
     #region
+
+    using System;
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Data;
+    using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Globalization;
+    using System.IO;
+    using System.Linq;
+    using System.Threading.Tasks;
+
+    using Aspose.Cells;
+
+    using VinEcoAllocatingRemake.AllocatingInventory.Models;
 
     #endregion
 
@@ -36,6 +35,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <param name="e">
         ///     The e.
         /// </param>
+        [SuppressMessage("ReSharper", "ArrangeThisQualifier")]
         private async void ReadPurchaseOrder(object sender, DoWorkEventArgs e)
         {
             try
@@ -54,191 +54,165 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 // Todo - Implement this instead of a Dictionary because resizing is being a bitch.
                 var listOldPo = new List<((DateTime datePo, string ProductCode, string CustomerKeyCode) Key, (CustomerOrder Order, bool) Value)>();
 
-                WriteToRichTextBoxOutput("Đọc Đơn hàng cũ từ cơ sở dữ liệu.", 1);
+                this.WriteToRichTextBoxOutput("Đọc Đơn hàng cũ từ cơ sở dữ liệu.", 1);
 
                 // ReSharper disable ImplicitlyCapturedClosure
                 // ReSharper disable HeapView.DelegateAllocation
                 var readTasks = new[]
-                {
-                    // Products
-                    new Task(
-                        delegate
-                        {
-                            if (!File.Exists(
-                                $@"{_applicationPath}\Database\Products.xlsb"))
-                                return;
-
-                            using (var workbook = new Workbook(
-                                $@"{_applicationPath}\Database\Products.xlsb",
-                                new LoadOptions
-                                {
-                                    MemorySetting =
-                                        MemorySetting.MemoryPreference
-                                }))
-                            {
-                                Worksheet worksheet = workbook.Worksheets[0];
-                                using (DataTable table = worksheet.Cells.ExportDataTable(
-                                    0,
-                                    0,
-                                    worksheet.Cells.MaxDataRow + 1,
-                                    worksheet.Cells.MaxDataColumn + 1,
-                                    _globalExportTableOptionsOpts))
-                                {
-                                    foreach (DataRow row in table.Select())
-                                        dicProduct.TryAdd(
-                                            _ulti.ObjectToString(row["ProductCode"]),
-                                            new Product
-                                            {
-                                                ProductCode =
-                                                    _ulti.ObjectToString(
-                                                        row["ProductCode"]),
-                                                ProductName =
-                                                    _ulti.ObjectToString(
-                                                        row["ProductName"])
-                                            });
-                                }
-                            }
-                        }),
-
-                    // Customers
-                    new Task(
-                        delegate
-                        {
-                            if (!File.Exists(
-                                $@"{_applicationPath}\Database\Customers.xlsb"))
-                                return;
-
-                            using (var workbook = new Workbook(
-                                $@"{_applicationPath}\Database\Customers.xlsb",
-                                new LoadOptions
-                                {
-                                    MemorySetting =
-                                        MemorySetting.MemoryPreference
-                                }))
-                            {
-                                Worksheet worksheet = workbook.Worksheets[0];
-                                using (DataTable table = worksheet.Cells.ExportDataTable(
-                                    0,
-                                    0,
-                                    worksheet.Cells.MaxDataRow + 1,
-                                    worksheet.Cells.MaxDataColumn + 1,
-                                    _globalExportTableOptionsOpts))
-                                {
-                                    foreach (DataRow row in table.Select())
-                                        dicCustomer.TryAdd(
-                                            _ulti.ObjectToString(row["Key"]),
-                                            new Customer
-                                            {
-                                                CustomerKeyCode =
-                                                    _ulti.ObjectToString(
-                                                        row["Code"]),
-                                                CustomerCode =
-                                                    _ulti.ObjectToString(
-                                                        row["Code"]),
-                                                CustomerName =
-                                                    _ulti.ObjectToString(
-                                                        row["Name"]),
-                                                CustomerBigRegion =
-                                                    _ulti.ObjectToString(
-                                                        row["Region"]),
-                                                CustomerRegion =
-                                                    _ulti.ObjectToString(
-                                                        row["SubRegion"]),
-                                                Company =
-                                                    _ulti.ObjectToString(
-                                                        row["P&L"]),
-                                                CustomerType =
-                                                    _ulti.ObjectToString(
-                                                        row["Type"])
-                                            });
-                                }
-                            }
-                        }),
-
-                    // Orders
-                    new Task(
-                        delegate
-                        {
-                            try
-                            {
-                                string path = $@"{_applicationPath}\Database\Orders.xlsb";
-                                if (!File.Exists(path)) return;
-
-                                using (var workbook = new Workbook(
-                                    path,
-                                    new LoadOptions
                                     {
-                                        MemorySetting =
-                                            MemorySetting.MemoryPreference
-                                    }))
-                                {
-                                    Worksheet worksheet = workbook.Worksheets[0];
-                                    using (DataTable table = worksheet.Cells.ExportDataTable(
-                                        0,
-                                        0,
-                                        worksheet.Cells.MaxDataRow + 1,
-                                        worksheet.Cells.MaxDataColumn + 1,
-                                        _globalExportTableOptionsOpts))
-                                    {
-                                        foreach (DataRow row in table.Select())
-                                        {
-                                            string productCode =
-                                                _ulti.ObjectToString(row["ProductCode"]);
-                                            string cusKeyCode =
-                                                _ulti.ObjectToString(
-                                                    row["CustomerKeyCode"]);
-
-                                            for (var colIndex = 0;
-                                                colIndex < table.Columns.Count;
-                                                colIndex++)
-                                                using (DataColumn column =
-                                                    table.Columns[colIndex])
+                                        // Products
+                                        new Task(
+                                            delegate
                                                 {
-                                                    // First check point. Is it a valid date?
-                                                    // ReSharper disable once PossibleInvalidOperationException
-                                                    // Because I'm confident about that.
-                                                    // ... it's my fucking database.
-                                                    DateTime? dateFc =
-                                                        _ulti.StringToDate(
-                                                            column.ColumnName);
-                                                    if (dateFc == null) continue;
+                                                    if (!File.Exists($@"{this._applicationPath}\Database\Products.xlsb"))
+                                                        return;
 
-                                                    // Second check point. Is it a valid forecast value?
-                                                    double value = _ulti.ObjectToDouble(row[colIndex]);
-                                                    if (value <= 0) continue;
-
-                                                    // dicOldPo.Add(
-                                                    // ((DateTime) dateFc, productCode, cusKeyCode),
-                                                    // (new CustomerOrder
-                                                    // {
-                                                    // CustomerKeyCode = cusKeyCode,
-                                                    // QuantityOrder = poValue
-                                                    // }, false));
-                                                    listOldPo.Add(
-                                                        (((DateTime) dateFc, productCode, cusKeyCode),
-                                                        (new CustomerOrder
+                                                    using (var workbook = new Workbook(
+                                                        $@"{this._applicationPath}\Database\Products.xlsb",
+                                                        new LoadOptions
+                                                            { MemorySetting = MemorySetting.MemoryPreference }))
+                                                    {
+                                                        Worksheet worksheet = workbook.Worksheets[0];
+                                                        using (DataTable table = worksheet.Cells.ExportDataTable(
+                                                            0,
+                                                            0,
+                                                            worksheet.Cells.MaxDataRow + 1,
+                                                            worksheet.Cells.MaxDataColumn + 1,
+                                                            this._globalExportTableOptionsOpts))
                                                         {
-                                                            CustomerKeyCode = cusKeyCode,
-                                                            QuantityOrder = value
-                                                        },
-                                                        false)));
-                                                }
-                                        }
-                                    }
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                WriteToRichTextBoxOutput(ex.Message);
-                                throw;
-                            }
-                        })
-                };
+                                                            foreach (DataRow row in table.Select())
+                                                                dicProduct.TryAdd(
+                                                                    this._ulti.ObjectToString(row["ProductCode"]),
+                                                                    new Product
+                                                                        {
+                                                                            ProductCode = this._ulti.ObjectToString(row["ProductCode"]),
+                                                                            ProductName = this._ulti.ObjectToString(row["ProductName"])
+                                                                        });
+                                                        }
+                                                    }
+                                                }),
+
+                                        // Customers
+                                        new Task(
+                                            delegate
+                                                {
+                                                    if (!File.Exists($@"{this._applicationPath}\Database\Customers.xlsb"))
+                                                        return;
+
+                                                    using (var workbook = new Workbook(
+                                                        $@"{this._applicationPath}\Database\Customers.xlsb",
+                                                        new LoadOptions
+                                                            {
+                                                                MemorySetting =
+                                                                    MemorySetting.MemoryPreference
+                                                            }))
+                                                    {
+                                                        Worksheet worksheet = workbook.Worksheets[0];
+                                                        using (DataTable table = worksheet.Cells.ExportDataTable(
+                                                            0,
+                                                            0,
+                                                            worksheet.Cells.MaxDataRow + 1,
+                                                            worksheet.Cells.MaxDataColumn + 1,
+                                                            this._globalExportTableOptionsOpts))
+                                                        {
+                                                            foreach (DataRow row in table.Select())
+                                                                dicCustomer.TryAdd(
+                                                                    this._ulti.ObjectToString(row["Key"]),
+                                                                    new Customer
+                                                                        {
+                                                                            CustomerKeyCode = this._ulti.ObjectToString(row["Code"]),
+                                                                            CustomerCode = this._ulti.ObjectToString(row["Code"]),
+                                                                            CustomerName = this._ulti.ObjectToString(row["Name"]),
+                                                                            CustomerBigRegion = this._ulti.ObjectToString(row["Region"]),
+                                                                            CustomerRegion = this._ulti.ObjectToString(row["SubRegion"]),
+                                                                            Company = this._ulti.ObjectToString(row["P&L"]),
+                                                                            CustomerType = this._ulti.ObjectToString(row["Type"])
+                                                                        });
+                                                        }
+                                                    }
+                                                }),
+
+                                        // Orders
+                                        new Task(
+                                            delegate
+                                                {
+                                                    try
+                                                    {
+                                                        string path = $@"{this._applicationPath}\Database\Orders.xlsb";
+                                                        if (!File.Exists(path)) return;
+
+                                                        using (var workbook = new Workbook(
+                                                            path,
+                                                            new LoadOptions
+                                                                {
+                                                                    MemorySetting =
+                                                                        MemorySetting.MemoryPreference
+                                                                }))
+                                                        {
+                                                            Worksheet worksheet = workbook.Worksheets[0];
+                                                            using (DataTable table = worksheet.Cells.ExportDataTable(
+                                                                0,
+                                                                0,
+                                                                worksheet.Cells.MaxDataRow + 1,
+                                                                worksheet.Cells.MaxDataColumn + 1,
+                                                                this._globalExportTableOptionsOpts))
+                                                            {
+                                                                foreach (DataRow row in table.Select())
+                                                                {
+                                                                    string productCode = this._ulti.ObjectToString(row["ProductCode"]);
+                                                                    string cusKeyCode = this._ulti.ObjectToString(
+                                                                        row["CustomerKeyCode"]);
+
+                                                                    for (var colIndex = 0;
+                                                                         colIndex < table.Columns.Count;
+                                                                         colIndex++)
+                                                                        using (DataColumn column =
+                                                                            table.Columns[colIndex])
+                                                                        {
+                                                                            // First check point. Is it a valid date?
+                                                                            // ReSharper disable once PossibleInvalidOperationException
+                                                                            // Because I'm confident about that.
+                                                                            // ... it's my fucking database.
+                                                                            DateTime? dateFc = this._ulti.StringToDate(
+                                                                                column.ColumnName);
+                                                                            if (dateFc == null) continue;
+
+                                                                            // Second check point. Is it a valid forecast value?
+                                                                            double value = this._ulti.ObjectToDouble(row[colIndex]);
+                                                                            if (value <= 0) continue;
+
+                                                                            // dicOldPo.Add(
+                                                                            // ((DateTime) dateFc, productCode, cusKeyCode),
+                                                                            // (new CustomerOrder
+                                                                            // {
+                                                                            // CustomerKeyCode = cusKeyCode,
+                                                                            // QuantityOrder = poValue
+                                                                            // }, false));
+                                                                            listOldPo.Add(
+                                                                                (((DateTime)dateFc, productCode, cusKeyCode),
+                                                                                (new CustomerOrder
+                                                                                     {
+                                                                                         CustomerKeyCode = cusKeyCode,
+                                                                                         QuantityOrder = value
+                                                                                     },
+                                                                                false)));
+                                                                        }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        this.WriteToRichTextBoxOutput(ex.Message);
+                                                        throw;
+                                                    }
+                                                })
+                                    };
 
                 // Here we go.
                 Parallel.ForEach(
                     readTasks,
-                    new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount},
+                    new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
                     task => { task.Start(); });
 
                 await Task.WhenAll(readTasks);
@@ -247,443 +221,461 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 // ReSharper restore ImplicitlyCapturedClosure
                 var listDt = new List<DataTable>();
 
-                WriteToRichTextBoxOutput("Bắt đầu đọc Đơn hàng mới.", 1);
+                this.WriteToRichTextBoxOutput("Bắt đầu đọc Đơn hàng mới.", 1);
 
-                TryClear();
+                this.TryClear();
 
                 Parallel.ForEach(
-                    new DirectoryInfo($@"{_applicationPath}\Data\PO").GetFiles(),
-                    new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount},
+                    new DirectoryInfo($@"{this._applicationPath}\Data\PO").GetFiles(),
+                    new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
                     fileInfo =>
-                    {
-                        try
                         {
-                            var stopwatch = new Stopwatch();
-                            stopwatch.Start();
-
-                            using (var workbook = new Workbook(
-                                fileInfo.FullName,
-                                new LoadOptions {MemorySetting = MemorySetting.MemoryPreference}))
+                            try
                             {
-                                Worksheet worksheet = workbook.Worksheets[0];
-                                foreach (Worksheet ws in workbook.Worksheets)
-                                    if (ws.Cells.MaxDataRow > worksheet.Cells.MaxDataRow)
-                                        worksheet = ws;
+                                var stopwatch = new Stopwatch();
+                                stopwatch.Start();
 
-                                var rowIndex = 0;
-                                var colIndex = 0;
-
-                                // Initialize First value coz of While-loop.
-                                string value = worksheet.Cells[rowIndex, colIndex].Value?.ToString().Trim();
-
-                                // Search for the very first row.
-                                while (value != "VE Code" && value != "Mã Planning" && rowIndex <= 100 && colIndex <= 100)
+                                using (var workbook = new Workbook(
+                                    fileInfo.FullName,
+                                    new LoadOptions { MemorySetting = MemorySetting.MemoryPreference }))
                                 {
-                                    // Next row.
-                                    rowIndex++;
+                                    Worksheet worksheet = workbook.Worksheets[0];
+                                    foreach (Worksheet ws in workbook.Worksheets)
+                                        if (ws.Cells.MaxDataRow > worksheet.Cells.MaxDataRow)
+                                            worksheet = ws;
 
-                                    // If above 100.
-                                    if (rowIndex > 100)
+                                    var rowIndex = 0;
+                                    var colIndex = 0;
+
+                                    // Initialize First value coz of While-loop.
+                                    string value = worksheet.Cells[rowIndex, colIndex].Value?.ToString().Trim();
+
+                                    // Search for the very first row.
+                                    while (value != "VE Code" && value != "Mã Planning" && rowIndex <= 100 && colIndex <= 100)
                                     {
-                                        rowIndex = 0;
-                                        colIndex++;
+                                        // Next row.
+                                        rowIndex++;
+
+                                        // If above 100.
+                                        if (rowIndex > 100)
+                                        {
+                                            rowIndex = 0;
+                                            colIndex++;
+                                        }
+
+                                        // Checkpoint. Well, there has to be a limit.
+                                        if (colIndex > 100) break;
+
+                                        value = worksheet.Cells[rowIndex, colIndex].Value?.ToString().Trim();
                                     }
 
-                                    // Checkpoint. Well, there has to be a limit.
-                                    if (colIndex > 100) break;
-
-                                    value = worksheet.Cells[rowIndex, colIndex].Value?.ToString().Trim();
-                                }
-
-                                // Core.
-                                // Principle: Read all at once first.
-                                // Then work on data later.
-                                using (DataTable table = worksheet.Cells.ExportDataTable(
-                                    rowIndex,
-                                    colIndex,
-                                    worksheet.Cells.MaxDataRow + 1,
-                                    worksheet.Cells.MaxDataColumn + 1,
-                                    _globalExportTableOptionsOpts))
-                                {
-                                    table.TableName = Path.GetFileNameWithoutExtension(fileInfo.Name);
-
-                                    // To deal with the uhm, Templates having different Headers.
-                                    // Please shoot me.
-                                    if (!table.Columns.Contains("VE Code")) table.Columns[colIndex].ColumnName = "VE Code";
-
-                                    // ReSharper disable once SuggestVarOrType_SimpleTypes
-                                    foreach (var key in new (string oldName, string newName)[]
+                                    // Core.
+                                    // Principle: Read all at once first.
+                                    // Then work on data later.
+                                    using (DataTable table = worksheet.Cells.ExportDataTable(
+                                        rowIndex,
+                                        colIndex,
+                                        worksheet.Cells.MaxDataRow + 1,
+                                        worksheet.Cells.MaxDataColumn + 1,
+                                        this._globalExportTableOptionsOpts))
                                     {
-                                        ("Tỉnh tiêu thụ", "Region"),
-                                        ("Store Code", "StoreCode"),
-                                        ("Store Name", "StoreName"),
-                                        ("Store Type", "StoreType"),
-                                        ("VE Code", "PCODE"),
-                                        ("VE Name", "PNAME")
-                                    })
-                                        if (table.Columns.Contains(key.oldName))
-                                            table.Columns[key.oldName].ColumnName = key.newName;
+                                        table.TableName = Path.GetFileNameWithoutExtension(fileInfo.Name);
 
-                                    listDt.Add(table);
+                                        // To deal with the uhm, Templates having different Headers.
+                                        // Please shoot me.
+                                        if (!table.Columns.Contains("VE Code")) table.Columns[colIndex].ColumnName = "VE Code";
+
+                                        // ReSharper disable once SuggestVarOrType_SimpleTypes
+                                        foreach (var key in new (string oldName, string newName)[]
+                                                                {
+                                                                    ("Tỉnh tiêu thụ", "Region"),
+                                                                    ("Store Code", "StoreCode"),
+                                                                    ("Store Name", "StoreName"),
+                                                                    ("Store Type", "StoreType"),
+                                                                    ("VE Code", "PCODE"),
+                                                                    ("VE Name", "PNAME")
+                                                                })
+                                            if (table.Columns.Contains(key.oldName))
+                                                table.Columns[key.oldName].ColumnName = key.newName;
+
+                                        listDt.Add(table);
+                                    }
                                 }
+
+                                stopwatch.Stop();
+                                this.WriteToRichTextBoxOutput(
+                                    $"{fileInfo.Name} - Xong trong {Math.Round(stopwatch.Elapsed.TotalSeconds, 2).ToString(CultureInfo.InvariantCulture)}s!",
+                                    2); // + " - Done!");
                             }
+                            catch (Exception ex)
+                            {
+                                this.WriteToRichTextBoxOutput(ex.Message);
+                                throw;
+                            }
+                        });
 
-                            stopwatch.Stop();
-                            WriteToRichTextBoxOutput(
-                                $"{fileInfo.Name} - Xong trong {Math.Round(stopwatch.Elapsed.TotalSeconds, 2).ToString(CultureInfo.InvariantCulture)}s!",
-                                2); // + " - Done!");
-                        }
-                        catch (Exception ex)
-                        {
-                            WriteToRichTextBoxOutput(ex.Message);
-                            throw;
-                        }
-                    });
+                this.WriteToRichTextBoxOutput("Bắt đầu xử lý Đơn hàng.", 1);
 
-                WriteToRichTextBoxOutput("Bắt đầu xử lý Đơn hàng.", 1);
-
-                TryClear();
+                this.TryClear();
 
                 // Here comes the data handling.
                 Parallel.ForEach(
                     listDt,
-                    new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount},
+                    new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
                     table =>
-                    {
-                        try
                         {
-                            // Row layer.
-                            foreach (DataRow row in table.Select())
+                            try
                             {
-                                // Idk why this is a thing.
-                                if (string.IsNullOrEmpty(_ulti.ObjectToString(row["PCODE"]))) continue;
-
-                                // Less conversion.
-                                string cusKeyCode = _ulti.GetString(
-                                    $"{_ulti.ObjectToString(row["StoreCode"])} | {_ulti.ObjectToString(row["StoreType"])} | {_ulti.ObjectToString(row["P&L"])}");
-
-                                string pCode = string.Intern(_ulti.ObjectToString(row["PCODE"]));
-
-                                // Product information.
-                                Product product = dicProduct.GetOrAdd(
-                                    pCode,
-                                    new Product
+                                // In an atempt to avoid missing columns.
+                                // Seriously.
+                                foreach (string columnName in new[]
+                                                                  { "P&L" })
+                                {
+                                    if (!table.Columns.Contains(columnName))
                                     {
-                                        ProductCode = pCode,
-                                        ProductName = _ulti.ObjectToString(row["PNAME"])
-                                    });
-
-                                // Quality of life. Get the pseudo 'best' Product Name.
-                                if (string.CompareOrdinal(
-                                        product.ProductName,
-                                        _ulti.ObjectToString(row["PNAME"])) <
-                                    0)
-                                    product.ProductName = _ulti.ObjectToString(row["PNAME"]);
-
-                                // Optimization, dealing with region.
-                                string region = string.Intern(table.TableName.Substring(0, 2));
-
-                                // Customer information.
-                                Customer customer = dicCustomer.GetOrAdd(
-                                    cusKeyCode,
-                                    new Customer
-                                    {
-                                        CustomerBigRegion = region,
-                                        CustomerRegion = _ulti.ObjectToString(row["Region"]),
-                                        Company = _ulti.ObjectToString(row["P&L"]),
-                                        CustomerKeyCode = cusKeyCode,
-                                        CustomerCode = _ulti.ObjectToString(row["StoreCode"]),
-                                        CustomerName = _ulti.ObjectToString(row["StoreName"]),
-                                        CustomerType = _ulti.ObjectToString(row["StoreType"])
-                                    });
-
-                                // Meh.
-                                if (string.CompareOrdinal(
-                                        customer.CustomerName,
-                                        _ulti.ObjectToString(row["StoreName"])) <
-                                    0)
-                                    customer.CustomerName = _ulti.ObjectToString(row["StoreName"]);
-
-                                // Column layer.
-                                for (var colIndex = 0; colIndex < table.Columns.Count; colIndex++)
-                                    using (DataColumn column = table.Columns[colIndex])
-                                    {
-                                        // First check point. Is it a valid date?
-                                        DateTime? datePo = _ulti.StringToDate(column.ColumnName);
-                                        if (datePo == null) continue;
-
-                                        // Second check point. Is it a valid forecast value?
-                                        double poValue = _ulti.ObjectToDouble(row[colIndex]);
-                                        if (poValue <= 0) continue;
-
-                                        // CustomerOrder order = dicPo.AddOrUpdate(
-                                        // ((DateTime) datePo, pCode, cusKeyCode), (new CustomerOrder
-                                        // {
-                                        // //Company = customer.Company,
-                                        // CustomerKeyCode = cusKeyCode,
-                                        // CustomerCode = customer.CustomerCode
-                                        // }, false));
-                                        dicPo.AddOrUpdate(
-                                            ((DateTime) datePo, pCode, cusKeyCode), (new CustomerOrder {CustomerCode = customer.CustomerCode, QuantityOrder = poValue}, false), (key, oldValue) => (new CustomerOrder {CustomerKeyCode = cusKeyCode, CustomerCode = customer.CustomerCode, QuantityOrder = oldValue.Order.QuantityOrder + poValue}, false));
-
-                                        // lock (myLock)
-                                        // order.QuantityOrder += poValue;
-
-                                        // lock (order)
-                                        // {
-                                        // order.QuantityOrder += poValue;
-                                        // //order.QuantityOrderKg += poValue;
-                                        // }
+                                        table.Columns.Add(columnName);
                                     }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            WriteToRichTextBoxOutput(ex.Message);
-                            throw;
-                        }
-                    });
+                                }
 
-                WriteToRichTextBoxOutput(
+                                // Row layer.
+                                foreach (DataRow row in table.Select())
+                                {
+                                    // Idk why this is a thing.
+                                    if (string.IsNullOrEmpty(this._ulti.ObjectToString(row["PCODE"])))
+                                    {
+                                        continue;
+                                    }
+
+                                    // Less conversion.
+                                    string cusKeyCode = this._ulti.GetString(
+                                        $"{this._ulti.ObjectToString(row["StoreCode"])} | {this._ulti.ObjectToString(row["StoreType"])} | {this._ulti.ObjectToString(row["P&L"])}");
+
+                                    string pCode = string.Intern(this._ulti.ObjectToString(row["PCODE"]));
+
+                                    // Product information.
+                                    Product product = dicProduct.GetOrAdd(
+                                        pCode,
+                                        new Product
+                                            {
+                                                ProductCode = pCode,
+                                                ProductName = this._ulti.ObjectToString(row["PNAME"])
+                                            });
+
+                                    // Quality of life. Get the pseudo 'best' Product Name.
+                                    if (string.CompareOrdinal(
+                                            product.ProductName,
+                                            this._ulti.ObjectToString(row["PNAME"]))
+                                        < 0)
+                                        product.ProductName = this._ulti.ObjectToString(row["PNAME"]);
+
+                                    // Optimization, dealing with region.
+                                    string region = string.Intern(table.TableName.Substring(0, 2));
+
+                                    // Customer information.
+                                    Customer customer = dicCustomer.GetOrAdd(
+                                        cusKeyCode,
+                                        new Customer
+                                            {
+                                                CustomerBigRegion = region,
+                                                CustomerRegion = this._ulti.ObjectToString(row["Region"]),
+                                                Company = this._ulti.ObjectToString(row["P&L"]) ?? "VCM",
+                                                CustomerKeyCode = cusKeyCode,
+                                                CustomerCode = this._ulti.ObjectToString(row["StoreCode"]),
+                                                CustomerName = this._ulti.ObjectToString(row["StoreName"]),
+                                                CustomerType = this._ulti.ObjectToString(row["StoreType"])
+                                            });
+
+                                    // Meh.
+                                    if (string.CompareOrdinal(
+                                            customer.CustomerName,
+                                            this._ulti.ObjectToString(row["StoreName"]))
+                                        < 0)
+                                        customer.CustomerName = this._ulti.ObjectToString(row["StoreName"]);
+
+                                    // Column layer.
+                                    for (var colIndex = 0; colIndex < table.Columns.Count; colIndex++)
+                                        using (DataColumn column = table.Columns[colIndex])
+                                        {
+                                            // First check point. Is it a valid date?
+                                            DateTime? datePo = this._ulti.StringToDate(column.ColumnName);
+                                            if (datePo == null) continue;
+
+                                            // Second check point. Is it a valid forecast value?
+                                            double poValue = this._ulti.ObjectToDouble(row[colIndex]);
+                                            if (poValue <= 0) continue;
+
+                                            // CustomerOrder order = dicPo.AddOrUpdate(
+                                            // ((DateTime) datePo, pCode, cusKeyCode), (new CustomerOrder
+                                            // {
+                                            // //Company = customer.Company,
+                                            // CustomerKeyCode = cusKeyCode,
+                                            // CustomerCode = customer.CustomerCode
+                                            // }, false));
+                                            dicPo.AddOrUpdate(
+                                                ((DateTime)datePo, pCode, cusKeyCode),
+                                                (new CustomerOrder { CustomerCode = customer.CustomerCode, QuantityOrder = poValue }, false),
+                                                (key, oldValue) => (new CustomerOrder { CustomerKeyCode = cusKeyCode, CustomerCode = customer.CustomerCode, QuantityOrder = oldValue.Order.QuantityOrder + poValue }, false));
+
+                                            // lock (myLock)
+                                            // order.QuantityOrder += poValue;
+
+                                            // lock (order)
+                                            // {
+                                            // order.QuantityOrder += poValue;
+                                            // //order.QuantityOrderKg += poValue;
+                                            // }
+                                        }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                this.WriteToRichTextBoxOutput(ex.Message);
+                                throw;
+                            }
+                        });
+
+                this.WriteToRichTextBoxOutput(
                     $"Xử lý xong Đơn hàng, mất: {Math.Round(watch.Elapsed.TotalSeconds, 2).ToString(CultureInfo.InvariantCulture)}s!",
                     2);
 
-                TryClear();
+                this.TryClear();
 
                 // ReSharper disable ImplicitlyCapturedClosure
                 // ReSharper disable HeapView.DelegateAllocation
                 var writeTasks = new[]
-                {
-                    // Orders
-                    new Task(
-                        delegate
-                        {
-                            try
-                            {
-                                var listColumns = new List<string>();
-                                var listTypes = new List<Type>();
+                                     {
+                                         // Orders
+                                         new Task(
+                                             delegate
+                                                 {
+                                                     try
+                                                     {
+                                                         var listColumns = new List<string>();
+                                                         var listTypes = new List<Type>();
 
-                                foreach ((string, Type) key in new[]
-                                {
-                                    ("ProductCode", typeof(string)),
-                                    ("CustomerKeyCode", typeof(string))
-                                })
-                                {
-                                    listColumns.Add(key.Item1);
-                                    listTypes.Add(key.Item2);
-                                }
+                                                         // ReSharper disable once SuggestVarOrType_SimpleTypes
+                                                         foreach (var key in new[]
+                                                                                 {
+                                                                                     ("ProductCode", typeof(string)),
+                                                                                     ("CustomerKeyCode", typeof(string))
+                                                                                 })
+                                                         {
+                                                             listColumns.Add(key.Item1);
+                                                             listTypes.Add(key.Item2);
+                                                         }
 
-                                var listDatePo = new List<DateTime>();
+                                                         var listDatePo = new List<DateTime>();
 
-                                // Count DateFc.
-                                // ReSharper disable once SuggestVarOrType_SimpleTypes
-                                foreach (var key in dicPo.Keys)
-                                    if (!listDatePo.Contains(key.DatePo))
-                                        listDatePo.Add(key.DatePo);
+                                                         // Count DateFc.
+                                                         // ReSharper disable once SuggestVarOrType_SimpleTypes
+                                                         foreach (var key in dicPo.Keys)
+                                                             if (!listDatePo.Contains(key.DatePo))
+                                                                 listDatePo.Add(key.DatePo);
 
-                                // ... and then add the same amount of columns.
-                                foreach (DateTime datePo in from dateFc in listDatePo
-                                    orderby dateFc
-                                    select dateFc)
-                                {
-                                    // Also remove all old items.
-                                    // foreach (((DateTime dateOldPo, string ProductCode, string CustomerKeyCode) key, (CustomerOrder _, bool)) oldPo in listOldPo.ToList())
-                                    // {
-                                    // if (oldPo.key.dateOldPo == datePo)
-                                    // listOldPo.Remove(oldPo);
-                                    // }
-                                    listOldPo.RemoveAll(x => x.Key.datePo == datePo);
-                                    listColumns.Add(
-                                        _ulti.DateToString(datePo, "dd-MMM-yyyy"));
-                                    listTypes.Add(typeof(double));
-                                }
+                                                         // ... and then add the same amount of columns.
+                                                         foreach (DateTime datePo in from dateFc in listDatePo
+                                                                                     orderby dateFc
+                                                                                     select dateFc)
+                                                         {
+                                                             // Also remove all old items.
+                                                             // foreach (((DateTime dateOldPo, string ProductCode, string CustomerKeyCode) key, (CustomerOrder _, bool)) oldPo in listOldPo.ToList())
+                                                             // {
+                                                             // if (oldPo.key.dateOldPo == datePo)
+                                                             // listOldPo.Remove(oldPo);
+                                                             // }
+                                                             listOldPo.RemoveAll(x => x.Key.datePo == datePo);
+                                                             listColumns.Add(
+                                                                 this._ulti.DateToString(datePo, "dd-MMM-yyyy"));
+                                                             listTypes.Add(typeof(double));
+                                                         }
 
-                                // Dictionary of rowIndex.
-                                var dicRow = new Dictionary<string, int>(
-                                    dicProduct.Count,
-                                    StringComparer.OrdinalIgnoreCase);
+                                                         // Dictionary of rowIndex.
+                                                         var dicRow = new Dictionary<string, int>(
+                                                             dicProduct.Count,
+                                                             StringComparer.OrdinalIgnoreCase);
 
-                                // Hour of truth.
-                                listOldPo.AddRange(
-                                    dicPo.Keys.Select(key => (key, dicPo[key])));
+                                                         // Hour of truth.
+                                                         listOldPo.AddRange(
+                                                             dicPo.Keys.Select(key => (key, dicPo[key])));
 
-                                var rowIndex = 0;
-                                foreach (
-                                    // ReSharper disable once SuggestVarOrType_SimpleTypes
-                                    var key
-                                    in from po in listOldPo
-                                    orderby po.Key.ProductCode, po.Key.CustomerKeyCode
-                                    select po.Key)
-                                {
-                                    string rowKey = $"{key.ProductCode}{key.CustomerKeyCode}";
-                                    if (dicRow.ContainsKey(rowKey)) continue;
+                                                         var rowIndex = 0;
+                                                         foreach (
+                                                             // ReSharper disable once SuggestVarOrType_SimpleTypes
+                                                             var key
+                                                             in from po in listOldPo
+                                                                orderby po.Key.ProductCode, po.Key.CustomerKeyCode
+                                                                select po.Key)
+                                                         {
+                                                             string rowKey = $"{key.ProductCode}{key.CustomerKeyCode}";
+                                                             if (dicRow.ContainsKey(rowKey)) continue;
 
-                                    dicRow.Add(rowKey, rowIndex);
-                                    rowIndex++;
-                                }
+                                                             dicRow.Add(rowKey, rowIndex);
+                                                             rowIndex++;
+                                                         }
 
-                                var orders = new object[dicRow.Count, listColumns.Count];
+                                                         var orders = new object[dicRow.Count, listColumns.Count];
 
-                                // ReSharper disable once SuggestVarOrType_SimpleTypes
-                                foreach (var po in listOldPo)
-                                {
-                                    string rowKey =
-                                        $"{po.Key.ProductCode}{po.Key.CustomerKeyCode}";
-                                    orders[dicRow[rowKey], 0] = po.Key.ProductCode;
-                                    orders[dicRow[rowKey], 1] = po.Key.CustomerKeyCode;
-                                }
+                                                         // ReSharper disable once SuggestVarOrType_SimpleTypes
+                                                         foreach (var po in listOldPo)
+                                                         {
+                                                             string rowKey =
+                                                                 $"{po.Key.ProductCode}{po.Key.CustomerKeyCode}";
+                                                             orders[dicRow[rowKey], 0] = po.Key.ProductCode;
+                                                             orders[dicRow[rowKey], 1] = po.Key.CustomerKeyCode;
+                                                         }
 
-                                Parallel.ForEach(
-                                    listOldPo,
-                                    new ParallelOptions
-                                    {
-                                        MaxDegreeOfParallelism =
-                                            Environment.ProcessorCount
-                                    },
-                                    po =>
-                                    {
-                                        try
-                                        {
-                                            (DateTime datePo, string productCode,
-                                                string customerKeyCode) = po.Key;
-                                            string rowKey =
-                                                $"{productCode}{customerKeyCode}";
-                                            CustomerOrder order = po.Value.Order;
+                                                         Parallel.ForEach(
+                                                             listOldPo,
+                                                             new ParallelOptions
+                                                                 {
+                                                                     MaxDegreeOfParallelism =
+                                                                         Environment.ProcessorCount
+                                                                 },
+                                                             po =>
+                                                                 {
+                                                                     try
+                                                                     {
+                                                                         (DateTime datePo, string productCode,
+                                                                             string customerKeyCode) = po.Key;
+                                                                         string rowKey =
+                                                                             $"{productCode}{customerKeyCode}";
+                                                                         CustomerOrder order = po.Value.Order;
 
-                                            orders[dicRow[rowKey],
-                                                    listColumns.IndexOf(
-                                                        _ulti.DateToString(
-                                                            datePo,
-                                                            "dd-MMM-yyyy"))] =
-                                                _ulti.DoubleToObject(
-                                                    order.QuantityOrder);
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            WriteToRichTextBoxOutput(ex.Message);
-                                            throw;
-                                        }
-                                    });
+                                                                         orders[dicRow[rowKey],
+                                                                             listColumns.IndexOf(
+                                                                                 this._ulti.DateToString(
+                                                                                     datePo,
+                                                                                     "dd-MMM-yyyy"))] = this._ulti.DoubleToObject(
+                                                                             order.QuantityOrder);
+                                                                     }
+                                                                     catch (Exception ex)
+                                                                     {
+                                                                         this.WriteToRichTextBoxOutput(ex.Message);
+                                                                         throw;
+                                                                     }
+                                                                 });
 
-                                string path =
-                                    $@"{_applicationPath}\Database\Orders.xlsx";
-                                _ulti.ExportXmlArray(
-                                    path,
-                                    "Orders",
-                                    new[] {orders},
-                                    listColumns,
-                                    listTypes,
-                                    true);
+                                                         string path =
+                                                             $@"{this._applicationPath}\Database\Orders.xlsx";
+                                                         this._ulti.ExportXmlArray(
+                                                             path,
+                                                             "Orders",
+                                                             new[] { orders },
+                                                             listColumns,
+                                                             listTypes,
+                                                             true);
 
-                                // _ulti.LargeExportOneWorkbook(path, new List<DataTable> { table }, true, true);
-                                _ulti.ConvertExcelTypeInterop(
-                                    path,
-                                    "xlsx",
-                                    "xlsb"); // Otherwise it's super fucking hard to open the file.
-                            }
-                            catch (Exception ex)
-                            {
-                                WriteToRichTextBoxOutput(ex.Message);
-                                throw;
-                            }
-                        }),
+                                                         this._ulti.ConvertExcelTypeAspose(path, "xlsb");
+                                                         this._ulti.DeleteEvaluationSheetInterop(path);
 
-                    // Products
-                    new Task(
-                        delegate
-                        {
-                            using (var table = new DataTable {TableName = "Products"})
-                            {
-                                // ReSharper disable once SuggestVarOrType_SimpleTypes
-                                foreach (var key in new (string colName, Type colType)[]
-                                {
-                                    ("ProductCode", typeof(string)),
-                                    ("ProductName", typeof(string))
-                                })
-                                    table.Columns.Add(key.colName, key.colType);
+                                                         // _ulti.LargeExportOneWorkbook(path, new List<DataTable> { table }, true, true);
+                                                         this._ulti.ConvertExcelTypeInterop(
+                                                             path,
+                                                             "xlsx",
+                                                             "xlsb"); // Otherwise it's super fucking hard to open the file.
+                                                     }
+                                                     catch (Exception ex)
+                                                     {
+                                                         this.WriteToRichTextBoxOutput(ex.Message);
+                                                         throw;
+                                                     }
+                                                 }),
 
-                                foreach (Product product in from value in dicProduct.Values
-                                    orderby value.ProductCode
-                                    select value)
-                                {
-                                    DataRow row = table.NewRow();
+                                         // Products
+                                         new Task(
+                                             delegate
+                                                 {
+                                                     using (var table = new DataTable { TableName = "Products" })
+                                                     {
+                                                         // ReSharper disable once SuggestVarOrType_SimpleTypes
+                                                         foreach (var key in new (string colName, Type colType)[]
+                                                                                 {
+                                                                                     ("ProductCode", typeof(string)),
+                                                                                     ("ProductName", typeof(string))
+                                                                                 })
+                                                             table.Columns.Add(key.colName, key.colType);
 
-                                    row["ProductCode"] = product.ProductCode;
-                                    row["ProductName"] = product.ProductName;
+                                                         foreach (Product product in from value in dicProduct.Values
+                                                                                     orderby value.ProductCode
+                                                                                     select value)
+                                                         {
+                                                             DataRow row = table.NewRow();
 
-                                    table.Rows.Add(row);
-                                }
+                                                             row["ProductCode"] = product.ProductCode;
+                                                             row["ProductName"] = product.ProductName;
 
-                                string path =
-                                    $@"{_applicationPath}\Database\{table.TableName}.xlsx";
-                                _ulti.LargeExportOneWorkbook(
-                                    path,
-                                    new List<DataTable> {table},
-                                    true,
-                                    true);
-                                _ulti.ConvertExcelTypeInterop(path, "xlsx", "xlsb");
-                            }
-                        }),
+                                                             table.Rows.Add(row);
+                                                         }
 
-                    // Customers
-                    new Task(
-                        delegate
-                        {
-                            using (var table = new DataTable {TableName = "Customers"})
-                            {
-                                // ReSharper disable once SuggestVarOrType_SimpleTypes
-                                foreach (var key in new (string colName, Type colType)[]
-                                {
-                                    ("Code", typeof(string)),
-                                    ("Name", typeof(string)),
-                                    ("SubRegion", typeof(string)),
-                                    ("Region", typeof(string)),
-                                    ("Type", typeof(string)),
-                                    ("P&L", typeof(string)),
-                                    ("Key", typeof(string))
-                                })
-                                    table.Columns.Add(
-                                        key.colName,
-                                        key.colType);
+                                                         string path =
+                                                             $@"{this._applicationPath}\Database\{table.TableName}.xlsx";
+                                                         this._ulti.LargeExportOneWorkbook(
+                                                             path,
+                                                             new List<DataTable> { table },
+                                                             true,
+                                                             true);
+                                                         this._ulti.ConvertExcelTypeInterop(path, "xlsx", "xlsb");
+                                                     }
+                                                 }),
 
-                                foreach (Customer customer in
-                                    from value in dicCustomer.Values
-                                    orderby value.CustomerCode
-                                    select value)
-                                {
-                                    DataRow row = table.NewRow();
+                                         // Customers
+                                         new Task(
+                                             delegate
+                                                 {
+                                                     using (var table = new DataTable { TableName = "Customers" })
+                                                     {
+                                                         // ReSharper disable once SuggestVarOrType_SimpleTypes
+                                                         foreach (var key in new (string colName, Type colType)[]
+                                                                                 {
+                                                                                     ("Code", typeof(string)),
+                                                                                     ("Name", typeof(string)),
+                                                                                     ("SubRegion", typeof(string)),
+                                                                                     ("Region", typeof(string)),
+                                                                                     ("Type", typeof(string)),
+                                                                                     ("P&L", typeof(string)),
+                                                                                     ("Key", typeof(string))
+                                                                                 })
+                                                             table.Columns.Add(
+                                                                 key.colName,
+                                                                 key.colType);
 
-                                    row["Code"] = customer.CustomerCode;
-                                    row["Name"] = customer.CustomerName;
-                                    row["SubRegion"] = customer.CustomerRegion;
-                                    row["Region"] = customer.CustomerBigRegion;
-                                    row["Type"] = customer.CustomerType;
-                                    row["P&L"] = customer.Company;
-                                    row["Key"] = customer.CustomerKeyCode;
+                                                         foreach (Customer customer in
+                                                             from value in dicCustomer.Values
+                                                             orderby value.CustomerCode
+                                                             select value)
+                                                         {
+                                                             DataRow row = table.NewRow();
 
-                                    table.Rows.Add(row);
-                                }
+                                                             row["Code"] = customer.CustomerCode;
+                                                             row["Name"] = customer.CustomerName;
+                                                             row["SubRegion"] = customer.CustomerRegion;
+                                                             row["Region"] = customer.CustomerBigRegion;
+                                                             row["Type"] = customer.CustomerType;
+                                                             row["P&L"] = customer.Company;
+                                                             row["Key"] = customer.CustomerKeyCode;
 
-                                string path =
-                                    $@"{_applicationPath}\Database\{table.TableName}.xlsx";
-                                _ulti.LargeExportOneWorkbook(
-                                    path,
-                                    new List<DataTable> {table},
-                                    true,
-                                    true);
-                                _ulti.ConvertExcelTypeInterop(path, "xlsx", "xlsb");
-                            }
-                        })
-                };
+                                                             table.Rows.Add(row);
+                                                         }
+
+                                                         string path = $@"{this._applicationPath}\Database\{table.TableName}.xlsx";
+                                                         this._ulti.LargeExportOneWorkbook(
+                                                             path,
+                                                             new List<DataTable> { table },
+                                                             true,
+                                                             true);
+                                                         this._ulti.ConvertExcelTypeInterop(path, "xlsx", "xlsb");
+                                                     }
+                                                 })
+                                     };
 
                 // Here we go.
                 Parallel.ForEach(
                     writeTasks,
-                    new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount},
+                    new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
                     task => { task.Start(); });
 
                 // Making sure every Tasks finished before proceeding.
-                await Task.WhenAll(writeTasks);
+                await Task.WhenAll(writeTasks).ConfigureAwait(true);
 
                 // ReSharper restore HeapView.DelegateAllocation
                 // ReSharper restore ImplicitlyCapturedClosure
@@ -693,18 +685,18 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                 // The final flag.
                 watch.Stop();
-                WriteToRichTextBoxOutput(
+                this.WriteToRichTextBoxOutput(
                     $"Đã ghi vào cơ sở dữ liệu. Tổng thời gian chạy: {Math.Round(watch.Elapsed.TotalSeconds, 2).ToString(CultureInfo.InvariantCulture)}s!",
                     1);
             }
             catch (Exception ex)
             {
-                WriteToRichTextBoxOutput(ex.Message);
+                this.WriteToRichTextBoxOutput(ex.Message);
                 throw;
             }
             finally
             {
-                TryClear();
+                this.TryClear();
             }
         }
     }

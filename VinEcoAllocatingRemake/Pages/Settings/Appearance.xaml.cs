@@ -1,11 +1,11 @@
-﻿#region
-
-using System.Windows.Controls;
-
-#endregion
-
-namespace VinEcoAllocatingRemake.Pages.Settings
+﻿namespace VinEcoAllocatingRemake.Pages.Settings
 {
+    #region
+
+    using System.Windows.Controls;
+
+    #endregion
+
     /// <summary>
     ///     Interaction logic for Appearance.xaml
     /// </summary>
@@ -13,10 +13,10 @@ namespace VinEcoAllocatingRemake.Pages.Settings
     {
         public Appearance()
         {
-            InitializeComponent();
+            this.InitializeComponent();
 
             // create and assign the appearance view model
-            DataContext = new AppearanceViewModel();
+            this.DataContext = new AppearanceViewModel();
         }
     }
 }

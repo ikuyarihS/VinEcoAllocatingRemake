@@ -1,12 +1,12 @@
-﻿#region
-
-using System.Collections.Generic;
-using System.Globalization;
-
-#endregion
-
-namespace VinEcoAllocatingRemake.AllocatingInventory
+﻿namespace VinEcoAllocatingRemake.AllocatingInventory
 {
+    #region
+
+    using System.Collections.Generic;
+    using System.Globalization;
+
+    #endregion
+
     #region
 
     #endregion
@@ -32,7 +32,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// </returns>
         public string ProperStr(string myString)
         {
-            if (_dicStringProper.TryGetValue(myString, out string myProperString)) return myProperString;
+            if (this._dicStringProper.TryGetValue(myString, out string myProperString)) return myProperString;
 
             // Creates a TextInfo based on the "en-US" culture.
             TextInfo myTi = new CultureInfo("en-US", false).TextInfo;
@@ -46,7 +46,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             //// Changes a string to titlecase.
             // WriteToRichTextBoxOutput("\"{0}\" to titlecase: {1}", myString, myTI.ToTitleCase(myString));
             myProperString = myTi.ToTitleCase(myString.ToLower());
-            _dicStringProper.Add(myString, myProperString);
+            this._dicStringProper.Add(myString, myProperString);
             return myProperString;
         }
     }

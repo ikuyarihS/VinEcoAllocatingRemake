@@ -1,11 +1,11 @@
-﻿#region
-
-using System.Windows.Controls;
-
-#endregion
-
-namespace VinEcoAllocatingRemake.Pages
+﻿namespace VinEcoAllocatingRemake.Pages
 {
+    #region
+
+    using System.Windows.Controls;
+
+    #endregion
+
     /// <summary>
     ///     Interaction logic for SettingsPage.xaml
     /// </summary>
@@ -13,7 +13,7 @@ namespace VinEcoAllocatingRemake.Pages
     {
         public SettingsPage()
         {
-            InitializeComponent();
+            this.InitializeComponent();
         }
     }
 }

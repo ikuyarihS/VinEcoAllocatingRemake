@@ -1,17 +1,12 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ExportAspose.cs" company="VinEco">
-//   Shirayuki 2018.
-// </copyright>
-// <summary>
-//   The utilities.
-// </summary>
-// --------------------------------------------------------------------------------------------------------------------
-
-namespace VinEcoAllocatingRemake.AllocatingInventory
+﻿namespace VinEcoAllocatingRemake.AllocatingInventory
 {
+    #region
+
     using System.Data;
 
     using Aspose.Cells;
+
+    #endregion
 
     /// <summary>
     ///     The utilities.
@@ -51,21 +46,19 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
             // Import DataTable into worksheet.
             worksheet.Cells.ImportDataTable(
-                dataTable: dataTable, 
-                isFieldNameShown: yesNoHeader, 
-                firstRow: rowFirst - 1, 
-                firstColumn: 0, 
-                rowNumber: rowTotal, 
-                columnNumber: colTotal, 
-                insertRows: false,
-                dateFormatString: customDateFormat == string.Empty ? "dd-MMM" : customDateFormat, 
-                convertStringToNumber: false);
+                dataTable,
+                yesNoHeader,
+                rowFirst - 1,
+                0,
+                rowTotal,
+                colTotal,
+                false,
+                customDateFormat == string.Empty ? "dd-MMM" : customDateFormat,
+                false);
 
             // Set AutoFilter Range.
-            worksheet.AutoFilter.Range = 
+            worksheet.AutoFilter.Range =
                 $"A1:{worksheet.Cells[worksheet.Cells.MaxDataRow + 1, worksheet.Cells.MaxDataColumn + 1].Name}";
-            
         }
     }
-
 }

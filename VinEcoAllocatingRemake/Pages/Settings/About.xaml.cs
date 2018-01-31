@@ -1,11 +1,11 @@
-﻿#region
-
-using System.Windows.Controls;
-
-#endregion
-
-namespace VinEcoAllocatingRemake.Pages.Settings
+﻿namespace VinEcoAllocatingRemake.Pages.Settings
 {
+    #region
+
+    using System.Windows.Controls;
+
+    #endregion
+
     /// <summary>
     ///     Interaction logic for About.xaml
     /// </summary>
@@ -13,7 +13,7 @@ namespace VinEcoAllocatingRemake.Pages.Settings
     {
         public About()
         {
-            InitializeComponent();
+            this.InitializeComponent();
         }
     }
 }

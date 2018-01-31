@@ -180,12 +180,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="bin\Data\Forecast\ThuMua.xlsb">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="bin\Data\Forecast\VinEco.xlsb">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="Data\Forecast\ThuMua.xlsb" />
+    <None Include="Data\Forecast\VinEco.xlsb" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -193,7 +189,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="bin\" />
     <Folder Include="Database\" />
+    <Folder Include="Data\PO\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="384767119826616341_Z7H_icon.ico" />

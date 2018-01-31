@@ -1,11 +1,11 @@
-﻿#region
-
-using System.Collections.Generic;
-
-#endregion
-
-namespace VinEcoAllocatingRemake.AllocatingInventory.Models
+﻿namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 {
+    #region
+
+    using System.Collections.Generic;
+
+    #endregion
+
     /// <summary>
     ///     The product.
     /// </summary>

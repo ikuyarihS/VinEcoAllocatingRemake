@@ -1,36 +1,72 @@
-﻿#region
-
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Runtime.InteropServices;
-using Microsoft.Office.Interop.Excel;
-
-#endregion
-
-namespace VinEcoAllocatingRemake.AllocatingInventory
+﻿namespace VinEcoAllocatingRemake.AllocatingInventory
 {
+    #region
+
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Runtime.InteropServices;
+
+    using Aspose.Cells;
+
+    using Microsoft.Office.Interop.Excel;
+
+    using Workbook = Aspose.Cells.Workbook;
+
+    #endregion
+
     /// <summary>
     ///     The utilities.
     /// </summary>
     public partial class Utilities
     {
         /// <summary>
+        ///     The convert excel type aspose.
+        /// </summary>
+        /// <param name="filePath"> The file path. </param>
+        /// <param name="afterwardExtension"> The afterward extension. </param>
+        /// <param name="yesDeleteFile"> The yes delete file. </param>
+        public void ConvertExcelTypeAspose(
+            string filePath,
+            string afterwardExtension,
+            bool yesDeleteFile = true)
+        {
+            try
+            {
+                // Initialize new instance of Aspose.Cells Workbook
+                var workbook = new Workbook(filePath, new LoadOptions { MemorySetting = MemorySetting.MemoryPreference });
+
+                var dicExtension = new Dictionary<string, SaveFormat>
+                                       {
+                                           { "xlsx", SaveFormat.Xlsx },
+                                           { "xlsb", SaveFormat.Xlsb },
+                                           { "xlsm", SaveFormat.Xlsm },
+                                           { "pdf", SaveFormat.Pdf }
+                                       };
+
+                workbook.Save(filePath, dicExtension[afterwardExtension]);
+
+                if (yesDeleteFile)
+                {
+                    File.Delete(filePath);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
         ///     Convert from one file format to another, using Interop.
         ///     Because apparently OpenXML doesn't deal with .xls type ( Including, but not exclusive to .xlsb )
         /// </summary>
-        /// <param name="filePath">
-        ///     The file Path.
-        /// </param>
-        /// <param name="previousExtension">
-        ///     The previous Extension.
-        /// </param>
-        /// <param name="afterwardExtension">
-        ///     The afterward Extension.
-        /// </param>
-        /// <param name="yesDeleteFile">
-        ///     The yes Delete File.
-        /// </param>
+        /// <param name="filePath"> The file Path. </param>
+        /// <param name="previousExtension"> The previous Extension. </param>
+        /// <param name="afterwardExtension"> The afterward Extension. </param>
+        /// <param name="yesDeleteFile"> The yes Delete File. </param>
         public void ConvertExcelTypeInterop(
             string filePath,
             string previousExtension = "",
@@ -41,16 +77,16 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             {
                 // Initialize new instance of Interop Excel.Application.
                 var excelApp = new Application
-                {
-                    ScreenUpdating = false,
-                    EnableEvents = false,
-                    DisplayAlerts = false,
-                    DisplayStatusBar = false,
-                    AskToUpdateLinks = false
-                };
+                                   {
+                                       ScreenUpdating = false,
+                                       EnableEvents = false,
+                                       DisplayAlerts = false,
+                                       DisplayStatusBar = false,
+                                       AskToUpdateLinks = false
+                                   };
 
                 Workbooks workbooks = excelApp.Workbooks;
-                Workbook workbook = workbooks.Open(filePath);
+                Microsoft.Office.Interop.Excel.Workbook workbook = workbooks.Open(filePath);
 
                 object missing = Type.Missing;
 
@@ -81,11 +117,15 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 void Release(object suspect)
                 {
                     Marshal.ReleaseComObject(suspect);
+
                     // ReSharper disable once RedundantAssignment
                     suspect = null;
                 }
 
-                if (yesDeleteFile) File.Delete(filePath);
+                if (yesDeleteFile)
+                {
+                    File.Delete(filePath);
+                }
             }
             catch (Exception ex)
             {

@@ -1,15 +1,17 @@
-﻿#region
-
-using System;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Media;
-
-#endregion
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace VinEcoAllocatingRemake.AllocatingInventory
 {
+    #region
+
+    using System;
+    using System.Windows;
+    using System.Windows.Controls;
+    using System.Windows.Documents;
+    using System.Windows.Media;
+
+    #endregion
+
     #region
 
     #endregion
@@ -17,6 +19,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
     /// <summary>
     ///     The allocating inventory.
     /// </summary>
+    [SuppressMessage("ReSharper", "ArrangeThisQualifier")]
     public partial class AllocatingInventory
     {
         /// <summary>
@@ -25,12 +28,12 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         private void ExtraTimeStamp()
         {
             var textRange = new TextRange(
-                RichTextBoxOutput.Document.ContentEnd,
-                RichTextBoxOutput.Document.ContentEnd)
-            {
-                Text = DateTime.Now.ToString(
-                    "[HH:mm] ")
-            };
+                                    this.RichTextBoxOutput.Document.ContentEnd,
+                                    this.RichTextBoxOutput.Document.ContentEnd)
+                                    {
+                                        Text = DateTime.Now.ToString(
+                                            "[HH:mm] ")
+                                    };
 
             textRange.ApplyPropertyValue(TextElement.ForegroundProperty, new BrushConverter().ConvertFromString("ForestGreen") ?? throw new InvalidOperationException("What the heck?"));
         }
@@ -38,15 +41,11 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <summary>
         ///     The rich text box output text changed.
         /// </summary>
-        /// <param name="sender">
-        ///     The sender.
-        /// </param>
-        /// <param name="e">
-        ///     The e.
-        /// </param>
+        /// <param name="sender"> The sender. </param>
+        /// <param name="e"> The e. </param>
         private void RichTextBoxOutputTextChanged(object sender, TextChangedEventArgs e)
         {
-            RichTextBoxOutput.ScrollToEnd();
+            this.RichTextBoxOutput.ScrollToEnd();
         }
 
         /// <summary>
@@ -80,8 +79,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             void Action()
             {
                 var textRange = new TextRange(
-                    RichTextBoxOutput.Document.ContentEnd,
-                    RichTextBoxOutput.Document.ContentEnd);
+                    this.RichTextBoxOutput.Document.ContentEnd,
+                    this.RichTextBoxOutput.Document.ContentEnd);
                 var brushConverter = new BrushConverter();
 
                 string extraMessage = string.Empty;
@@ -102,13 +101,13 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                         break;
                 }
 
-                if (hasTimeStamp && message != null && message.ToString() != string.Empty) ExtraTimeStamp();
+                if (hasTimeStamp && message != null && message.ToString() != string.Empty) this.ExtraTimeStamp();
 
                 textRange.Text = $"{(hasTimeStamp ? extraMessage : string.Empty)}{message}{(newLine ? "\r" : " ")}";
                 textRange.ApplyPropertyValue(TextElement.ForegroundProperty, brushConverter.ConvertFromString("Cornflowerblue") ?? throw new InvalidOperationException("What the heck?"));
             }
 
-            Application.Current.Dispatcher.BeginInvoke((Action) Action);
+            Application.Current.Dispatcher.BeginInvoke((Action)Action);
         }
     }
 }

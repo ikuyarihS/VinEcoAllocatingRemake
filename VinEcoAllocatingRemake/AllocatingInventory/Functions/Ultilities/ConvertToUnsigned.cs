@@ -1,12 +1,12 @@
-﻿#region
-
-using System.Text;
-using System.Text.RegularExpressions;
-
-#endregion
-
-namespace VinEcoAllocatingRemake.AllocatingInventory
+﻿namespace VinEcoAllocatingRemake.AllocatingInventory
 {
+    #region
+
+    using System.Text;
+    using System.Text.RegularExpressions;
+
+    #endregion
+
     /// <summary>
     ///     The utilities.
     /// </summary>
@@ -26,14 +26,14 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             const string ExcludedChars = "(-)"; // lol.
 
             for (var i = 33; i < 48; i++)
-                if (!ExcludedChars.Contains(((char) i).ToString()))
-                    text = text.Replace(((char) i).ToString(), string.Empty);
+                if (!ExcludedChars.Contains(((char)i).ToString()))
+                    text = text.Replace(((char)i).ToString(), string.Empty);
 
-            for (var i = 58; i < 65; i++) text = text.Replace(((char) i).ToString(), string.Empty);
+            for (var i = 58; i < 65; i++) text = text.Replace(((char)i).ToString(), string.Empty);
 
-            for (var i = 91; i < 97; i++) text = text.Replace(((char) i).ToString(), string.Empty);
+            for (var i = 91; i < 97; i++) text = text.Replace(((char)i).ToString(), string.Empty);
 
-            for (var i = 123; i < 127; i++) text = text.Replace(((char) i).ToString(), string.Empty);
+            for (var i = 123; i < 127; i++) text = text.Replace(((char)i).ToString(), string.Empty);
 
             // text = text.Replace(" ", "-"); //Comment lại để không đưa khoảng trắng thành ký tự -
             var regex = new Regex(@"\p{IsCombiningDiacriticalMarks}+");

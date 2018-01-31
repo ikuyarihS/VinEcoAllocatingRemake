@@ -1,12 +1,12 @@
-﻿#region
-
-using System;
-using System.Collections.Concurrent;
-
-#endregion
-
-namespace VinEcoAllocatingRemake.AllocatingInventory
+﻿namespace VinEcoAllocatingRemake.AllocatingInventory
 {
+    #region
+
+    using System;
+    using System.Collections.Concurrent;
+
+    #endregion
+
     #region
 
     #endregion
@@ -46,16 +46,16 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         public string DateToString(DateTime date, string dateFormat = "")
         {
             // Check if exists.
-            if (_dicDateString.TryGetValue(date, out string value)) return GetString(value);
+            if (this._dicDateString.TryGetValue(date, out string value)) return this.GetString(value);
 
             // If not, well, convert.
             value = date.ToString(dateFormat);
 
             // ... and store the result.
-            _dicDateString.TryAdd(date, value);
+            this._dicDateString.TryAdd(date, value);
 
             // Then return it.
-            return GetString(value);
+            return this.GetString(value);
         }
 
         /// <summary>
@@ -69,9 +69,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// </returns>
         public string GetString(string suspect)
         {
-            if (_dicString.TryGetValue(suspect, out string result)) return result;
+            if (this._dicString.TryGetValue(suspect, out string result)) return result;
 
-            _dicString.TryAdd(suspect, suspect);
+            this._dicString.TryAdd(suspect, suspect);
 
             return suspect;
         }
@@ -88,19 +88,19 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         public string ObjectToString(object obj)
         {
             // Check if exists.
-            if (_dicObjectString.TryGetValue(obj, out string value)) return GetString(value);
+            if (this._dicObjectString.TryGetValue(obj, out string value)) return this.GetString(value);
 
             // If not, well, convert.
-            if (_dicString.TryGetValue(obj.ToString(), out string valueNew))
+            if (this._dicString.TryGetValue(obj.ToString(), out string valueNew))
             {
-                _dicObjectString.TryAdd(obj, valueNew);
-                return GetString(valueNew);
+                this._dicObjectString.TryAdd(obj, valueNew);
+                return this.GetString(valueNew);
             }
 
             value = obj.ToString();
-            _dicString.TryAdd(value, value);
-            _dicObjectString.TryAdd(obj, value);
-            return GetString(value);
+            this._dicString.TryAdd(value, value);
+            this._dicObjectString.TryAdd(obj, value);
+            return this.GetString(value);
 
             // value =  ? valueNew : obj.ToString();
 

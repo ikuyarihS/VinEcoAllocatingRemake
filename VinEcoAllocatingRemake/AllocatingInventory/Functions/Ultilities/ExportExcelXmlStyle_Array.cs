@@ -1,17 +1,18 @@
-﻿#region
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using DocumentFormat.OpenXml;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Spreadsheet;
-
-#endregion
-
-namespace VinEcoAllocatingRemake.AllocatingInventory
+﻿namespace VinEcoAllocatingRemake.AllocatingInventory
 {
+    #region
+
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Globalization;
+
+    using DocumentFormat.OpenXml;
+    using DocumentFormat.OpenXml.Packaging;
+    using DocumentFormat.OpenXml.Spreadsheet;
+
+    #endregion
+
     #region
 
     #endregion
@@ -75,13 +76,13 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                         }
 
                         var dicType = new Dictionary<Type, string>(4)
-                        {
-                            {typeof(DateTime), "Date"},
-                            {typeof(string), "InlineString"},
-                            {typeof(double), "Number"},
-                            {typeof(int), "Number"},
-                            {typeof(bool), "Boolean"}
-                        };
+                                          {
+                                              { typeof(DateTime), "Date" },
+                                              { typeof(string), "InlineString" },
+                                              { typeof(double), "Number" },
+                                              { typeof(int), "Number" },
+                                              { typeof(bool), "Boolean" }
+                                          };
 
                         // this list of attributes will be used when writing a start element
                         List<OpenXmlAttribute> attributes;
@@ -96,10 +97,10 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                         {
                             // create a new list of attributes
                             attributes = new List<OpenXmlAttribute>
-                            {
-                                // add the row index attribute to the list
-                                new OpenXmlAttribute("r", null, 1.ToString())
-                            };
+                                             {
+                                                 // add the row index attribute to the list
+                                                 new OpenXmlAttribute("r", null, 1.ToString())
+                                             };
 
                             // write the row start element with the row index attribute
                             writer.WriteStartElement(new Row(), attributes);
@@ -108,13 +109,13 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                             {
                                 // reset the list of attributes
                                 attributes = new List<OpenXmlAttribute>
-                                {
-                                    new OpenXmlAttribute("t", null, "str"),
-                                    new OpenXmlAttribute(
-                                        "r",
-                                        string.Empty,
-                                        $"{dicColName[columnNum]}1")
-                                };
+                                                 {
+                                                     new OpenXmlAttribute("t", null, "str"),
+                                                     new OpenXmlAttribute(
+                                                         "r",
+                                                         string.Empty,
+                                                         $"{dicColName[columnNum]}1")
+                                                 };
 
                                 // add data type attribute - in this case inline string (you might want to look at the shared strings table)
                                 // add the cell reference attribute
@@ -138,7 +139,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                         for (var rowNum = 1; rowNum <= array.GetUpperBound(0); rowNum++)
                         {
                             // create a new list of attributes
-                            attributes = new List<OpenXmlAttribute> {new OpenXmlAttribute("r", null, (yesHeader ? rowNum + 1 : rowNum).ToString())};
+                            attributes = new List<OpenXmlAttribute> { new OpenXmlAttribute("r", null, (yesHeader ? rowNum + 1 : rowNum).ToString()) };
 
                             // add the row index attribute to the list
 
@@ -152,13 +153,13 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                                 // reset the list of attributes
                                 attributes = new List<OpenXmlAttribute>
-                                {
-                                    // Add data type attribute - in this case inline string (you might want to look at the shared strings table)
-                                    new OpenXmlAttribute("t", null, type == typeof(string) ? "str" : dicType[type]),
+                                                 {
+                                                     // Add data type attribute - in this case inline string (you might want to look at the shared strings table)
+                                                     new OpenXmlAttribute("t", null, type == typeof(string) ? "str" : dicType[type]),
 
-                                    // Add the cell reference attribute
-                                    new OpenXmlAttribute("r", string.Empty, $"{dicColName[columnNum]}{(yesHeader ? rowNum + 1 : rowNum).ToString(CultureInfo.InvariantCulture)}")
-                                };
+                                                     // Add the cell reference attribute
+                                                     new OpenXmlAttribute("r", string.Empty, $"{dicColName[columnNum]}{(yesHeader ? rowNum + 1 : rowNum).ToString(CultureInfo.InvariantCulture)}")
+                                                 };
 
                                 // write the cell start element with the type and reference attributes
                                 writer.WriteStartElement(new Cell(), attributes);
@@ -184,11 +185,11 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                         writerXb.WriteElement(
                             new Sheet
-                            {
-                                Name = theName,
-                                SheetId = Convert.ToUInt32(count + 1),
-                                Id = document.WorkbookPart.GetIdOfPart(workSheetPart)
-                            });
+                                {
+                                    Name = theName,
+                                    SheetId = Convert.ToUInt32(count + 1),
+                                    Id = document.WorkbookPart.GetIdOfPart(workSheetPart)
+                                });
 
                         count++;
                     }

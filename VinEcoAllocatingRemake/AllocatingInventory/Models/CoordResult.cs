@@ -1,12 +1,12 @@
-﻿#region
-
-using System;
-using System.Collections.Generic;
-
-#endregion
-
-namespace VinEcoAllocatingRemake.AllocatingInventory.Models
+﻿namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 {
+    #region
+
+    using System;
+    using System.Collections.Generic;
+
+    #endregion
+
     public class CoordResult
     {
         public Guid _id { get; set; }

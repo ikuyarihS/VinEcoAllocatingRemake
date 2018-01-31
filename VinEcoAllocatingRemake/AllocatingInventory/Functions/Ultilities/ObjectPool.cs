@@ -1,12 +1,12 @@
-﻿#region
-
-using System;
-using System.Collections.Concurrent;
-
-#endregion
-
-namespace VinEcoAllocatingRemake.AllocatingInventory
+﻿namespace VinEcoAllocatingRemake.AllocatingInventory
 {
+    #region
+
+    using System;
+    using System.Collections.Concurrent;
+
+    #endregion
+
     #region
 
     #endregion
@@ -37,8 +37,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// </param>
         public ObjectPool(Func<T> objectGenerator)
         {
-            _objects = new ConcurrentBag<T>();
-            _objectGenerator = objectGenerator ?? throw new ArgumentNullException(nameof(objectGenerator));
+            this._objects = new ConcurrentBag<T>();
+            this._objectGenerator = objectGenerator ?? throw new ArgumentNullException(nameof(objectGenerator));
         }
 
         /// <summary>
@@ -49,9 +49,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// </returns>
         public T GetObject()
         {
-            return _objects.TryTake(out T item)
-                ? item
-                : _objectGenerator();
+            return this._objects.TryTake(out T item)
+                       ? item
+                       : this._objectGenerator();
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// </param>
         public void PutObject(T item)
         {
-            _objects.Add(item);
+            this._objects.Add(item);
         }
     }
 }

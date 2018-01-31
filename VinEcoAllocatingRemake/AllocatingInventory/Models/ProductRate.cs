@@ -1,11 +1,11 @@
-﻿#region
-
-using System;
-
-#endregion
-
-namespace VinEcoAllocatingRemake.AllocatingInventory.Models
+﻿namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 {
+    #region
+
+    using System;
+
+    #endregion
+
     public class ProductRate
     {
         public Guid _id { get; set; }

@@ -1,42 +1,41 @@
-﻿#region
-
-using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using Microsoft.Office.Interop.Excel;
-
-#endregion
-
-namespace VinEcoAllocatingRemake.AllocatingInventory
+﻿namespace VinEcoAllocatingRemake.AllocatingInventory
 {
     #region
+
+    using System;
+    using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Runtime.InteropServices;
+
+    using Microsoft.Office.Interop.Excel;
 
     #endregion
 
     /// <summary>
     ///     The delete evaluation sheet interop.
     /// </summary>
-    public class DeleteEvaluationSheetInterop
+    [SuppressMessage("ReSharper", "ArrangeThisQualifier")]
+    public partial class Utilities
     {
         /// <summary>
         ///     A special function to deal with Evaluation Sheet created by Aspose.Cells.
         ///     Pirate life ftw.
         /// </summary>
-        /// <param name="filePath">Path of file saved and closed by Aspose.Cells.</param>
-        public void LetMeAtIt(string filePath)
+        /// <param name="filePath"> Path of file saved and closed by Aspose.Cells. </param>
+        public void DeleteEvaluationSheetInterop(string filePath)
         {
             try
             {
                 // Initialize new instance of Interop Excel.Application.
                 var excelApp = new Application
-                {
-                    ScreenUpdating = false,
-                    EnableEvents = false,
-                    DisplayAlerts = false,
-                    DisplayStatusBar = false,
-                    AskToUpdateLinks = false,
-                    Visible = false
-                };
+                                   {
+                                       ScreenUpdating = false,
+                                       EnableEvents = false,
+                                       DisplayAlerts = false,
+                                       DisplayStatusBar = false,
+                                       AskToUpdateLinks = false,
+                                       Visible = false
+                                   };
 
                 Workbooks workbooks = excelApp.Workbooks;
 
@@ -78,7 +77,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     Marshal.ReleaseComObject(worksheet);
                 }
 
-                worksheets[1].Activate();
+                worksheets[this.IntToObject(1)].Activate();
 
                 Marshal.ReleaseComObject(worksheets);
                 workbook.Close(trueStr);

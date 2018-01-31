@@ -1,17 +1,13 @@
-﻿#region
-
-using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.IO;
-using System.Reflection;
-using System.Windows;
-
-#endregion
-
-namespace VinEcoAllocatingRemake
+﻿namespace VinEcoAllocatingRemake
 {
     #region
+
+    using System;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Globalization;
+    using System.IO;
+    using System.Reflection;
+    using System.Windows;
 
     #endregion
 
@@ -48,11 +44,17 @@ namespace VinEcoAllocatingRemake
             var assemblyName = new AssemblyName(args.Name);
 
             string path = $"{assemblyName.Name}.dll";
-            if (assemblyName.CultureInfo.Equals(CultureInfo.InvariantCulture) == false) path = $@"{assemblyName.CultureInfo}\{path}";
+            if (assemblyName.CultureInfo.Equals(CultureInfo.InvariantCulture) == false)
+            {
+                path = $@"{assemblyName.CultureInfo}\{path}";
+            }
 
             using (Stream stream = executingAssembly.GetManifestResourceStream(path))
             {
-                if (stream == null) return null;
+                if (stream == null)
+                {
+                    return null;
+                }
 
                 var assemblyRawBytes = new byte[stream.Length];
                 stream.Read(assemblyRawBytes, 0, assemblyRawBytes.Length);
@@ -65,6 +67,7 @@ namespace VinEcoAllocatingRemake
     ///     Interaction logic for App.xaml
     /// </summary>
     [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleClass", Justification = "Reviewed. Suppression is OK here.")]
+
     // ReSharper disable once InheritdocConsiderUsage
     public partial class App
     {
@@ -80,7 +83,7 @@ namespace VinEcoAllocatingRemake
         private void ApplicationStartup(object sender, StartupEventArgs e)
         {
             // Create a Startup Window.
-            var newWindow = new MainWindow {Title = "Phần mềm của KHSX VinEco"};
+            var newWindow = new MainWindow { Title = "Phần mềm của KHSX VinEco" };
 
             // Show the window.
             newWindow.Show();

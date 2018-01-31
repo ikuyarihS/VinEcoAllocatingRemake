@@ -1,12 +1,12 @@
-﻿#region
-
-using System;
-using System.Collections.Concurrent;
-
-#endregion
-
-namespace VinEcoAllocatingRemake.AllocatingInventory
+﻿namespace VinEcoAllocatingRemake.AllocatingInventory
 {
+    #region
+
+    using System;
+    using System.Collections.Concurrent;
+
+    #endregion
+
     /// <summary>
     ///     The utilities.
     /// </summary>
@@ -27,24 +27,25 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         public DateTime? StringToDate(string suspect)
         {
             // If string has been converted before.
-            if (_dicStringDate.TryGetValue(suspect, out DateTime dateResult)) return dateResult;
+            if (this._dicStringDate.TryGetValue(suspect, out DateTime dateResult))
+            {
+                return dateResult == DateTime.MinValue
+                           ? (DateTime?)null
+                           : dateResult;
+            }
 
             // Otherwise, check if it's even a date.
             if (!DateTime.TryParse(suspect, out DateTime date))
             {
                 // Looks like it isn't.
                 // Return null, and also record string used.
-                _dicStringDate.TryAdd(
-                    suspect,
-                    DateTime.MinValue);
+                this._dicStringDate.TryAdd(suspect, DateTime.MinValue);
                 return null;
             }
 
             // Welp, it's actually a date.
             // Record the string anyway. Dis many importanto.
-            _dicStringDate.TryAdd(
-                suspect,
-                date);
+            this._dicStringDate.TryAdd(suspect, date);
             return date;
         }
     }

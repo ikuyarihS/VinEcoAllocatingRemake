@@ -1,17 +1,17 @@
-﻿#region
-
-using System;
-
-#endregion
-
-namespace VinEcoAllocatingRemake.AllocatingInventory.Models
+﻿namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 {
+    #region
+
+    using System;
+
+    #endregion
+
     public class ProductCrossRegion
     {
         public ProductCrossRegion()
         {
-            ToNorth = true;
-            ToSouth = true;
+            this.ToNorth = true;
+            this.ToSouth = true;
         }
 
         public Guid _id { get; set; }

@@ -10,9 +10,9 @@
         /// </summary>
         public AllocatingInventory()
         {
-            InitializeComponent();
+            this.InitializeComponent();
 
-            Initializer();
+            this.Initializer();
         }
     }
 }

@@ -1,11 +1,11 @@
-﻿#region
-
-using System;
-
-#endregion
-
-namespace VinEcoAllocatingRemake.AllocatingInventory
+﻿namespace VinEcoAllocatingRemake.AllocatingInventory
 {
+    #region
+
+    using System;
+
+    #endregion
+
     /// <summary>
     ///     The various Ultilities.
     /// </summary>
@@ -19,8 +19,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <returns>The <see cref="double" />.</returns>
         public double ZeroIfNegative(object value1, object value2)
         {
-            double val1 = ObjectToDouble(value1);
-            double val2 = ObjectToDouble(value2);
+            double val1 = this.ObjectToDouble(value1);
+            double val2 = this.ObjectToDouble(value2);
             return Math.Max(val1 - val2, 0);
         }
     }
