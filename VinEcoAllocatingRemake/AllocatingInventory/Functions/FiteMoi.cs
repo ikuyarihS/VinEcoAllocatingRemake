@@ -1,6 +1,13 @@
-﻿#region
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="FiteMoi.cs" company="VinEco">
+//   Shirayuki 2018.
+// </copyright>
+// <summary>
+//   The allocating inventory.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
-#endregion
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace VinEcoAllocatingRemake.AllocatingInventory
 {
@@ -12,6 +19,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
     using System.ComponentModel;
     using System.Data;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.IO;
     using System.Linq;
@@ -23,24 +31,18 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
     #endregion
 
-    #region
-
-    #endregion
-
     /// <summary>
     ///     The allocating inventory.
     /// </summary>
+    // ReSharper disable once StyleCop.SA1404
+    [SuppressMessage("ReSharper", "ArrangeThisQualifier")]
     public partial class AllocatingInventory
     {
         /// <summary>
         ///     Fite moi!.
         /// </summary>
-        /// <param name="sender">
-        ///     The sender.
-        /// </param>
-        /// <param name="e">
-        ///     The e.
-        /// </param>
+        /// <param name="sender"> The sender. </param>
+        /// <param name="e"> The e. </param>
         private async void FiteMoi(
             object sender,
             DoWorkEventArgs e)
@@ -67,8 +69,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 await this.Dispatcher.BeginInvoke(
                     (Action)(() =>
                         {
-                            dateFrom = this.DateFromCalendar.DisplayDate;
-                            dateTo = this.DateToCalendar.DisplayDate;
+                            dateFrom = this.DateFromCalendar.SelectedDate ?? DateTime.Today;
+                            dateTo = this.DateToCalendar.SelectedDate ?? DateTime.Today;
 
                             distance = new Dictionary<(string supRegion, string cusRegion), int>(4)
                                            {
@@ -110,7 +112,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                      { "C07301", 0.1 }, // Ớt ngọt ( chuông ) xanh
                                      { "B00201", 0.3 }, // Dọc mùng ( bạc hà )
                                      { "C01801", 0.3 }, // Cà chua cherry đỏ
-                                     { "C04401", 0.3 } // Đậu bắp xanh
+                                     { "C04401", 0.3 }, // Đậu bắp xanh
                                  };
 
                 this.WriteToRichTextBoxOutput(
@@ -132,8 +134,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 // Here we go.
                 Parallel.ForEach(
                     readTasks,
-                    new ParallelOptions
-                        { MaxDegreeOfParallelism = Environment.ProcessorCount },
+                    new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
                     task => { task.Start(); });
 
                 // Gonna wait for all reading tasks to finish.
@@ -157,8 +158,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                                                 using (var workbook = new Workbook(
                                                     $@"{this.applicationPath}\Database\Forecasts.xlsb",
-                                                    new LoadOptions
-                                                        { MemorySetting = MemorySetting.MemoryPreference }))
+                                                    new LoadOptions { MemorySetting = MemorySetting.MemoryPreference }))
                                                 {
                                                     Worksheet worksheet = workbook.Worksheets[0];
                                                     using (DataTable table = worksheet.Cells.ExportDataTable(
@@ -174,21 +174,30 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                         for (var colIndex = 0;
                                                              colIndex < table.Columns.Count;
                                                              colIndex++)
+                                                        {
                                                             using (DataColumn column = table.Columns[colIndex])
                                                             {
-                                                                DateTime? dateFc = this.ulti.StringToDate(
-                                                                    this.ulti.GetString(column.ColumnName));
+                                                                DateTime? dateFc = this.ulti.StringToDate(this.ulti.GetString(column.ColumnName));
+                                                                
+                                                                if (dateFc == null)
                                                                 {
-                                                                    if (dateFc == null) continue;
+                                                                    continue;
                                                                 }
 
-                                                                if (dateFc == dateFrom.AddDays(-maxDistance)) colFirst = colIndex;
+                                                                if (dateFc == dateFrom.AddDays(-maxDistance))
+                                                                {
+                                                                    colFirst = colIndex;
+                                                                }
 
-                                                                if (dateFc != dateTo.AddDays(maxDistance)) continue;
+                                                                if (dateFc != dateTo.AddDays(maxDistance))
+                                                                {
+                                                                    continue;
+                                                                }
 
                                                                 colLast = colIndex;
                                                                 break;
                                                             }
+                                                        }
 
                                                         foreach (DataRow row in table.Select())
                                                         {
@@ -198,17 +207,26 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                             for (int colIndex = colFirst;
                                                                  colIndex <= colLast;
                                                                  colIndex++)
+                                                            {
                                                                 using (DataColumn column = table.Columns[colIndex])
                                                                 {
                                                                     // First check point. Is it a valid date?
                                                                     DateTime? dateFc = this.ulti.StringToDate(column.ColumnName);
 
                                                                     // FiteMoi specific Validation for date.
-                                                                    // if (dateFc == null || dateFc > dateTo || dateFc < dateFrom) continue;
+                                                                    ////if (dateFc == null ||
+                                                                    ////    dateFc > dateTo.AddDays(maxDistance) ||
+                                                                    ////    dateFc < dateFrom.AddDays(-maxDistance))
+                                                                    ////{
+                                                                    ////    continue;
+                                                                    ////}
 
                                                                     // Second check point. Is it a valid forecast value?
                                                                     double value = this.ulti.ObjectToDouble(row[colIndex]);
-                                                                    if (value <= 0) continue;
+                                                                    if (value <= 0)
+                                                                    {
+                                                                        continue;
+                                                                    }
 
                                                                     // ReSharper disable once PossibleInvalidOperationException
                                                                     if (!dicFc.TryGetValue((DateTime)dateFc, out Dictionary<string, Dictionary<string, Dictionary<SupplierForecast, bool>>> fcRegion))
@@ -223,8 +241,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                                     {
                                                                         fcProducts = new Dictionary<string, Dictionary<SupplierForecast, bool>>();
                                                                         fcRegion.Add(
-                                                                            suppliers[supplierCode]
-                                                                                .SupplierRegion,
+                                                                            suppliers[supplierCode].SupplierRegion,
                                                                             fcProducts);
                                                                     }
 
@@ -244,10 +261,12 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                                                 FullOrder = this.ulti.ObjectToInt(row["FullOrder"]) == 1,
                                                                                 CrossRegion = this.ulti.ObjectToInt(row["CrossRegion"]) == 1,
                                                                                 LabelVinEco = this.ulti.ObjectToInt(row["Label"]) == 1,
-                                                                                Level = (byte)this.ulti.ObjectToInt(row["Level"])
+                                                                                Level = (byte)this.ulti.ObjectToInt(row["Level"]),
+                                                                                QuantityForecast = value
                                                                             },
                                                                         false);
                                                                 }
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -260,7 +279,10 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                 try
                                                 {
                                                     string path = $@"{this.applicationPath}\Database\Orders.xlsb";
-                                                    if (!File.Exists(path)) return;
+                                                    if (!File.Exists(path))
+                                                    {
+                                                        return;
+                                                    }
 
                                                     using (var workbook = new Workbook(
                                                         path,
@@ -284,21 +306,32 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                             for (var colIndex = 0;
                                                                  colIndex < table.Columns.Count;
                                                                  colIndex++)
+                                                            {
                                                                 using (DataColumn column = table.Columns[colIndex])
                                                                 {
                                                                     DateTime? dateFc = this.ulti.StringToDate(
                                                                         this.ulti.GetString(column.ColumnName));
-                                                                    if (dateFc == null) continue;
+                                                                    if (dateFc == null)
+                                                                    {
+                                                                        continue;
+                                                                    }
 
-                                                                    if (dateFc == dateFrom.AddDays(-maxDistance)) colFirst = colIndex;
+                                                                    if (dateFc == dateFrom.AddDays(-maxDistance))
+                                                                    {
+                                                                        colFirst = colIndex;
+                                                                    }
 
-                                                                    if (dateFc != dateTo.AddDays(maxDistance)) continue;
+                                                                    if (dateFc != dateTo.AddDays(maxDistance))
+                                                                    {
+                                                                        continue;
+                                                                    }
 
                                                                     // Once encounter dateTo, break, and record its location.
                                                                     // Further optimization, coz it IS my database.
                                                                     colLast = colIndex;
                                                                     break;
                                                                 }
+                                                            }
 
                                                             foreach (DataRow row in table.Select())
                                                             {
@@ -308,20 +341,28 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                                 for (int colIndex = colFirst;
                                                                      colIndex <= colLast;
                                                                      colIndex++)
+                                                                {
                                                                     using (DataColumn column = table.Columns[colIndex])
                                                                     {
                                                                         // First check point. Is it a valid date?
                                                                         // ReSharper disable once PossibleInvalidOperationException
                                                                         // Because I'm confident about that.
                                                                         // ... it's my fucking database.
-                                                                        DateTime? datePo = this.ulti.StringToDate(
-                                                                            this.ulti.GetString(column.ColumnName));
+                                                                        DateTime? datePo = this.ulti.StringToDate(this.ulti.GetString(column.ColumnName));
 
-                                                                        // if (datePo == null || datePo > dateTo || datePo < dateFrom) continue;
+                                                                        ////if (datePo == null ||
+                                                                        ////    datePo > dateTo.AddDays(maxDistance) ||
+                                                                        ////    datePo < dateFrom.AddDays(-maxDistance))
+                                                                        ////{
+                                                                        ////    continue;
+                                                                        ////}
 
                                                                         // Second check point. Is it a valid forecast value?
                                                                         double value = this.ulti.ObjectToDouble(row[colIndex]);
-                                                                        if (value <= 0) continue;
+                                                                        if (value <= 0)
+                                                                        {
+                                                                            continue;
+                                                                        }
 
                                                                         // ReSharper disable once PossibleInvalidOperationException
                                                                         if (!dicPo.TryGetValue((DateTime)datePo, out Dictionary<string, Dictionary<string, Dictionary<CustomerOrder, bool>>> poRegion))
@@ -370,6 +411,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                                         // poValue
                                                                         // }, false));
                                                                     }
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -385,8 +427,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 // Here we go.
                 Parallel.ForEach(
                     readTasks,
-                    new ParallelOptions
-                        { MaxDegreeOfParallelism = Environment.ProcessorCount },
+                    new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
                     task => { task.Start(); });
 
                 // Gonna wait for all reading tasks to finish.
@@ -394,12 +435,14 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 this.WriteToRichTextBoxOutput(
                     "Đọc xong Data - Phần 2.",
                     2);
+                
+                this.TryClear();
 
                 List<DateTime> listDatePo = dicPo.Keys.ToList();
 
                 this.WriteToRichTextBoxOutput("Here goes nothing.");
 
-                var coordResult = new Dictionary<string, Dictionary<(DateTime DatePo, CustomerOrder Order), (DateTime DateFc, SupplierForecast Supply)>>();
+                var coordResult = new Dictionary<string, Dictionary<(DateTime DatePo, CustomerOrder Order, Guid randomId), (DateTime DateFc, SupplierForecast Supply)>>();
 
                 foreach (string priority in new[]
                                                 {
@@ -413,7 +456,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                     // "VM",
                                                     string.Empty
                                                 })
+                {
                     Coord(priority);
+                }
 
                 void Coord(
                     string priority = "")
@@ -435,26 +480,16 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                 // Dictionary as collectio of choice due to performance.
                                 Dictionary<CustomerOrder, bool> GetOrderDictionary(DateTime date, string region)
                                 {
-                                    if (dicPo.TryGetValue(
-                                            date,
-                                            out Dictionary<string, Dictionary<string, Dictionary<CustomerOrder, bool>>>
-                                                    orderRegions)
-                                        && orderRegions.TryGetValue(
-                                            region,
-                                            out Dictionary<string, Dictionary<CustomerOrder, bool>>
-                                                    orderRegionProducts)
-                                        && orderRegionProducts.TryGetValue(
-                                            productCode,
-                                            out Dictionary<CustomerOrder, bool> result))
+                                    if (dicPo.TryGetValue(date, out Dictionary<string, Dictionary<string, Dictionary<CustomerOrder, bool>>> orderRegions)
+                                        && orderRegions.TryGetValue(region, out Dictionary<string, Dictionary<CustomerOrder, bool>> orderRegionProducts)
+                                        && orderRegionProducts.TryGetValue(productCode, out Dictionary<CustomerOrder, bool> result))
                                     {
                                         return result.Where(
                                                 po => priority == string.Empty
                                                       || localCustomers[po.Key.CustomerKeyCode]
                                                           .CustomerType
                                                       == priority)
-                                            .ToDictionary(
-                                                po => po.Key,
-                                                po => false);
+                                            .ToDictionary(po => po.Key, po => false);
                                     }
 
                                     return null;
@@ -485,7 +520,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                 // Counterpart of GetOrderDictionary.
                                 Dictionary<SupplierForecast, bool> GetForecastDictionary(DateTime date, string region)
                                 {
-                                    if (dicFc.TryGetValue(date, out Dictionary<string, Dictionary<string, Dictionary<SupplierForecast, bool>>> forecastRegions) && forecastRegions.TryGetValue(region, out Dictionary<string, Dictionary<SupplierForecast, bool>> forecastRegionProducts) && forecastRegionProducts.TryGetValue(productCode, out Dictionary<SupplierForecast, bool> result))
+                                    if (dicFc.TryGetValue(date, out Dictionary<string, Dictionary<string, Dictionary<SupplierForecast, bool>>> forecastRegions) && 
+                                        forecastRegions.TryGetValue(region, out Dictionary<string, Dictionary<SupplierForecast, bool>> forecastRegionProducts) && 
+                                        forecastRegionProducts.TryGetValue(productCode, out Dictionary<SupplierForecast, bool> result))
                                     {
                                         return result.OrderBy(fc => fc.Key.QuantityForecast)
                                             .ToDictionary(
@@ -539,31 +576,39 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         double northMissing = sumPoNorth - sumFcNorth;
                                         double southMissing = sumPoSouth - sumFcSouth;
 
-                                        double rateNorth = (sumFcNorth + sumFcMid * (northMissing / (northMissing + southMissing))) / sumPoNorth;
-                                        double rateSouth = (sumFcSouth + sumFcMid * (southMissing / (northMissing + southMissing))) / sumPoSouth;
+                                        double rateNorth = (sumFcNorth + (sumFcMid * (northMissing / (northMissing + southMissing)))) / sumPoNorth;
+                                        double rateSouth = (sumFcSouth + (sumFcMid * (southMissing / (northMissing + southMissing)))) / sumPoSouth;
+                                        
+                                        // Todo - Implement UpperLimit for Rates.
+                                        rateNorth = Math.Max(rateNorth, 1);
+                                        rateSouth = Math.Max(rateSouth, 1);
 
                                         void PairSupplyOrder(
                                             CustomerOrder customerOrder,
-                                            IDictionary<CustomerOrder, bool> orders,
-                                            IDictionary<SupplierForecast, bool> forecasts,
-                                            double rate)
+                                            ref Dictionary<CustomerOrder, bool> orders,
+                                            ref Dictionary<SupplierForecast, bool> forecasts,
+                                            double rate,
+                                            string cusRegion,
+                                            string supRegion)
                                         {
                                             // Just in case.
-                                            if (rate <= 0)
+                                            // Validation.
+                                            // Why the heck is this empty in the first place?
+                                            if (rate <= 0 || forecasts == null || !forecasts.Any())
                                             {
                                                 return;
                                             }
 
                                             try
                                             {
-                                                // Validation.
-                                                // Why the heck is this empty in the first place?
-                                                if (!forecasts.Any()) return;
-
+                                                // Warning: Black magic is happening here.
+                                                // Proceed with cautions.
+                                                // You have been warned.
                                                 forecasts = forecasts.OrderByDescending(s => s.Key.QuantityForecast)
                                                     .ToDictionary(x => x.Key, x => x.Value);
 
                                                 SupplierForecast supply = forecasts.First().Key;
+                                                SupplierForecast supplyGiven = supply;
                                                 forecasts.Remove(supply);
 
                                                 double deliQuantity = Math.Min(
@@ -571,20 +616,27 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                     supply.QuantityForecast);
 
                                                 supply.QuantityForecast -= deliQuantity;
+                                                supplyGiven.QuantityForecast = deliQuantity;
 
                                                 // ReSharper disable once SuggestVarOrType_Elsewhere
                                                 if (!coordResult.TryGetValue(productCode, out var dicCoord))
                                                 {
-                                                    dicCoord = new Dictionary<(DateTime DatePo, CustomerOrder Order),
-                                                        (DateTime DateFc, SupplierForecast Supply)>();
+                                                    dicCoord = new Dictionary<(DateTime DatePo, CustomerOrder Order, Guid randomId), (DateTime DateFc, SupplierForecast Supply)>();
                                                     coordResult.Add(productCode, dicCoord);
                                                 }
 
+                                                // Key - Date Ordered & Customer Order.
+                                                // Value - Date Processed ( substracting from the already mapped
+                                                // difference in days between Supplier's Region and Customer's &
+                                                // the amount of supply given to fulfill the order.
                                                 dicCoord.Add(
-                                                    (datePo, customerOrder),
-                                                    (datePo.AddDays(-1), supply));
+                                                    (datePo, customerOrder, Guid.NewGuid()),
+                                                    (datePo.AddDays(distance[(supRegion, cusRegion)]), supplyGiven));
 
-                                                forecasts.Add(supply, false);
+                                                if (supply.QuantityForecast > 0)
+                                                {
+                                                    forecasts.Add(supply, false);
+                                                }
 
                                                 orders.Remove(customerOrder);
                                             }
@@ -595,23 +647,72 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                             }
                                         }
 
-                                        if (orderNorth != null && sumFcNorth + sumFcMid >= 0)
+                                        LetsDoThis(orderNorth, forecastNorth, sumFcNorth, rateNorth, "MB");
+                                        LetsDoThis(orderSouth, forecastSouth, sumFcSouth, rateSouth, "MN");
+
+                                        void LetsDoThis(
+                                            Dictionary<CustomerOrder, bool> orders, 
+                                            Dictionary<SupplierForecast, bool> supplies,
+                                            double sumSupplies,
+                                            double rate,
+                                            string region)
                                         {
-                                            foreach (CustomerOrder customerOrder in orderNorth.Keys.OrderByDescending(po => po.QuantityOrder).ToList())
+                                            if (orders == null || !(sumSupplies + sumFcMid >= 0))
+                                            {
+                                                return;
+                                            }
+                                            
+                                            foreach (CustomerOrder customerOrder in orders.Keys.OrderByDescending(po => po.QuantityOrder).ToList())
                                             {
                                                 if (forecastNorth != null)
                                                 {
-                                                    PairSupplyOrder(customerOrder, orderNorth, forecastNorth, rateNorth);
+                                                    PairSupplyOrder(customerOrder, ref orders, ref supplies, rate, region, region);
 
                                                     continue;
                                                 }
 
-                                                if (forecastMid == null) continue;
+                                                if (forecastMid != null)
                                                 {
-                                                    PairSupplyOrder(customerOrder, orderNorth, forecastMid, rateNorth);
+                                                    PairSupplyOrder(customerOrder, ref orders, ref forecastMid, rate, region, "LD");
                                                 }
                                             }
                                         }
+
+                                        ////if (orderNorth != null && sumFcNorth + sumFcMid >= 0)
+                                        ////{
+                                        ////    foreach (CustomerOrder customerOrder in orderNorth.Keys.OrderByDescending(po => po.QuantityOrder).ToList())
+                                        ////    {
+                                        ////        if (forecastNorth != null)
+                                        ////        {
+                                        ////            PairSupplyOrder(customerOrder, orderNorth, forecastNorth, rateNorth);
+
+                                        ////            continue;
+                                        ////        }
+
+                                        ////        if (forecastMid != null)
+                                        ////        {
+                                        ////            PairSupplyOrder(customerOrder, orderNorth, forecastMid, rateNorth);
+                                        ////        }
+                                        ////    }
+                                        ////}
+                                        
+                                        ////if (orderSouth != null && sumFcSouth + sumFcMid >= 0)
+                                        ////{
+                                        ////    foreach (CustomerOrder customerOrder in orderSouth.Keys.OrderByDescending(po => po.QuantityOrder).ToList())
+                                        ////    {
+                                        ////        if (forecastSouth != null)
+                                        ////        {
+                                        ////            PairSupplyOrder(customerOrder, orderSouth, forecastSouth, rateSouth);
+
+                                        ////            continue;
+                                        ////        }
+
+                                        ////        if (forecastMid != null)
+                                        ////        {
+                                        ////            PairSupplyOrder(customerOrder, orderSouth, forecastMid, rateSouth);
+                                        ////        }
+                                        ////    }
+                                        ////}
                                     }
                                     catch (Exception ex)
                                     {
@@ -642,20 +743,20 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 DataTable tableMastahCompact = this.ToDataTableMastahCompact(coordResult, products, customers, suppliers);
 
                 string fileName =
-                    $"Mastah Compact 100% {this.ulti.DateToString(dateFrom.AddDays(maxDistance), "dd.MM")} - {this.ulti.DateToString(dateTo.AddDays(-maxDistance), "dd.MM")} ({this.ulti.DateToString(DateTime.Now, "yyyyMMdd HH\\hmm")}).xlsb";
+                    $"Mastah Compact 100% {this.ulti.DateToString(dateFrom, "dd.MM")} - {this.ulti.DateToString(dateTo, "dd.MM")} ({this.ulti.DateToString(DateTime.Now, "yyyyMMdd HH\\hmm")}).xlsb";
                 string exportPath = $@"{this.applicationPath}\Output\{fileName}";
 
-                using (var xlWb = new Workbook())
+                using (var workbook = new Workbook())
                 {
-                    xlWb.Settings.MemorySetting = MemorySetting.MemoryPreference;
+                    workbook.Settings.MemorySetting = MemorySetting.MemoryPreference;
 
                     // Mastah
-                    this.ulti.OutputExcelAspose(tableMastahCompact, xlWb, true, 1);
+                    this.ulti.OutputExcelAspose(tableMastahCompact, workbook, true, 1);
 
-                    xlWb.Worksheets.RemoveAt("sheet1");
+                    workbook.Worksheets.RemoveAt("sheet1");
 
-                    xlWb.CalculateFormula();
-                    xlWb.Save(exportPath, SaveFormat.Xlsb);
+                    workbook.CalculateFormula();
+                    workbook.Save(exportPath, SaveFormat.Xlsb);
                 }
 
                 this.ulti.DeleteEvaluationSheetInterop(exportPath);
@@ -688,12 +789,14 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             try
             {
                 var customers = new Dictionary<string, Customer>();
-                if (!File.Exists($@"{this.applicationPath}\Database\Customers.xlsb")) return null;
+                if (!File.Exists($@"{this.applicationPath}\Database\Customers.xlsb"))
+                {
+                    return null;
+                }
 
                 using (var workbook = new Workbook(
                     $@"{this.applicationPath}\Database\Customers.xlsb",
-                    new LoadOptions
-                        { MemorySetting = MemorySetting.MemoryPreference }))
+                    new LoadOptions { MemorySetting = MemorySetting.MemoryPreference }))
                 {
                     Worksheet worksheet = workbook.Worksheets[0];
                     using (DataTable table = worksheet.Cells.ExportDataTable(
@@ -704,6 +807,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                         this.globalExportTableOptionsOpts))
                     {
                         foreach (DataRow row in table.Select())
+                        {
                             customers.Add(
                                 this.ulti.ObjectToString(row["Key"]),
                                 new Customer
@@ -716,6 +820,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         Company = this.ulti.ObjectToString(row["P&L"]),
                                         CustomerType = this.ulti.ObjectToString(row["Type"])
                                     });
+                        }
                     }
                 }
 
@@ -740,12 +845,14 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             {
                 // Products
                 var products = new Dictionary<string, Product>();
-                if (!File.Exists($@"{this.applicationPath}\Database\Products.xlsb")) return null;
+                if (!File.Exists($@"{this.applicationPath}\Database\Products.xlsb"))
+                {
+                    return null;
+                }
 
                 using (var workbook = new Workbook(
                     $@"{this.applicationPath}\Database\Products.xlsb",
-                    new LoadOptions
-                        { MemorySetting = MemorySetting.MemoryPreference }))
+                    new LoadOptions { MemorySetting = MemorySetting.MemoryPreference }))
                 {
                     Worksheet worksheet = workbook.Worksheets[0];
                     using (DataTable table = worksheet.Cells.ExportDataTable(
@@ -756,6 +863,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                         this.globalExportTableOptionsOpts))
                     {
                         foreach (DataRow row in table.Select())
+                        {
                             products.Add(
                                 this.ulti.ObjectToString(row["ProductCode"]),
                                 new Product
@@ -763,6 +871,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         ProductCode = this.ulti.ObjectToString(row["ProductCode"]),
                                         ProductName = this.ulti.ObjectToString(row["ProductName"])
                                     });
+                        }
                     }
                 }
 
@@ -786,12 +895,14 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             try
             {
                 var suppliers = new Dictionary<string, Supplier>();
-                if (!File.Exists($@"{this.applicationPath}\Database\Suppliers.xlsb")) return null;
+                if (!File.Exists($@"{this.applicationPath}\Database\Suppliers.xlsb"))
+                {
+                    return null;
+                }
 
                 using (var workbook = new Workbook(
                     $@"{this.applicationPath}\Database\Suppliers.xlsb",
-                    new LoadOptions
-                        { MemorySetting = MemorySetting.MemoryPreference }))
+                    new LoadOptions { MemorySetting = MemorySetting.MemoryPreference }))
                 {
                     Worksheet worksheet = workbook.Worksheets[0];
                     using (DataTable table = worksheet.Cells.ExportDataTable(
@@ -802,6 +913,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                         this.globalExportTableOptionsOpts))
                     {
                         foreach (DataRow row in table.Select())
+                        {
                             suppliers.Add(
                                 this.ulti.ObjectToString(row["SupplierCode"]),
                                 new Supplier
@@ -811,6 +923,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         SupplierCode = this.ulti.ObjectToString(row["SupplierCode"]),
                                         SupplierName = this.ulti.ObjectToString(row["SupplierName"])
                                     });
+                        }
                     }
                 }
 
@@ -824,12 +937,15 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         }
 
         /// <summary>
-        ///     Exporting CoordResult to Excel Files.
+        /// Exporting CoordResult to Excel Files.
         /// </summary>
+        /// <param name="coordResult"> The coord Result. </param>
+        /// <param name="products"> The products. </param>
+        /// <param name="customers"> The customers. </param>
+        /// <param name="suppliers"> The suppliers. </param>
+        /// <returns> The <see cref="DataTable"/>. </returns>
         private DataTable ToDataTableMastahCompact(
-            Dictionary<string,
-                Dictionary<(DateTime DatePo, CustomerOrder Order),
-                    (DateTime DateFc, SupplierForecast Supply)>> coordResult,
+            Dictionary<string, Dictionary<(DateTime DatePo, CustomerOrder Order, Guid randomId), (DateTime DateFc, SupplierForecast Supply)>> coordResult,
             IReadOnlyDictionary<string, Product> products,
             IReadOnlyDictionary<string, Customer> customers,
             IReadOnlyDictionary<string, Supplier> suppliers)
@@ -890,7 +1006,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                     foreach (string productCode in coordResult.Keys)
                     {
-                        foreach (KeyValuePair<(DateTime DatePo, CustomerOrder Order), (DateTime DateFc, SupplierForecast Supply)> pair in coordResult[productCode])
+                        foreach (KeyValuePair<(DateTime DatePo, CustomerOrder Order, Guid randomId), (DateTime DateFc, SupplierForecast Supply)> pair in coordResult[productCode])
                         {
                             Product product = products[productCode];
                             Customer customer = customers[pair.Key.Order.CustomerKeyCode];
@@ -922,24 +1038,24 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                 dr["ProductOrientation"] = product.ProductOrientation;
                                 dr["ProductClimate"] = product.ProductClimate;
                                 dr["ProductionGroup"] = product.ProductionGroup;
-                                dr["Ghi chú"] =
-                                    product.ProductNote.Contains(
-                                        customer.CustomerBigRegion == "Miền Nam"
-                                            ? "South"
-                                            : "North")
-                                        ? "Ok"
-                                        : "Out of List";
+                                ////dr["Ghi chú"] =
+                                ////    product.ProductNote.Contains(
+                                ////        customer.CustomerBigRegion == "Miền Nam"
+                                ////            ? "South"
+                                ////            : "North")
+                                ////        ? "Ok"
+                                ////        : "Out of List";
                                 dr["Loại cửa hàng"] = customer.CustomerType;
                                 dr["P&L"] = customer.Company;
 
-                                //dr["Ngày tiêu thụ"] = (int)(DatePO.Date - _dateBase).TotalDays + 2;
-                                dr["Ngày tiêu thụ"] = this.ulti.DateToObject(pair.Key.DatePo, "yyyyMMdd");
+                                // dr["Ngày tiêu thụ"] = (int)(DatePO.Date - _dateBase).TotalDays + 2;
+                                dr["Ngày tiêu thụ"] = pair.Key.DatePo; // this.ulti.DateToObject(pair.Key.DatePo, "yyyyMMdd");
                                 dr["Vùng tiêu thụ"] = customer.CustomerBigRegion;
 
                                 // Todo - Add YesNoSubRegion here.
                                 // dr["Tỉnh tiêu thụ"] = YesNoSubRegion ? customer.CustomerRegion : null;
-                                dr["Vùng SX yêu cầu"] = StringFromNullableString(pair.Key.Order.DesiredRegion);
-                                dr["Nguồn yêu cầu"] = StringFromNullableString(pair.Key.Order.DesiredSource);
+                                dr["Vùng SX yêu cầu"] = pair.Key.Order.DesiredRegion;
+                                dr["Nguồn yêu cầu"] = pair.Key.Order.DesiredSource;
 
                                 dr["Nhu cầu"] = this.ulti.DoubleToObject((double)dr["Nhu cầu"] + pair.Key.Order.QuantityOrder);
                                 dr["Đáp ứng"] = this.ulti.DoubleToObject((double)dr["Đáp ứng"] + pair.Value.Supply.QuantityForecast);
@@ -952,7 +1068,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                 dr["Vùng sản xuất"] = supplier.SupplierRegion;
                                 dr["Mã NCC"] = supplier.SupplierCode;
                                 dr["Tên NCC"] = supplier.SupplierName;
-                                dr["Ngày sơ chế"] = this.ulti.DateToObject(pair.Value.DateFc, "yyyyMMdd");
+                                dr["Ngày sơ chế"] = pair.Value.DateFc; // this.ulti.DateToObject(pair.Value.DateFc, "yyyyMMdd");
                                 dr["Label"] = YesNoFromString(pair.Value.Supply.LabelVinEco);
                                 dr["CodeSFG"] = $"{productCode}1{this.ulti.IntToObject((supplier.SupplierRegion == "Lâm Đồng" ? 0 : 2) + (pair.Value.Supply.LabelVinEco ? 1 : 0))}";
                             }

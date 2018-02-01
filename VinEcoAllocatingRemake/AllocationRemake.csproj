@@ -180,8 +180,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Data\Forecast\ThuMua.xlsb" />
-    <None Include="Data\Forecast\VinEco.xlsb" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -190,8 +188,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\" />
-    <Folder Include="Database\" />
-    <Folder Include="Data\PO\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="384767119826616341_Z7H_icon.ico" />

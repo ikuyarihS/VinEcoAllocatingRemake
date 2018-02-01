@@ -1,4 +1,13 @@
-﻿namespace VinEcoAllocatingRemake.AllocatingInventory
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="ConvertExcel.cs" company="VinEco">
+//   Shirayuki 2018
+// </copyright>
+// <summary>
+//   The utilities.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace VinEcoAllocatingRemake.AllocatingInventory
 {
     #region
 
@@ -9,6 +18,8 @@
     using System.Runtime.InteropServices;
 
     using Aspose.Cells;
+
+    using DocumentFormat.OpenXml.Packaging;
 
     using Microsoft.Office.Interop.Excel;
 
@@ -35,17 +46,20 @@
             try
             {
                 // Initialize new instance of Aspose.Cells Workbook
-                var workbook = new Workbook(filePath, new LoadOptions { MemorySetting = MemorySetting.MemoryPreference });
+                using (var workbook = new Workbook(filePath, new LoadOptions { MemorySetting = MemorySetting.MemoryPreference }))
+                {
+                    var dicExtension = new Dictionary<string, SaveFormat>
+                                           {
+                                               { "xlsx", SaveFormat.Xlsx },
+                                               { "xlsb", SaveFormat.Xlsb },
+                                               { "xlsm", SaveFormat.Xlsm },
+                                               { "pdf", SaveFormat.Pdf }
+                                           };
 
-                var dicExtension = new Dictionary<string, SaveFormat>
-                                       {
-                                           { "xlsx", SaveFormat.Xlsx },
-                                           { "xlsb", SaveFormat.Xlsb },
-                                           { "xlsm", SaveFormat.Xlsm },
-                                           { "pdf", SaveFormat.Pdf }
-                                       };
-
-                workbook.Save(filePath, dicExtension[afterwardExtension]);
+                    // Expecting a miracle.
+                    // workbook.Save(filePath, SaveFormat.Xlsx);
+                    workbook.Save(filePath.Replace("xlsx", afterwardExtension), dicExtension[afterwardExtension]);
+                }
 
                 if (yesDeleteFile)
                 {

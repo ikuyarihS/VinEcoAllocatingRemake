@@ -1,4 +1,13 @@
-﻿namespace VinEcoAllocatingRemake.AllocatingInventory
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="ExportExcelXmlStyle.cs" company="VinEco">
+//   Shirayuki 2018
+// </copyright>
+// <summary>
+//   The utilities.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace VinEcoAllocatingRemake.AllocatingInventory
 {
     #region
 
@@ -11,10 +20,6 @@
     using DocumentFormat.OpenXml;
     using DocumentFormat.OpenXml.Packaging;
     using DocumentFormat.OpenXml.Spreadsheet;
-
-    #endregion
-
-    #region
 
     #endregion
 
@@ -70,14 +75,22 @@
                             dicColName.Add(colIndex + 1, columnName);
                         }
 
+                        // var dicType = new Dictionary<Type, CellValues>(4)
+                        //                  {
+                        //                      { typeof(DateTime), CellValues.Date },
+                        //                      { typeof(string), CellValues.InlineString },
+                        //                      { typeof(double), CellValues.Number },
+                        //                      { typeof(int), CellValues.Number },
+                        //                      { typeof(bool), CellValues.Boolean }
+                        //                  };
                         var dicType = new Dictionary<Type, string>(4)
-                                          {
-                                              { typeof(DateTime), "Date" },
-                                              { typeof(string), "InlineString" },
-                                              { typeof(double), "Number" },
-                                              { typeof(int), "Number" },
-                                              { typeof(bool), "Boolean" }
-                                          };
+                        {
+                            { typeof(DateTime), "d" },
+                            { typeof(string), "s" },
+                            { typeof(double), "n" },
+                            { typeof(int), "n" },
+                            { typeof(bool), "b" }
+                        };
 
                         // this list of attributes will be used when writing a start element
                         List<OpenXmlAttribute> attributes;
@@ -106,10 +119,7 @@
                                 attributes = new List<OpenXmlAttribute>
                                                  {
                                                      new OpenXmlAttribute("t", null, "str"),
-                                                     new OpenXmlAttribute(
-                                                         "r",
-                                                         string.Empty,
-                                                         $"{dicColName[columnNum]}1")
+                                                     new OpenXmlAttribute("r", string.Empty, $"{dicColName[columnNum]}1")
                                                  };
 
                                 // add data type attribute - in this case inline string (you might want to look at the shared strings table)
@@ -160,7 +170,10 @@
                                 writer.WriteStartElement(new Cell(), attributes);
 
                                 // write the cell value
-                                if (yesZero | (dr[columnNum - 1].ToString() != "0")) writer.WriteElement(new CellValue(dr[columnNum - 1].ToString()));
+                                if (yesZero | (dr[columnNum - 1].ToString() != "0"))
+                                {
+                                    writer.WriteElement(new CellValue(dr[columnNum - 1].ToString()));
+                                }
 
                                 // write the end cell element
                                 writer.WriteEndElement();
@@ -195,6 +208,8 @@
                     writerXb.WriteEndElement();
 
                     writerXb.Close();
+                    
+                    document.WorkbookPart.Workbook.Save();
 
                     document.Close();
                 }

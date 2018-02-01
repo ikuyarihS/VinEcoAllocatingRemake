@@ -1,6 +1,13 @@
-﻿#region
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="ReadForecast.cs" company="VinEco">
+//   Shirayuki 2018.
+// </copyright>
+// <summary>
+//   The allocating inventory.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
-#endregion
+using System.Diagnostics.CodeAnalysis;
 
 namespace VinEcoAllocatingRemake.AllocatingInventory
 {
@@ -19,17 +26,15 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
     using Aspose.Cells;
 
-    using VinEcoAllocatingRemake.AllocatingInventory.Models;
-
-    #endregion
-
-    #region
+    using Models;
 
     #endregion
 
     /// <summary>
     ///     The allocating inventory.
     /// </summary>
+    // ReSharper disable once StyleCop.SA1404
+    [SuppressMessage("ReSharper", "ArrangeThisQualifier")]
     public partial class AllocatingInventory
     {
         /// <summary>
@@ -50,9 +55,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                 var dicFc = new ConcurrentDictionary<(DateTime DateFc, string ProductCode, string SupplierCode), (SupplierForecast Supply, bool Valid)>();
                 var dicOldFc = new Dictionary<(DateTime DateFc, string ProductCode, string SupplierCode), (SupplierForecast Supply, bool Valid)>();
 
-                this.WriteToRichTextBoxOutput(
-                    "Đọc DBSL cũ từ cơ sở dữ liệu.",
-                    1);
+                this.WriteToRichTextBoxOutput("Đọc DBSL cũ từ cơ sở dữ liệu.", 1);
 
                 // ReSharper disable ImplicitlyCapturedClosure
                 // ReSharper disable HeapView.DelegateAllocation
@@ -62,10 +65,13 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         new Task(
                                             delegate
                                                 {
-                                                    if (!File.Exists($@"{this._applicationPath}\Database\Products.xlsb")) return;
+                                                    if (!File.Exists($@"{this.applicationPath}\Database\Products.xlsb"))
+                                                    {
+                                                        return;
+                                                    }
 
                                                     using (var workbook = new Workbook(
-                                                        $@"{this._applicationPath}\Database\Products.xlsb",
+                                                        $@"{this.applicationPath}\Database\Products.xlsb",
                                                         new LoadOptions { MemorySetting = MemorySetting.MemoryPreference }))
                                                     {
                                                         Worksheet worksheet = workbook.Worksheets[0];
@@ -74,16 +80,18 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                             0,
                                                             worksheet.Cells.MaxDataRow + 1,
                                                             worksheet.Cells.MaxDataColumn + 1,
-                                                            this._globalExportTableOptionsOpts))
+                                                            this.globalExportTableOptionsOpts))
                                                         {
                                                             foreach (DataRow row in table.Select())
+                                                            {
                                                                 dicProduct.TryAdd(
-                                                                    this._ulti.ObjectToString(row["ProductCode"]),
+                                                                    this.ulti.ObjectToString(row["ProductCode"]),
                                                                     new Product
                                                                         {
-                                                                            ProductCode = this._ulti.ObjectToString(row["ProductCode"]),
-                                                                            ProductName = this._ulti.ObjectToString(row["ProductName"])
+                                                                            ProductCode = this.ulti.ObjectToString(row["ProductCode"]),
+                                                                            ProductName = this.ulti.ObjectToString(row["ProductName"])
                                                                         });
+                                                            }
                                                         }
                                                     }
                                                 }),
@@ -92,10 +100,13 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         new Task(
                                             delegate
                                                 {
-                                                    if (!File.Exists($@"{this._applicationPath}\Database\Suppliers.xlsb")) return;
+                                                    if (!File.Exists($@"{this.applicationPath}\Database\Suppliers.xlsb"))
+                                                    {
+                                                        return;
+                                                    }
 
                                                     using (var workbook = new Workbook(
-                                                        $@"{this._applicationPath}\Database\Suppliers.xlsb",
+                                                        $@"{this.applicationPath}\Database\Suppliers.xlsb",
                                                         new LoadOptions
                                                             {
                                                                 MemorySetting =
@@ -108,18 +119,20 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                             0,
                                                             worksheet.Cells.MaxDataRow + 1,
                                                             worksheet.Cells.MaxDataColumn + 1,
-                                                            this._globalExportTableOptionsOpts))
+                                                            this.globalExportTableOptionsOpts))
                                                         {
                                                             foreach (DataRow row in table.Select())
+                                                            {
                                                                 dicSupplier.TryAdd(
-                                                                    this._ulti.ObjectToString(row["SupplierCode"]),
+                                                                    this.ulti.ObjectToString(row["SupplierCode"]),
                                                                     new Supplier
                                                                         {
-                                                                            SupplierRegion = this._ulti.ObjectToString(row["SupplierRegion"]),
-                                                                            SupplierType = this._ulti.ObjectToString(row["SupplierType"]),
-                                                                            SupplierCode = this._ulti.ObjectToString(row["SupplierCode"]),
-                                                                            SupplierName = this._ulti.ObjectToString(row["SupplierName"])
+                                                                            SupplierRegion = this.ulti.ObjectToString(row["SupplierRegion"]),
+                                                                            SupplierType = this.ulti.ObjectToString(row["SupplierType"]),
+                                                                            SupplierCode = this.ulti.ObjectToString(row["SupplierCode"]),
+                                                                            SupplierName = this.ulti.ObjectToString(row["SupplierName"])
                                                                         });
+                                                            }
                                                         }
                                                     }
                                                 }),
@@ -128,10 +141,13 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         new Task(
                                             delegate
                                                 {
-                                                    if (!File.Exists($@"{this._applicationPath}\Database\Forecasts.xlsb")) return;
+                                                    if (!File.Exists($@"{this.applicationPath}\Database\Forecasts.xlsb"))
+                                                    {
+                                                        return;
+                                                    }
 
                                                     using (var workbook = new Workbook(
-                                                        $@"{this._applicationPath}\Database\Forecasts.xlsb",
+                                                        $@"{this.applicationPath}\Database\Forecasts.xlsb",
                                                         new LoadOptions
                                                             {
                                                                 MemorySetting =
@@ -144,31 +160,39 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                             0,
                                                             worksheet.Cells.MaxDataRow + 1,
                                                             worksheet.Cells.MaxDataColumn + 1,
-                                                            this._globalExportTableOptionsOpts))
+                                                            this.globalExportTableOptionsOpts))
                                                         {
                                                             foreach (DataRow row in table.Select())
                                                             {
-                                                                string productCode = this._ulti.ObjectToString(row["ProductCode"]);
-                                                                string supplierCode = this._ulti.ObjectToString(row["SupplierCode"]);
+                                                                string productCode = this.ulti.ObjectToString(row["ProductCode"]);
+                                                                string supplierCode = this.ulti.ObjectToString(row["SupplierCode"]);
 
                                                                 for (var colIndex = 0;
                                                                      colIndex < table.Columns.Count;
                                                                      colIndex++)
+                                                                {
                                                                     using (DataColumn column = table.Columns[colIndex])
                                                                     {
                                                                         // First check point. Is it a valid date?
-                                                                        DateTime? dateFc = this._ulti.StringToDate(
+                                                                        DateTime? dateFc = this.ulti.StringToDate(
                                                                             column.ColumnName);
-                                                                        if (dateFc == null) continue;
+                                                                        if (dateFc == null)
+                                                                        {
+                                                                            continue;
+                                                                        }
 
                                                                         // Second check point. Is it a valid forecast value?
-                                                                        double value = this._ulti.ObjectToDouble(row[colIndex]);
-                                                                        if (value <= 0) continue;
+                                                                        double value = this.ulti.ObjectToDouble(row[colIndex]);
+                                                                        if (value <= 0)
+                                                                        {
+                                                                            continue;
+                                                                        }
 
                                                                         dicOldFc.Add(
                                                                             ((DateTime)dateFc, productCode, supplierCode),
-                                                                            (new SupplierForecast { QualityControlPass = true, SupplierCode = supplierCode, FullOrder = this._ulti.ObjectToInt(row["FullOrder"]) == 1, CrossRegion = this._ulti.ObjectToInt(row["CrossRegion"]) == 1, LabelVinEco = this._ulti.ObjectToInt(row["Label"]) == 1, Level = (byte)this._ulti.ObjectToInt(row["Level"]) }, false));
+                                                                            (new SupplierForecast { QualityControlPass = true, SupplierCode = supplierCode, FullOrder = this.ulti.ObjectToInt(row["FullOrder"]) == 1, CrossRegion = this.ulti.ObjectToInt(row["CrossRegion"]) == 1, LabelVinEco = this.ulti.ObjectToInt(row["Label"]) == 1, Level = (byte)this.ulti.ObjectToInt(row["Level"]) }, false));
                                                                     }
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -191,8 +215,13 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     "Bắt đầu đọc DBSL mới.",
                     1);
 
+                IOrderedEnumerable<FileInfo> files =
+                    from file in new DirectoryInfo($@"{this.applicationPath}\Data\Forecast").GetFiles()
+                    orderby file.Length descending
+                    select file;
+
                 Parallel.ForEach(
-                    new DirectoryInfo($@"{this._applicationPath}\Data\Forecast").GetFiles(),
+                    files,
                     new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
                     fileInfo =>
                         {
@@ -228,7 +257,10 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                     }
 
                                     // Checkpoint. Well, there has to be a limit.
-                                    if (colIndex > 100) break;
+                                    if (colIndex > 100)
+                                    {
+                                        break;
+                                    }
 
                                     value = worksheet.Cells[rowIndex,
                                             colIndex]
@@ -244,7 +276,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                     colIndex,
                                     worksheet.Cells.MaxDataRow + 1,
                                     worksheet.Cells.MaxDataColumn + 1,
-                                    this._globalExportTableOptionsOpts))
+                                    this.globalExportTableOptionsOpts))
                                 {
                                     table.TableName = Path.GetFileNameWithoutExtension(fileInfo.Name);
 
@@ -261,8 +293,12 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                                 ("Mã VinEco", "PCODE"),
                                                                 ("Tên VinEco", "PNAME")
                                                             })
+                                    {
                                         if (table.Columns.Contains(key.oldName))
+                                        {
                                             table.Columns[key.oldName].ColumnName = key.newName;
+                                        }
+                                    }
 
                                     listDt.Add(table);
                                 }
@@ -296,7 +332,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                 {
                                     // Idk why this is a thing.
                                     // Empty or null ProductCode, yeah, sure, why not.
-                                    if (string.IsNullOrEmpty(this._ulti.ObjectToString(row["PCODE"])))
+                                    if (string.IsNullOrEmpty(this.ulti.ObjectToString(row["PCODE"])))
                                     {
                                         // Just kidding, nope.
                                         continue;
@@ -307,7 +343,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                     {
                                         return table.Columns.Contains(colName)
                                                && string.Equals(
-                                                   this._ulti.ObjectToString(row[colName]),
+                                                   this.ulti.ObjectToString(row[colName]),
                                                    comparer,
                                                    StringComparison.OrdinalIgnoreCase);
                                     }
@@ -320,9 +356,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                     }
 
                                     // Less conversion.
-                                    string supCode = this._ulti.ObjectToString(row["SCODE"]);
-                                    string pCode = this._ulti.ObjectToString(row["PCODE"]);
-                                    string pName = this._ulti.ObjectToString(row["PNAME"]).Replace("KH-", string.Empty);
+                                    string supCode = this.ulti.ObjectToString(row["SCODE"]);
+                                    string pCode = this.ulti.ObjectToString(row["PCODE"]);
+                                    string pName = this.ulti.ObjectToString(row["PNAME"]).Replace("KH-", string.Empty);
 
                                     //// Product information.
                                     // Product product = dicProduct.GetOrAdd(pCode, new Product
@@ -355,8 +391,11 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                     // product.ProductName = _ulti.ObjectToString(row["PNAME"]);
 
                                     // Optimization, dealing with region.
-                                    string region = this._ulti.ObjectToString(row["Region"]);
-                                    if (region.Contains(' ')) region = this._ulti.ConvertToUnsigned(this._ulti.ReturnInitials(region));
+                                    string region = this.ulti.ObjectToString(row["Region"]);
+                                    if (region.Contains(' '))
+                                    {
+                                        region = this.ulti.ConvertToUnsigned(this.ulti.ReturnInitials(region));
+                                    }
 
                                     // Supplier information.
                                     dicSupplier.TryAdd(
@@ -365,9 +404,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                             {
                                                 SupplierRegion = region,
                                                 SupplierCode = supCode,
-                                                SupplierName = this._ulti.ObjectToString(row["SNAME"]),
+                                                SupplierName = this.ulti.ObjectToString(row["SNAME"]),
                                                 SupplierType = table.Columns.Contains("Source")
-                                                                   ? this._ulti.ObjectToString(row["Source"])
+                                                                   ? this.ulti.ObjectToString(row["Source"])
                                                                    : table.TableName == "VinEco"
                                                                        ? "VinEco"
                                                                        : "ThuMua"
@@ -379,7 +418,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         using (DataColumn column = table.Columns[colIndex])
                                         {
                                             // First check point. Is it a valid date?
-                                            DateTime? dateFc = this._ulti.StringToDate(column.ColumnName);
+                                            DateTime? dateFc = this.ulti.StringToDate(column.ColumnName);
                                             if (dateFc == null)
                                             {
                                                 continue;
@@ -388,14 +427,18 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                             // Second check point. Is it a valid forecast value?
                                             // So this is causing a lot of freaking exception in ObjectToDouble.
                                             // Simply because it has to check too many things.
-                                            double value = this._ulti.ObjectToDouble(row[colIndex]);
-                                            if (value <= 0) continue;
+                                            // Solved by 'fixing' StringToDate
+                                            double value = this.ulti.ObjectToDouble(row[colIndex]);
+                                            if (value <= 0)
+                                            {
+                                                continue;
+                                            }
 
                                             var supply = new SupplierForecast
                                                              {
                                                                  Availability =
                                                                      table.Columns.Contains("Availability")
-                                                                         ? this._ulti.ObjectToString(row["Availability"])
+                                                                         ? this.ulti.ObjectToString(row["Availability"])
                                                                          : "1234567",
                                                                  FullOrder = CheckCol("100%", "Yes"),
                                                                  LabelVinEco = CheckCol("Label VE", "Yes"),
@@ -427,7 +470,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                     (new SupplierForecast
                                                          {
                                                              Availability = table.Columns.Contains("Availability")
-                                                                                ? this._ulti.ObjectToString(row["Availability"])
+                                                                                ? this.ulti.ObjectToString(row["Availability"])
                                                                                 : "1234567",
                                                              FullOrder = CheckCol("100%", "Yes"),
                                                              LabelVinEco = CheckCol("Label VE", "Yes"),
@@ -497,7 +540,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                                                          ("CrossRegion", typeof(int)),
                                                                                          ("Level", typeof(int))
                                                                                      })
+                                                             {
                                                                  table.Columns.Add(key.colName, key.colType);
+                                                             }
 
                                                              var listDateFc = new List<DateTime>();
                                                              var listAllDateFc = new List<DateTime>();
@@ -506,30 +551,47 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                              // ReSharper disable once SuggestVarOrType_SimpleTypes
                                                              foreach (var key in dicFc.Keys)
                                                              {
-                                                                 if (!listDateFc.Contains(key.DateFc)) listDateFc.Add(key.DateFc);
+                                                                 if (!listDateFc.Contains(key.DateFc))
+                                                                 {
+                                                                     listDateFc.Add(key.DateFc);
+                                                                 }
 
-                                                                 if (!listAllDateFc.Contains(key.DateFc)) listAllDateFc.Add(key.DateFc);
+                                                                 if (!listAllDateFc.Contains(key.DateFc))
+                                                                 {
+                                                                     listAllDateFc.Add(key.DateFc);
+                                                                 }
                                                              }
 
                                                              // ... and then add the same amount of columns.
                                                              foreach (DateTime dateFc in listDateFc)
-                                                                 // ReSharper disable once SuggestVarOrType_SimpleTypes
-                                                             foreach (var key in dicOldFc.Keys.ToList())
                                                              {
-                                                                 if (key.DateFc == dateFc) dicOldFc.Remove(key);
+                                                                 // ReSharper disable once SuggestVarOrType_SimpleTypes
+                                                                 foreach (var key in dicOldFc.Keys.ToList())
+                                                                 {
+                                                                     if (key.DateFc == dateFc)
+                                                                     {
+                                                                         dicOldFc.Remove(key);
+                                                                     }
 
-                                                                 // Also remove all old items.
-                                                                 if (!listAllDateFc.Contains(key.DateFc)) listAllDateFc.Add(key.DateFc);
+                                                                     // Also remove all old items.
+                                                                     if (!listAllDateFc.Contains(key.DateFc))
+                                                                     {
+                                                                         listAllDateFc.Add(key.DateFc);
+                                                                     }
+                                                                 }
                                                              }
 
-                                                             foreach (DateTime dateFc in listAllDateFc.OrderBy(d => d.Date)) table.Columns.Add(this._ulti.DateToString(dateFc, "dd-MMM-yyyy"), typeof(double));
+                                                             foreach (DateTime dateFc in listAllDateFc.OrderBy(d => d.Date))
+                                                             {
+                                                                 table.Columns.Add(this.ulti.DateToString(dateFc, "dd-MMM-yyyy"), typeof(double));
+                                                             }
 
                                                              // Dictionary of rowIndex.
                                                              var dicRow = new Dictionary<string, int>(
                                                                  dicProduct.Count,
                                                                  StringComparer.OrdinalIgnoreCase);
 
-                                                             object objIntOne = this._ulti.IntToObject(1);
+                                                             object objIntOne = this.ulti.IntToObject(1);
 
                                                              object BoolToOne(bool expression)
                                                              {
@@ -540,14 +602,16 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                                                              // Hour of truth.
                                                              // ReSharper disable once SuggestVarOrType_SimpleTypes
-                                                             foreach (var key in dicFc.Keys) dicOldFc.Add(key, dicFc[key]);
+                                                             foreach (var key in dicFc.Keys)
+                                                             {
+                                                                 dicOldFc.Add(key, dicFc[key]);
+                                                             }
 
-                                                             foreach (
-                                                                 // ReSharper disable once SuggestVarOrType_SimpleTypes
-                                                                 var key in from key in dicOldFc.Keys
-                                                                            orderby key.ProductCode, key
-                                                                                .SupplierCode
-                                                                            select key)
+                                                             // ReSharper disable once SuggestVarOrType_SimpleTypes
+                                                             foreach (var key in from key in dicOldFc.Keys
+                                                                                 orderby key.ProductCode,
+                                                                                     key.SupplierCode
+                                                                                 select key)
                                                              {
                                                                  DataRow row;
 
@@ -569,29 +633,26 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                                      row["FullOrder"] = BoolToOne(supply.FullOrder);
                                                                      row["Label"] = BoolToOne(supply.LabelVinEco);
                                                                      row["CrossRegion"] = BoolToOne(supply.CrossRegion);
-                                                                     row["Level"] = this._ulti.IntToObject(supply.Level);
+                                                                     row["Level"] = this.ulti.IntToObject(supply.Level);
 
                                                                      dicRow.Add(rowKey, table.Rows.Count);
                                                                      table.Rows.Add(row);
                                                                  }
 
-                                                                 row[this._ulti.DateToString(
-                                                                     key.DateFc,
-                                                                     "dd-MMM-yyyy")] = this._ulti.DoubleToObject(
-                                                                     supply.QuantityForecast);
+                                                                 row[this.ulti.DateToString(key.DateFc, "dd-MMM-yyyy")] =
+                                                                     this.ulti.DoubleToObject(supply.QuantityForecast);
                                                              }
 
-                                                             string path =
-                                                                 $@"{this._applicationPath}\Database\{table.TableName}.xlsx";
-                                                             this._ulti.LargeExportOneWorkbook(
+                                                             string path = $@"{this.applicationPath}\Database\{table.TableName}.xlsx";
+                                                             this.ulti.LargeExportOneWorkbook(
                                                                  path,
                                                                  new List<DataTable> { table },
                                                                  true,
                                                                  true);
-                                                             this._ulti.ConvertExcelTypeInterop(
-                                                                 path,
-                                                                 "xlsx",
-                                                                 "xlsb");
+                                                             
+                                                             // this.ulti.ConvertExcelTypeInterop(path, "xlsx", "xlsb");
+                                                             this.ulti.ConvertExcelTypeAspose(path, "xlsb");
+                                                             this.ulti.DeleteEvaluationSheetInterop(path.Replace("xlsx", "xlsb"));
                                                          }
                                                      }
                                                      catch (Exception ex)
@@ -613,7 +674,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                                                      ("ProductCode", typeof(string)),
                                                                                      ("ProductName", typeof(string))
                                                                                  })
+                                                         {
                                                              table.Columns.Add(key.colName, key.colType);
+                                                         }
 
                                                          foreach (Product product in from value in dicProduct.Values
                                                                                      orderby value.ProductCode
@@ -627,16 +690,16 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                              table.Rows.Add(row);
                                                          }
 
-                                                         string path = $@"{this._applicationPath}\Database\{table.TableName}.xlsx";
-                                                         this._ulti.LargeExportOneWorkbook(
+                                                         string path = $@"{this.applicationPath}\Database\{table.TableName}.xlsx";
+                                                         this.ulti.LargeExportOneWorkbook(
                                                              path,
                                                              new List<DataTable> { table },
                                                              true,
                                                              true);
-                                                         this._ulti.ConvertExcelTypeInterop(
-                                                             path,
-                                                             "xlsx",
-                                                             "xlsb");
+                                                         
+                                                         // this.ulti.ConvertExcelTypeInterop(path, "xlsx", "xlsb");
+                                                         this.ulti.ConvertExcelTypeAspose(path, "xlsb");
+                                                         this.ulti.DeleteEvaluationSheetInterop(path.Replace("xlsx", "xlsb"));
                                                      }
                                                  }),
 
@@ -654,7 +717,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                                                      ("SupplierCode", typeof(string)),
                                                                                      ("SupplierName", typeof(string))
                                                                                  })
+                                                         {
                                                              table.Columns.Add(key.colName, key.colType);
+                                                         }
 
                                                          foreach (Supplier supplier in
                                                              from supplier in dicSupplier.Values
@@ -674,16 +739,16 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                              table.Rows.Add(row);
                                                          }
 
-                                                         string path = $@"{this._applicationPath}\Database\{table.TableName}.xlsx";
-                                                         this._ulti.LargeExportOneWorkbook(
+                                                         string path = $@"{this.applicationPath}\Database\{table.TableName}.xlsx";
+                                                         this.ulti.LargeExportOneWorkbook(
                                                              path,
                                                              new List<DataTable> { table },
                                                              true,
                                                              true);
-                                                         this._ulti.ConvertExcelTypeInterop(
-                                                             path,
-                                                             "xlsx",
-                                                             "xlsb");
+
+                                                         // this.ulti.ConvertExcelTypeInterop(path, "xlsx", "xlsb");
+                                                         this.ulti.ConvertExcelTypeAspose(path, "xlsb");
+                                                         this.ulti.DeleteEvaluationSheetInterop(path.Replace("xlsx", "xlsb"));
                                                      }
                                                  })
                                      };

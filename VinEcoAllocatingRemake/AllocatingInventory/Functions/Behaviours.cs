@@ -1,4 +1,11 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="Behaviours.cs" company="VinEco">
+//   Shirayuki 2018.
+// </copyright>
+// <summary>
+//   The allocating inventory.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
 namespace VinEcoAllocatingRemake.AllocatingInventory
 {
@@ -7,6 +14,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
     using System;
     using System.ComponentModel;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Reflection;
     using System.Windows;
@@ -26,6 +34,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
     /// <summary>
     ///     The allocating inventory.
     /// </summary>
+    // ReSharper disable once StyleCop.SA1404
     [SuppressMessage("ReSharper", "ArrangeThisQualifier")]
     public partial class AllocatingInventory
     {
@@ -60,7 +69,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <summary>
         ///     The is backgroundworker idle.
         /// </summary>
-        private bool _isBackgroundworkerIdle = true;
+        private bool isBackgroundworkerIdle = true;
 
         /// <summary>
         ///     The background worker process changed.
@@ -69,7 +78,10 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <param name="e"> The e. </param>
         private void BackgroundWorkerProcessChanged(object sender, ProgressChangedEventArgs e)
         {
-            if (this.ProgressStatusBar.Value >= 1) this.ProgressStatusBar.Value = 0;
+            if (this.ProgressStatusBar.Value >= 1)
+            {
+                this.ProgressStatusBar.Value = 0;
+            }
 
             this.ProgressStatusBar.BeginAnimation(
                 RangeBase.ValueProperty,
@@ -84,12 +96,18 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     break;
                 case 100:
                     this.ProgressStatusBarLabel.Text = "Done!";
-                    if (mainWindow != null) mainWindow.MyTaskBarInfo.ProgressValue = 0;
+                    if (mainWindow != null)
+                    {
+                        mainWindow.MyTaskBarInfo.ProgressValue = 0;
+                    }
 
                     break;
                 default:
                     this.ProgressStatusBarLabel.Text = $"{e.ProgressPercentage.ToString(string.Empty)}%";
-                    if (mainWindow != null) mainWindow.MyTaskBarInfo.ProgressValue = e.ProgressPercentage / 100d;
+                    if (mainWindow != null)
+                    {
+                        mainWindow.MyTaskBarInfo.ProgressValue = e.ProgressPercentage / 100d;
+                    }
 
                     break;
             }
@@ -102,9 +120,10 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <param name="e"> The e. </param>
         private void BackgroundWorkerRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            this.bgw.DoWork -= this.FiteMoi;
             this.bgw.DoWork -= this.ReadForecast;
             this.bgw.DoWork -= this.ReadPurchaseOrder;
-            this._isBackgroundworkerIdle = true;
+            this.isBackgroundworkerIdle = true;
             this.WriteToRichTextBoxOutput("Done!");
             this.WriteToRichTextBoxOutput();
         }
@@ -124,7 +143,10 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
             this.bgw.CancelAsync();
 
-            if (Application.Current.MainWindow is MainWindow mainWindow) mainWindow.MyTaskBarInfo.ProgressValue = 0;
+            if (Application.Current.MainWindow is MainWindow mainWindow)
+            {
+                mainWindow.MyTaskBarInfo.ProgressValue = 0;
+            }
 
             this.ProgressStatusBar.Value = 0;
             this.ProgressStatusBarLabel.Text = "Canceled!";
@@ -141,14 +163,14 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <param name="e"> The e. </param>
         private void FiteMoiHandler(object sender, RoutedEventArgs e)
         {
-            if (!this.bgw.IsBusy && this._isBackgroundworkerIdle)
+            if (!this.bgw.IsBusy && this.isBackgroundworkerIdle)
             {
-                if (this._isBackgroundworkerIdle)
+                if (this.isBackgroundworkerIdle)
                 {
                     this.bgw.DoWork += this.FiteMoi;
-                    this._isBackgroundworkerIdle = false;
                 }
 
+                this.isBackgroundworkerIdle = false;
                 this.bgw.RunWorkerAsync();
             }
             else
@@ -164,12 +186,12 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <param name="e"> The e. </param>
         private void ForecastHandler(object sender, RoutedEventArgs e)
         {
-            if (!this.bgw.IsBusy && this._isBackgroundworkerIdle)
+            if (!this.bgw.IsBusy && this.isBackgroundworkerIdle)
             {
-                if (this._isBackgroundworkerIdle)
+                if (this.isBackgroundworkerIdle)
                 {
                     this.bgw.DoWork += this.ReadForecast;
-                    this._isBackgroundworkerIdle = false;
+                    this.isBackgroundworkerIdle = false;
                 }
 
                 this.bgw.RunWorkerAsync();
@@ -205,7 +227,10 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         {
             Process[] processExcel = Process.GetProcessesByName("excel");
 
-            foreach (Process process in processExcel) process.Kill();
+            foreach (Process process in processExcel)
+            {
+                process.Kill();
+            }
 
             this.WriteToRichTextBoxOutput("Vừng ơi mở ra!!!");
 
@@ -219,12 +244,12 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <param name="e"> The e. </param>
         private void OrderHandler(object sender, RoutedEventArgs e)
         {
-            if (!this.bgw.IsBusy && this._isBackgroundworkerIdle)
+            if (!this.bgw.IsBusy && this.isBackgroundworkerIdle)
             {
-                if (this._isBackgroundworkerIdle)
+                if (this.isBackgroundworkerIdle)
                 {
                     this.bgw.DoWork += this.ReadPurchaseOrder;
-                    this._isBackgroundworkerIdle = false;
+                    this.isBackgroundworkerIdle = false;
                 }
 
                 this.bgw.RunWorkerAsync();

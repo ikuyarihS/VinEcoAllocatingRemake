@@ -49,7 +49,10 @@
         public object BoolToObject(bool suspect)
         {
             // If string has been converted before.
-            if (this._dicBoolObject.TryGetValue(suspect, out object obj)) return obj;
+            if (this._dicBoolObject.TryGetValue(suspect, out object obj))
+            {
+                return obj;
+            }
 
             obj = this.GetString(suspect.ToString());
 
@@ -75,7 +78,10 @@
         public object DateToObject(DateTime suspect, string dateFormat = "")
         {
             // If string has been converted before.
-            if (this._dicDateObject.TryGetValue(suspect, out object obj)) return obj;
+            if (this._dicDateObject.TryGetValue(suspect, out object obj))
+            {
+                return obj;
+            }
 
             obj = this.GetString(suspect.ToString(dateFormat));
 

@@ -1,4 +1,13 @@
-﻿namespace VinEcoAllocatingRemake.AllocatingInventory
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="DeleteEvaluationSheetInterop.cs" company="VinEco">
+//   Shirayuki 2018.
+// </copyright>
+// <summary>
+//   The delete evaluation sheet interop.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace VinEcoAllocatingRemake.AllocatingInventory
 {
     #region
 
@@ -14,6 +23,7 @@
     /// <summary>
     ///     The delete evaluation sheet interop.
     /// </summary>
+    // ReSharper disable once StyleCop.SA1404
     [SuppressMessage("ReSharper", "ArrangeThisQualifier")]
     public partial class Utilities
     {
@@ -39,18 +49,14 @@
 
                 Workbooks workbooks = excelApp.Workbooks;
 
-                // This is hilarious.
-                string falseStr = false.ToString();
-                string trueStr = true.ToString();
-
                 Workbook workbook = workbooks.Open(
-                    filePath,
-                    falseStr,
-                    falseStr,
-                    IgnoreReadOnlyRecommended: trueStr,
+                    Filename: filePath,
+                    UpdateLinks: false,
+                    ReadOnly: false,
+                    IgnoreReadOnlyRecommended: true,
                     Origin: XlPlatform.xlWindows,
-                    Notify: falseStr,
-                    Converter: "0");
+                    Notify: false,
+                    Converter: 0);
 
                 excelApp.Calculation = XlCalculation.xlCalculationManual;
 
@@ -59,32 +65,39 @@
                 // foreach (ExcelInterop.Worksheet worksheet in xlWb.Worksheets)
                 for (var sheetIndex = 1; sheetIndex <= worksheets.Count; sheetIndex++)
                 {
-                    dynamic worksheet = worksheets[sheetIndex.ToString()];
-                    switch (worksheet.Name)
-                    {
-                        case "Config":
-                            worksheet.Cells[1, 1].Value2 = trueStr;
-                            break;
-                        case "Evaluation Warning":
-                            worksheet.Delete();
-                            break;
+                    Worksheet worksheet = worksheets[sheetIndex];
 
-                        // ReSharper disable once RedundantEmptySwitchSection
-                        default:
-                            break;
+                    if (worksheet.Name == "Config")
+                    {
+                        worksheet.Cells[1, 1].Value2 = true;
                     }
 
-                    Marshal.ReleaseComObject(worksheet);
+                    if (worksheet.Name.IndexOf("Evaluation Warning", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        worksheet.Delete();
+                    }
+
+                    Release(worksheet);
                 }
 
-                worksheets[this.IntToObject(1)].Activate();
+                worksheets[1].Activate();
 
-                Marshal.ReleaseComObject(worksheets);
-                workbook.Close(trueStr);
-                Marshal.ReleaseComObject(workbook);
-                Marshal.ReleaseComObject(workbooks);
+                void Release(object suspect)
+                {
+                    Marshal.ReleaseComObject(suspect);
+                    suspect = null;
+                }
+
+                Release(worksheets);
+               
+                workbook.Save();
+                workbook.Close();
+                Release(workbook);
+                
+                Release(workbooks);
+                
                 excelApp.Quit();
-                Marshal.ReleaseComObject(excelApp);
+                Release(excelApp);
             }
             catch (Exception ex)
             {

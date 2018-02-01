@@ -13,10 +13,6 @@
 
     #endregion
 
-    #region
-
-    #endregion
-
     /// <summary>
     ///     The utilities.
     /// </summary>
@@ -25,13 +21,13 @@
         /// <summary>
         ///     OpenWriter Style, for Multiple DataTable into Multiple Worksheets in a single Workbook. A real fucking pain.
         /// </summary>
-        /// <param name="filePath">Where your file will be.</param>
-        /// <param name="theName">Oh come on.</param>
-        /// <param name="listArrays">List of Arrays. Can contain just 1, doesn't matter.</param>
-        /// <param name="listColumnNames">Ah fuck.</param>
-        /// <param name="listTypes">Ah fuck v2.</param>
-        /// <param name="yesHeader">You want headers?</param>
-        /// <param name="yesZero">You want zero instead of null?</param>
+        /// <param name="filePath"> Where your file will be. </param>
+        /// <param name="theName"> Oh come on. </param>
+        /// <param name="listArrays"> List of Arrays. Can contain just 1, doesn't matter. </param>
+        /// <param name="listColumnNames"> Ah fuck. </param>
+        /// <param name="listTypes"> Ah fuck v2. </param>
+        /// <param name="yesHeader"> You want headers? </param>
+        /// <param name="yesZero"> You want zero instead of null? </param>
         public void ExportXmlArray(
             string filePath,
             string theName,
@@ -77,11 +73,11 @@
 
                         var dicType = new Dictionary<Type, string>(4)
                                           {
-                                              { typeof(DateTime), "Date" },
-                                              { typeof(string), "InlineString" },
-                                              { typeof(double), "Number" },
-                                              { typeof(int), "Number" },
-                                              { typeof(bool), "Boolean" }
+                                              { typeof(DateTime), "d" },
+                                              { typeof(string), "s" },
+                                              { typeof(double), "n" },
+                                              { typeof(int), "n" },
+                                              { typeof(bool), "b" }
                                           };
 
                         // this list of attributes will be used when writing a start element
@@ -111,10 +107,7 @@
                                 attributes = new List<OpenXmlAttribute>
                                                  {
                                                      new OpenXmlAttribute("t", null, "str"),
-                                                     new OpenXmlAttribute(
-                                                         "r",
-                                                         string.Empty,
-                                                         $"{dicColName[columnNum]}1")
+                                                     new OpenXmlAttribute("r", string.Empty, $"{dicColName[columnNum]}1")
                                                  };
 
                                 // add data type attribute - in this case inline string (you might want to look at the shared strings table)
@@ -166,7 +159,9 @@
 
                                 // write the cell value
                                 if (!yesZero && array[rowNum - 1, columnNum - 1] != null && array[rowNum - 1, columnNum - 1].ToString() != "0")
+                                {
                                     writer.WriteElement(new CellValue(array[rowNum - 1, columnNum - 1].ToString()));
+                                }
 
                                 // write the end cell element
                                 writer.WriteEndElement();
@@ -201,6 +196,9 @@
                     writerXb.WriteEndElement();
 
                     writerXb.Close();
+                    
+                    // In hope of changing stuff.
+                    document.WorkbookPart.Workbook.Save();
 
                     document.Close();
                 }
