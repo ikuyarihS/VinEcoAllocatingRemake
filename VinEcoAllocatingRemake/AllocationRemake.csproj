@@ -95,6 +95,7 @@
     <Compile Include="AllocatingInventory\Functions\FiteMoi.cs" />
     <Compile Include="AllocatingInventory\Functions\ReadForecast.cs" />
     <Compile Include="AllocatingInventory\Functions\ReadPurchaseOrder.cs" />
+    <Compile Include="AllocatingInventory\Functions\ToDataTable.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ConvertExcel.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\ConvertToUnsigned.cs" />
     <Compile Include="AllocatingInventory\Functions\Ultilities\DeleteEvaluationSheetInterop.cs" />

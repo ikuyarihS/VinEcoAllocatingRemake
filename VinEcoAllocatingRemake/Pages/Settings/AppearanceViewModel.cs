@@ -1,4 +1,13 @@
-﻿namespace VinEcoAllocatingRemake.Pages.Settings
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="AppearanceViewModel.cs" company="VinEco">
+//   Shirayuki 2018.
+// </copyright>
+// <summary>
+//   A simple view model for configuring theme, font and accent colors.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace VinEcoAllocatingRemake.Pages.Settings
 {
     #region
 
@@ -15,8 +24,14 @@
     /// </summary>
     public class AppearanceViewModel : NotifyPropertyChanged
     {
+        /// <summary>
+        ///     The font large.
+        /// </summary>
         private const string FontLarge = "large";
 
+        /// <summary>
+        ///     The font small.
+        /// </summary>
         private const string FontSmall = "small";
 
         // 9 accent colors from metro design principles
@@ -31,14 +46,25 @@
             Color.FromRgb(0xff, 0x00, 0x97),   // magenta
             Color.FromRgb(0xa2, 0x00, 0xff),   // purple            
         };*/
-
-        // 20 accent colors from Windows Phone 8
+        
+        /// <summary>
+        ///     20 accent colors from Windows Phone 8
+        /// </summary>
         private Color selectedAccentColor;
 
+        /// <summary>
+        ///     The selected font size.
+        /// </summary>
         private string selectedFontSize;
 
+        /// <summary>
+        ///     The selected theme.
+        /// </summary>
         private Link selectedTheme;
 
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="AppearanceViewModel"/> class.
+        /// </summary>
         public AppearanceViewModel()
         {
             // add the default themes
@@ -51,7 +77,14 @@
             AppearanceManager.Current.PropertyChanged += this.OnAppearanceManagerPropertyChanged;
         }
 
-        public Color[] AccentColors { get; } =
+        /// <summary>
+        ///     Gets the accent colors.
+        /// </summary>
+        public Color[] AccentColors
+        {
+            get; 
+        } 
+            =
                 {
                     Color.FromRgb(0xa4, 0xc4, 0x00), // lime
                     Color.FromRgb(0x60, 0xa9, 0x17), // green
@@ -75,61 +108,93 @@
                     Color.FromRgb(0x87, 0x79, 0x4e) // taupe
                 };
 
+        /// <summary>
+        ///     The font sizes.
+        /// </summary>
         public string[] FontSizes => new[] { FontSmall, FontLarge };
 
+        /// <summary>
+        ///     Gets or sets the selected accent color.
+        /// </summary>
         public Color SelectedAccentColor
         {
             get => this.selectedAccentColor;
             set
             {
-                if (this.selectedAccentColor != value)
+                if (this.selectedAccentColor == value)
                 {
-                    this.selectedAccentColor = value;
-                    this.OnPropertyChanged("SelectedAccentColor");
-
-                    AppearanceManager.Current.AccentColor = value;
+                    return;
                 }
+
+                this.selectedAccentColor = value;
+                this.OnPropertyChanged("SelectedAccentColor");
+
+                AppearanceManager.Current.AccentColor = value;
             }
         }
 
+        /// <summary>
+        ///     Gets or sets the selected font size.
+        /// </summary>
         public string SelectedFontSize
         {
             get => this.selectedFontSize;
             set
             {
-                if (this.selectedFontSize != value)
+                if (this.selectedFontSize == value)
                 {
-                    this.selectedFontSize = value;
-                    this.OnPropertyChanged("SelectedFontSize");
-
-                    AppearanceManager.Current.FontSize = value == FontLarge ? FontSize.Large : FontSize.Small;
+                    return;
                 }
+
+                this.selectedFontSize = value;
+                this.OnPropertyChanged("SelectedFontSize");
+
+                AppearanceManager.Current.FontSize = value == FontLarge ? FontSize.Large : FontSize.Small;
             }
         }
 
+        /// <summary>
+        ///     Gets or sets the selected theme.
+        /// </summary>
         public Link SelectedTheme
         {
             get => this.selectedTheme;
             set
             {
-                if (this.selectedTheme != value)
+                if (this.selectedTheme == value)
                 {
-                    this.selectedTheme = value;
-                    this.OnPropertyChanged("SelectedTheme");
-
-                    // and update the actual theme
-                    AppearanceManager.Current.ThemeSource = value.Source;
+                    return;
                 }
+
+                this.selectedTheme = value;
+                this.OnPropertyChanged("SelectedTheme");
+
+                // and update the actual theme
+                AppearanceManager.Current.ThemeSource = value.Source;
             }
         }
 
+        /// <summary>
+        ///     Gets the themes.
+        /// </summary>
         public LinkCollection Themes { get; } = new LinkCollection();
 
+        /// <summary>
+        ///     The on appearance manager property changed.
+        /// </summary>
+        /// <param name="sender"> The sender. </param>
+        /// <param name="e"> The e. </param>
         private void OnAppearanceManagerPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "ThemeSource" || e.PropertyName == "AccentColor") this.SyncThemeAndColor();
+            if (e.PropertyName == "ThemeSource" || e.PropertyName == "AccentColor")
+            {
+                this.SyncThemeAndColor();
+            }
         }
 
+        /// <summary>
+        ///     The sync theme and color.
+        /// </summary>
         private void SyncThemeAndColor()
         {
             // synchronizes the selected viewmodel theme with the actual theme used by the appearance manager.

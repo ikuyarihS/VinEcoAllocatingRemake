@@ -75,8 +75,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                                                     using (var workbook = new Workbook(
                                                         $@"{this.applicationPath}\Database\Products.xlsb",
-                                                        new LoadOptions
-                                                            { MemorySetting = MemorySetting.MemoryPreference }))
+                                                        new LoadOptions { MemorySetting = MemorySetting.MemoryPreference }))
                                                     {
                                                         Worksheet worksheet = workbook.Worksheets[0];
                                                         using (DataTable table = worksheet.Cells.ExportDataTable(
@@ -87,6 +86,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                             this.globalExportTableOptionsOpts))
                                                         {
                                                             foreach (DataRow row in table.Select())
+                                                            {
                                                                 dicProduct.TryAdd(
                                                                     this.ulti.ObjectToString(row["ProductCode"]),
                                                                     new Product
@@ -94,6 +94,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                                             ProductCode = this.ulti.ObjectToString(row["ProductCode"]),
                                                                             ProductName = this.ulti.ObjectToString(row["ProductName"])
                                                                         });
+                                                            }
                                                         }
                                                     }
                                                 }),
@@ -103,7 +104,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                             delegate
                                                 {
                                                     if (!File.Exists($@"{this.applicationPath}\Database\Customers.xlsb"))
+                                                    {
                                                         return;
+                                                    }
 
                                                     using (var workbook = new Workbook(
                                                         $@"{this.applicationPath}\Database\Customers.xlsb",
@@ -122,6 +125,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                             this.globalExportTableOptionsOpts))
                                                         {
                                                             foreach (DataRow row in table.Select())
+                                                            {
                                                                 dicCustomer.TryAdd(
                                                                     this.ulti.ObjectToString(row["Key"]),
                                                                     new Customer
@@ -134,6 +138,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                                             Company = this.ulti.ObjectToString(row["P&L"]),
                                                                             CustomerType = this.ulti.ObjectToString(row["Type"])
                                                                         });
+                                                            }
                                                         }
                                                     }
                                                 }),
@@ -145,7 +150,10 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                     try
                                                     {
                                                         string path = $@"{this.applicationPath}\Database\Orders.xlsb";
-                                                        if (!File.Exists(path)) return;
+                                                        if (!File.Exists(path))
+                                                        {
+                                                            return;
+                                                        }
 
                                                         using (var workbook = new Workbook(
                                                             path,
@@ -172,6 +180,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                                     for (var colIndex = 0;
                                                                          colIndex < table.Columns.Count;
                                                                          colIndex++)
+                                                                    {
                                                                         using (DataColumn column =
                                                                             table.Columns[colIndex])
                                                                         {
@@ -181,11 +190,17 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                                             // ... it's my fucking database.
                                                                             DateTime? dateFc = this.ulti.StringToDate(
                                                                                 column.ColumnName);
-                                                                            if (dateFc == null) continue;
+                                                                            if (dateFc == null)
+                                                                            {
+                                                                                continue;
+                                                                            }
 
                                                                             // Second check point. Is it a valid forecast value?
                                                                             double value = this.ulti.ObjectToDouble(row[colIndex]);
-                                                                            if (value <= 0) continue;
+                                                                            if (value <= 0)
+                                                                            {
+                                                                                continue;
+                                                                            }
 
                                                                             // dicOldPo.Add(
                                                                             // ((DateTime) dateFc, productCode, cusKeyCode),
@@ -196,13 +211,14 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                                             // }, false));
                                                                             listOldPo.Add(
                                                                                 (((DateTime)dateFc, productCode, cusKeyCode),
-                                                                                (new CustomerOrder
-                                                                                     {
-                                                                                         CustomerKeyCode = cusKeyCode,
-                                                                                         QuantityOrder = value
-                                                                                     },
-                                                                                false)));
+                                                                                    (new CustomerOrder
+                                                                                         {
+                                                                                             CustomerKeyCode = cusKeyCode,
+                                                                                             QuantityOrder = value
+                                                                                         },
+                                                                                        false)));
                                                                         }
+                                                                    }
                                                                 }
                                                             }
                                                         }

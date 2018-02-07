@@ -126,6 +126,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             this.isBackgroundworkerIdle = true;
             this.WriteToRichTextBoxOutput("Done!");
             this.WriteToRichTextBoxOutput();
+            this.TryClear();
         }
 
         /// <summary>

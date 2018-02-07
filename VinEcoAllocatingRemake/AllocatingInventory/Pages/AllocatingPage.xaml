@@ -131,7 +131,7 @@
                     <!--Cancel button.-->
                     <Button Margin="70,0,0,0" Width="107" Height="37" FontFamily="Helvetia" Click="Cancel_OnClick"
                             Content="Dừng chạy"
-                            Background="MediumPurple">
+                            Background="IndianRed">
                         <Button.ToolTip>
                             <StackPanel>
                                 <TextBlock FontWeight="Bold" Text="Dừng chạy." Margin="0,0,0,1" />

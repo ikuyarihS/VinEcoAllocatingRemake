@@ -7,8 +7,6 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-using System.Diagnostics.CodeAnalysis;
-
 namespace VinEcoAllocatingRemake.AllocatingInventory
 {
     #region
@@ -19,6 +17,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
     using System.ComponentModel;
     using System.Data;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.IO;
     using System.Linq;

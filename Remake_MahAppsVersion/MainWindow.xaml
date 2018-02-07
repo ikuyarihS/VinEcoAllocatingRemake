@@ -1,11 +1,38 @@
-﻿<Controls:MetroWindow x:Class="Remake_MahAppsVersion.MainWindow"
+﻿<controls:MetroWindow x:Class="Remake_MahAppsVersion.MainWindow"
                       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                      xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
+                      xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
                       Title="MainWindow"
-                      Height="350"
-                      Width="525">
-    <Grid>
+                      GlowBrush="{DynamicResource AccentColorBrush}"
+                      RenderOptions.ClearTypeHint="Enabled"
+                      TextOptions.TextFormattingMode="Display"
+                      ShowTitleBar="True"
+                      xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+                      xmlns:behaviours="clr-namespace:MahApps.Metro.Behaviours;assembly=MahApps.Metro"
+                      IsWindowDraggable="True"
+                      Height="600"
+                      Width="800"
+                      ResizeMode="CanResizeWithGrip">
+    <i:Interaction.Behaviors>
+        <behaviours:BorderlessWindowBehavior/>
+    </i:Interaction.Behaviors>
 
-    </Grid>
-</Controls:MetroWindow>
+    <ScrollViewer IsDeferredScrollingEnabled="True">
+        <TabControl Style="{StaticResource {x:Type TabControl}}">
+            <TabItem Header="Home">
+                <Label Content="Where our heart belongs."/>
+            </TabItem>
+            
+            <TabItem Header="Allocation">
+                <Label Content="Test" />
+            </TabItem>
+        </TabControl>
+    </ScrollViewer>
+</controls:MetroWindow>
+
+
+
+
+
+
+

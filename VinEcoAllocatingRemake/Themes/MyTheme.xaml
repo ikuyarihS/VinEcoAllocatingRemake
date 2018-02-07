@@ -2,12 +2,13 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- derive from Light or Dark theme-->
-    <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/FirstFloor.ModernUI;component/Assets/ModernUI.Dark.xaml" />
-    </ResourceDictionary.MergedDictionaries>
+    <!--<ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/FirstFloor.ModernUI;component/Assets/ModernUI.xaml" />
+        <ResourceDictionary Source="/FirstFloor.ModernUI;component/Assets/ModernUI.Light.xaml" />
+    </ResourceDictionary.MergedDictionaries>-->
 
     <!-- specify the accent color (optional) -->
-    <Color x:Key="AccentColor">RoyalBlue</Color>
+    <Color x:Key="AccentColor">ForestGreen</Color>
 
     <!-- custom theme resources-->
     <Rectangle x:Key="WindowBackgroundContent" x:Shared="false">
