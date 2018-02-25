@@ -1,52 +1,52 @@
-﻿namespace VinEcoAllocatingRemake.AllocatingInventory
-{
-    #region
+﻿using System;
+using System.Collections.Concurrent;
 
-    using System;
-    using System.Collections.Concurrent;
-
-    #endregion
-
-    /// <summary>
-    ///     The utilities.
-    /// </summary>
-    public partial class Utilities
+namespace VinEcoAllocatingRemake.AllocatingInventory
     {
-        /// <summary>
-        ///     The dic string date.
-        /// </summary>
-        private readonly ConcurrentDictionary<string, DateTime> _dicStringDate =
-            new ConcurrentDictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
+        #region
+
+        #endregion
 
         /// <summary>
-        ///     Convert string to DateTime.
-        ///     Optimization.
+        ///     The utilities.
         /// </summary>
-        /// <param name="suspect">String to convert to Date.</param>
-        /// <returns>A DateTime value from a string, if convertible.</returns>
-        public DateTime? StringToDate(string suspect)
-        {
-            // If string has been converted before.
-            if (this._dicStringDate.TryGetValue(suspect, out DateTime dateResult))
+        public partial class Utilities
             {
-                return dateResult == DateTime.MinValue
-                           ? (DateTime?)null
-                           : dateResult;
-            }
+                /// <summary>
+                ///     The dic string date.
+                /// </summary>
+                private readonly ConcurrentDictionary<string, DateTime> _dicStringDate =
+                    new ConcurrentDictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
 
-            // Otherwise, check if it's even a date.
-            if (!DateTime.TryParse(suspect, out DateTime date))
-            {
-                // Looks like it isn't.
-                // Return null, and also record string used.
-                this._dicStringDate.TryAdd(suspect, DateTime.MinValue);
-                return null;
-            }
+                /// <summary>
+                ///     Convert string to DateTime.
+                ///     Optimization.
+                /// </summary>
+                /// <param name="suspect">String to convert to Date.</param>
+                /// <returns>A DateTime value from a string, if convertible.</returns>
+                public DateTime? StringToDate(string suspect)
+                    {
+                        // If string has been converted before.
+                        if (_dicStringDate.TryGetValue(suspect, out DateTime dateResult))
+                            {
+                                return dateResult == DateTime.MinValue
+                                           ? (DateTime?) null
+                                           : dateResult;
+                            }
 
-            // Welp, it's actually a date.
-            // Record the string anyway. Dis many importanto.
-            this._dicStringDate.TryAdd(suspect, date);
-            return date;
-        }
+                        // Otherwise, check if it's even a date.
+                        if (!DateTime.TryParse(suspect, out DateTime date))
+                            {
+                                // Looks like it isn't.
+                                // Return null, and also record string used.
+                                _dicStringDate.TryAdd(suspect, DateTime.MinValue);
+                                return null;
+                            }
+
+                        // Welp, it's actually a date.
+                        // Record the string anyway. Dis many importanto.
+                        _dicStringDate.TryAdd(suspect, date);
+                        return date;
+                    }
+            }
     }
-}

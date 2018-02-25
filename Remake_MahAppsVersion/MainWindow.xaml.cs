@@ -1,19 +1,19 @@
-﻿namespace Remake_MahAppsVersion
-{
-    #region
+﻿using MahApps.Metro.Controls;
 
-    using MahApps.Metro.Controls;
-
-    #endregion
-
-    /// <summary>
-    ///     Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : MetroWindow
+namespace Remake_MahAppsVersion
     {
-        public MainWindow()
-        {
-            this.InitializeComponent();
-        }
+        #region
+
+        #endregion
+
+        /// <summary>
+        ///     Interaction logic for MainWindow.xaml
+        /// </summary>
+        public partial class MainWindow : MetroWindow
+            {
+                public MainWindow()
+                    {
+                        InitializeComponent();
+                    }
+            }
     }
-}

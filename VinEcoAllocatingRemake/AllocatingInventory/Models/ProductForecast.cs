@@ -1,20 +1,20 @@
-﻿namespace VinEcoAllocatingRemake.AllocatingInventory.Models
-{
-    #region
+﻿using System;
+using System.Collections.Generic;
 
-    using System;
-    using System.Collections.Generic;
-
-    #endregion
-
-    public class ProductForecast
+namespace VinEcoAllocatingRemake.AllocatingInventory.Models
     {
-        public Guid _id { get; set; }
+        #region
 
-        public List<SupplierForecast> ListSupplierForecast { get; set; }
+        #endregion
 
-        public Guid ProductForecastId { get; set; }
+        public class ProductForecast
+            {
+                public Guid _id { get; set; }
 
-        public Guid ProductId { get; set; }
+                public List<SupplierForecast> ListSupplierForecast { get; set; }
+
+                public Guid ProductForecastId { get; set; }
+
+                public Guid ProductId { get; set; }
+            }
     }
-}

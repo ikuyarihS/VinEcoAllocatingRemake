@@ -1,25 +1,25 @@
-﻿namespace VinEcoAllocatingRemake.AllocatingInventory.Models
-{
-    #region
+﻿using System;
 
-    using System;
-
-    #endregion
-
-    public class ProductCrossRegion
+namespace VinEcoAllocatingRemake.AllocatingInventory.Models
     {
-        public ProductCrossRegion()
-        {
-            this.ToNorth = true;
-            this.ToSouth = true;
-        }
+        #region
 
-        public Guid _id { get; set; }
+        #endregion
 
-        public Guid ProductId { get; set; }
+        public class ProductCrossRegion
+            {
+                public ProductCrossRegion()
+                    {
+                        ToNorth = true;
+                        ToSouth = true;
+                    }
 
-        public bool ToNorth { get; set; }
+                public Guid _id { get; set; }
 
-        public bool ToSouth { get; set; }
+                public Guid ProductId { get; set; }
+
+                public bool ToNorth { get; set; }
+
+                public bool ToSouth { get; set; }
+            }
     }
-}

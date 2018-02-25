@@ -1,23 +1,23 @@
-﻿namespace VinEcoAllocatingRemake.AllocatingInventory.Models
-{
-    #region
+﻿using System;
 
-    using System;
-
-    #endregion
-
-    public class ProductUnitRegion
+namespace VinEcoAllocatingRemake.AllocatingInventory.Models
     {
-        public Guid _id { get; set; }
+        #region
 
-        public double OrderUnitPer { get; set; }
+        #endregion
 
-        public string OrderUnitType { get; set; }
+        public class ProductUnitRegion
+            {
+                public Guid _id { get; set; }
 
-        public string Region { get; set; }
+                public double OrderUnitPer { get; set; }
 
-        public double SaleUnitPer { get; set; }
+                public string OrderUnitType { get; set; }
 
-        public string SaleUnitType { get; set; }
+                public string Region { get; set; }
+
+                public double SaleUnitPer { get; set; }
+
+                public string SaleUnitType { get; set; }
+            }
     }
-}

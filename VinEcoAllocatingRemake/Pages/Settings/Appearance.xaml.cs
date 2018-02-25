@@ -1,22 +1,22 @@
-﻿namespace VinEcoAllocatingRemake.Pages.Settings
-{
-    #region
+﻿using System.Windows.Controls;
 
-    using System.Windows.Controls;
-
-    #endregion
-
-    /// <summary>
-    ///     Interaction logic for Appearance.xaml
-    /// </summary>
-    public partial class Appearance : UserControl
+namespace VinEcoAllocatingRemake.Pages.Settings
     {
-        public Appearance()
-        {
-            this.InitializeComponent();
+        #region
 
-            // create and assign the appearance view model
-            this.DataContext = new AppearanceViewModel();
-        }
+        #endregion
+
+        /// <summary>
+        ///     Interaction logic for Appearance.xaml
+        /// </summary>
+        public partial class Appearance : UserControl
+            {
+                public Appearance()
+                    {
+                        InitializeComponent();
+
+                        // create and assign the appearance view model
+                        DataContext = new AppearanceViewModel();
+                    }
+            }
     }
-}

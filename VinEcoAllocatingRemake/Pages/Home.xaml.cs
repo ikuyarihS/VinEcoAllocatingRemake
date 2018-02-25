@@ -1,19 +1,19 @@
-﻿namespace VinEcoAllocatingRemake.Pages
-{
-    #region
+﻿using System.Windows.Controls;
 
-    using System.Windows.Controls;
-
-    #endregion
-
-    /// <summary>
-    ///     Interaction logic for Home.xaml
-    /// </summary>
-    public partial class Home : UserControl
+namespace VinEcoAllocatingRemake.Pages
     {
-        public Home()
-        {
-            this.InitializeComponent();
-        }
+        #region
+
+        #endregion
+
+        /// <summary>
+        ///     Interaction logic for Home.xaml
+        /// </summary>
+        public partial class Home : UserControl
+            {
+                public Home()
+                    {
+                        InitializeComponent();
+                    }
+            }
     }
-}

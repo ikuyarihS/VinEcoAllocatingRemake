@@ -1,20 +1,20 @@
-﻿namespace VinEcoAllocatingRemake.AllocatingInventory.Models
-{
-    #region
+﻿using System;
+using System.Collections.Generic;
 
-    using System;
-    using System.Collections.Generic;
-
-    #endregion
-
-    public class CoordResultDate
+namespace VinEcoAllocatingRemake.AllocatingInventory.Models
     {
-        public Guid _id { get; set; }
+        #region
 
-        public Guid CoordResultDateId { get; set; }
+        #endregion
 
-        public List<CoordinateDate> ListCoordinateDate { get; set; }
+        public class CoordResultDate
+            {
+                public Guid _id { get; set; }
 
-        public Guid ProductId { get; set; }
+                public Guid CoordResultDateId { get; set; }
+
+                public List<CoordinateDate> ListCoordinateDate { get; set; }
+
+                public Guid ProductId { get; set; }
+            }
     }
-}

@@ -1,70 +1,72 @@
-﻿namespace VinEcoAllocatingRemake.AllocatingInventory.Models
-{
-    #region
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
-    using System;
-    using System.Collections.Generic;
-
-    #endregion
-
-    #region Declaring Model
-
-    public class CoordStructure : IDisposable
+namespace VinEcoAllocatingRemake.AllocatingInventory.Models
     {
-        // public Dictionary<DateTime, Dictionary<Product, Dictionary<CustomerOrder, Dictionary<SupplierForecast, DateTime>>>> dicCoord;
-        public Dictionary<(DateTime DatePo, Product Product, CustomerOrder Order), (DateTime DateFc, SupplierForecast Supply)> dicCoord;
+        #region
 
-        public Dictionary<Guid, Customer> dicCustomer;
+        #endregion
 
-        // public Dictionary<DateTime, Dictionary<Product, Dictionary<SupplierForecast, double>>> dicDeli;
-        public Dictionary<(DateTime DateFc, string ProductCode, SupplierForecast Supply), double> dicDeli;
+        #region Declaring Model
 
-        // public Dictionary<DateTime, Dictionary<Product, Dictionary<SupplierForecast, bool>>> dicFC;
-        public Dictionary<(DateTime DateFc, string ProductCode, string SupplierCode), (SupplierForecast Supply, bool)> dicFC;
+        [SuppressMessage("ReSharper", "ArrangeThisQualifier")]
+        public class CoordStructure : IDisposable
+            {
+                // public Dictionary<DateTime, Dictionary<Product, Dictionary<CustomerOrder, Dictionary<SupplierForecast, DateTime>>>> dicCoord;
+                public Dictionary<(DateTime DatePo, Product Product, CustomerOrder Order), (DateTime DateFc, SupplierForecast Supply)> dicCoord;
 
-        // public Dictionary<DateTime, Dictionary<Product, Dictionary<CustomerOrder, bool>>> dicPO;
-        public Dictionary<(DateTime DatePo, string ProductCode, string CustomerKeyCode), (CustomerOrder Order, bool)> dicPO;
+                public Dictionary<Guid, Customer> dicCustomer;
 
-        public Dictionary<Guid, Product> dicProduct;
+                // public Dictionary<DateTime, Dictionary<Product, Dictionary<SupplierForecast, double>>> dicDeli;
+                public Dictionary<(DateTime DateFc, string ProductCode, SupplierForecast Supply), double> dicDeli;
 
-        public Dictionary<Guid, ProductCrossRegion> dicProductCrossRegion;
+                // public Dictionary<DateTime, Dictionary<Product, Dictionary<SupplierForecast, bool>>> dicFC;
+                public Dictionary<(DateTime DateFc, string ProductCode, string SupplierCode), (SupplierForecast Supply, bool)> dicFC;
 
-        public Dictionary<string, ProductRate> dicProductRate;
+                // public Dictionary<DateTime, Dictionary<Product, Dictionary<CustomerOrder, bool>>> dicPO;
+                public Dictionary<(DateTime DatePo, string ProductCode, string CustomerKeyCode), (CustomerOrder Order, bool)> dicPO;
 
-        public Dictionary<Guid, Supplier> dicSupplier;
+                public Dictionary<Guid, Product> dicProduct;
 
-        public Dictionary<string, byte> dicTransferDays;
+                public Dictionary<Guid, ProductCrossRegion> dicProductCrossRegion;
 
-        public CoordStructure()
-        {
-            this.dicCoord =
-                new Dictionary<(DateTime DatePo, Product Product, CustomerOrder Order), (DateTime DateFc, SupplierForecast Supply)>();
-            this.dicCustomer = new Dictionary<Guid, Customer>();
-            this.dicDeli = new Dictionary<(DateTime DateFc, string ProductCode, SupplierForecast Supply), double>();
-            this.dicFC =
-                new Dictionary<(DateTime DateFc, string ProductCode, string SupplierCode), (SupplierForecast Supply, bool)>();
-            this.dicPO =
-                new Dictionary<(DateTime DatePo, string ProductCode, string CustomerKeyCode), (CustomerOrder Order, bool)>();
-            this.dicProduct = new Dictionary<Guid, Product>();
-            this.dicProductCrossRegion = new Dictionary<Guid, ProductCrossRegion>();
-            this.dicProductRate = new Dictionary<string, ProductRate>();
-            this.dicSupplier = new Dictionary<Guid, Supplier>();
-            this.dicTransferDays = new Dictionary<string, byte>();
-        }
+                public Dictionary<string, ProductRate> dicProductRate;
 
-        public void Dispose()
-        {
-            this.dicPO = null;
-            this.dicFC = null;
-            this.dicCoord = null;
-            this.dicSupplier = null;
-            this.dicCustomer = null;
-            this.dicProductCrossRegion = null;
-            this.dicProduct = null;
-            this.dicDeli = null;
-            this.dicTransferDays = null;
-        }
+                public Dictionary<Guid, Supplier> dicSupplier;
+
+                public Dictionary<string, byte> dicTransferDays;
+
+                public CoordStructure()
+                    {
+                        this.dicCoord =
+                            new Dictionary<(DateTime DatePo, Product Product, CustomerOrder Order), (DateTime DateFc, SupplierForecast Supply)>();
+                        this.dicCustomer = new Dictionary<Guid, Customer>();
+                        this.dicDeli     = new Dictionary<(DateTime DateFc, string ProductCode, SupplierForecast Supply), double>();
+                        this.dicFC       =
+                            new Dictionary<(DateTime DateFc, string ProductCode, string SupplierCode), (SupplierForecast Supply, bool)>();
+                        this.dicPO =
+                            new Dictionary<(DateTime DatePo, string ProductCode, string CustomerKeyCode), (CustomerOrder Order, bool)>();
+                        this.dicProduct            = new Dictionary<Guid, Product>();
+                        this.dicProductCrossRegion = new Dictionary<Guid, ProductCrossRegion>();
+                        this.dicProductRate        = new Dictionary<string, ProductRate>();
+                        this.dicSupplier           = new Dictionary<Guid, Supplier>();
+                        this.dicTransferDays       = new Dictionary<string, byte>();
+                    }
+
+                public void Dispose()
+                    {
+                        this.dicPO                 = null;
+                        this.dicFC                 = null;
+                        this.dicCoord              = null;
+                        this.dicSupplier           = null;
+                        this.dicCustomer           = null;
+                        this.dicProductCrossRegion = null;
+                        this.dicProduct            = null;
+                        this.dicDeli               = null;
+                        this.dicTransferDays       = null;
+                    }
+            }
+
+        #endregion
     }
-
-    #endregion
-}

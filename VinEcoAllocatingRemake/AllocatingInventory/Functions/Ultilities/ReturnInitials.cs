@@ -1,58 +1,64 @@
-﻿namespace VinEcoAllocatingRemake.AllocatingInventory
-{
-    #region
+﻿using System.Collections.Concurrent;
+using System.Text;
 
-    using System.Collections.Concurrent;
-    using System.Text;
-
-    #endregion
-
-    #region
-
-    #endregion
-
-    /// <summary>
-    ///     The utilities.
-    /// </summary>
-    public partial class Utilities
+namespace VinEcoAllocatingRemake.AllocatingInventory
     {
-        /// <summary>
-        ///     The dic string initials.
-        /// </summary>
-        private readonly ConcurrentDictionary<string, string> _dicStringInitials =
-            new ConcurrentDictionary<string, string>();
+        #region
+
+        #endregion
+
+        #region
+
+        #endregion
 
         /// <summary>
-        ///     The return initials.
+        ///     The utilities.
         /// </summary>
-        /// <param name="suspect">
-        ///     The suspect.
-        /// </param>
-        /// <returns>
-        ///     The <see cref="string" />.
-        /// </returns>
-        public string ReturnInitials(string suspect)
-        {
-            // Uhm, have we met before?
-            if (this._dicStringInitials.TryGetValue(suspect, out string result)) return result;
-
-            // Oh ok. Here's a punch.
-            var resultToBe = new StringBuilder();
-            var yesAppend = true;
-
-            foreach (char c in suspect)
+        public partial class Utilities
             {
-                if (yesAppend) resultToBe.Append(c);
+                /// <summary>
+                ///     The dic string initials.
+                /// </summary>
+                private readonly ConcurrentDictionary<string, string> _dicStringInitials =
+                    new ConcurrentDictionary<string, string>();
 
-                yesAppend = c == ' ';
+                /// <summary>
+                ///     The return initials.
+                /// </summary>
+                /// <param name="suspect">
+                ///     The suspect.
+                /// </param>
+                /// <returns>
+                ///     The <see cref="string" />.
+                /// </returns>
+                public string ReturnInitials(string suspect)
+                    {
+                        // Uhm, have we met before?
+                        if (_dicStringInitials.TryGetValue(suspect, out string result))
+                            {
+                                return result;
+                            }
+
+                        // Oh ok. Here's a punch.
+                        var resultToBe = new StringBuilder();
+                        var yesAppend  = true;
+
+                        foreach (char c in suspect)
+                            {
+                                if (yesAppend)
+                                    {
+                                        resultToBe.Append(c);
+                                    }
+
+                                yesAppend = c == ' ';
+                            }
+
+                        result = resultToBe.ToString();
+
+                        // result = string.Join(string.Empty, suspect.Split(' ').Select(x => x.First()));
+                        // It was super effective.
+                        _dicStringInitials.TryAdd(suspect, result);
+                        return result;
+                    }
             }
-
-            result = resultToBe.ToString();
-
-            // result = string.Join(string.Empty, suspect.Split(' ').Select(x => x.First()));
-            // It was super effective.
-            this._dicStringInitials.TryAdd(suspect, result);
-            return result;
-        }
     }
-}

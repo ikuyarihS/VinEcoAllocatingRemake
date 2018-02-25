@@ -1,21 +1,21 @@
-﻿namespace VinEcoAllocatingRemake.AllocatingInventory.Models
-{
-    #region
+﻿using System;
+using System.Collections.Generic;
 
-    using System;
-    using System.Collections.Generic;
-
-    #endregion
-
-    public class PurchaseOrderDate
+namespace VinEcoAllocatingRemake.AllocatingInventory.Models
     {
-        public Guid _id { get; set; }
+        #region
 
-        // [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
-        public DateTime DateOrder { get; set; }
+        #endregion
 
-        public List<ProductOrder> ListProductOrder { get; set; }
+        public class PurchaseOrderDate
+            {
+                public Guid _id { get; set; }
 
-        public Guid PurchaseOrderDateId { get; set; }
+                // [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+                public DateTime DateOrder { get; set; }
+
+                public List<ProductOrder> ListProductOrder { get; set; }
+
+                public Guid PurchaseOrderDateId { get; set; }
+            }
     }
-}

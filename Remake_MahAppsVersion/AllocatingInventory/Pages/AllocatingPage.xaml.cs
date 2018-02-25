@@ -1,19 +1,19 @@
-﻿namespace Remake_MahAppsVersion.AllocatingInventory.Pages
-{
-    #region
+﻿using MahApps.Metro.Controls;
 
-    using MahApps.Metro.Controls;
-
-    #endregion
-
-    /// <summary>
-    ///     Interaction logic for AllocatingPage.xaml
-    /// </summary>
-    public partial class AllocatingPage : MetroTabItem
+namespace Remake_MahAppsVersion.AllocatingInventory.Pages
     {
-        public AllocatingPage()
-        {
-            this.InitializeComponent();
-        }
+        #region
+
+        #endregion
+
+        /// <summary>
+        ///     Interaction logic for AllocatingPage.xaml
+        /// </summary>
+        public partial class AllocatingPage : MetroTabItem
+            {
+                public AllocatingPage()
+                    {
+                        InitializeComponent();
+                    }
+            }
     }
-}

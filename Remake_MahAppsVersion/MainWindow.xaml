@@ -14,25 +14,18 @@
                       Width="800"
                       ResizeMode="CanResizeWithGrip">
     <i:Interaction.Behaviors>
-        <behaviours:BorderlessWindowBehavior/>
+        <behaviours:BorderlessWindowBehavior />
     </i:Interaction.Behaviors>
 
     <ScrollViewer IsDeferredScrollingEnabled="True">
         <TabControl Style="{StaticResource {x:Type TabControl}}">
             <TabItem Header="Home">
-                <Label Content="Where our heart belongs."/>
+                <Label Content="Where our heart belongs." />
             </TabItem>
-            
+
             <TabItem Header="Allocation">
                 <Label Content="Test" />
             </TabItem>
         </TabControl>
     </ScrollViewer>
 </controls:MetroWindow>
-
-
-
-
-
-
-

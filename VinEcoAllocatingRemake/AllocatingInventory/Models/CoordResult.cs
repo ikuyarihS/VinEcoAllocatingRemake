@@ -1,21 +1,21 @@
-﻿namespace VinEcoAllocatingRemake.AllocatingInventory.Models
-{
-    #region
+﻿using System;
+using System.Collections.Generic;
 
-    using System;
-    using System.Collections.Generic;
-
-    #endregion
-
-    public class CoordResult
+namespace VinEcoAllocatingRemake.AllocatingInventory.Models
     {
-        public Guid _id { get; set; }
+        #region
 
-        public Guid CoordResultId { get; set; }
+        #endregion
 
-        ////[BsonDateTimeOptions(Kind = DateTimeKind.Local)]
-        public DateTime DateOrder { get; set; }
+        public class CoordResult
+            {
+                public Guid _id { get; set; }
 
-        public List<CoordResultDate> ListCoordResultDate { get; set; }
+                public Guid CoordResultId { get; set; }
+
+                ////[BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+                public DateTime DateOrder { get; set; }
+
+                public List<CoordResultDate> ListCoordResultDate { get; set; }
+            }
     }
-}

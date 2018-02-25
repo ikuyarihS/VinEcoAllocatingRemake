@@ -1,38 +1,37 @@
-﻿namespace VinEcoAllocatingRemake
-{
-    #region
+﻿using System.ComponentModel;
+using System.Windows.Shell;
+using VinEcoAllocatingRemake.Properties;
 
-    using System.ComponentModel;
-    using System.Windows.Shell;
-
-    using VinEcoAllocatingRemake.Properties;
-
-    #endregion
-
-    /// <summary>
-    ///     Interaction logic for MainWindow.xaml
-    /// </summary>
-    // ReSharper disable once InheritdocConsiderUsage
-    public partial class MainWindow
+namespace VinEcoAllocatingRemake
     {
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="MainWindow" /> class.
-        /// </summary>
-        public MainWindow()
-        {
-            this.InitializeComponent();
+        #region
 
-            this.MyTaskBarInfo.ProgressState = TaskbarItemProgressState.Normal;
-        }
+        #endregion
 
         /// <summary>
-        ///     The on closing.
+        ///     Interaction logic for MainWindow.xaml
         /// </summary>
-        /// <param name="e"> The e. </param>
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            Settings.Default.Save();
-            base.OnClosing(e);
-        }
+        // ReSharper disable once InheritdocConsiderUsage
+        public partial class MainWindow
+            {
+                /// <summary>
+                ///     Initializes a new instance of the <see cref="MainWindow" /> class.
+                /// </summary>
+                public MainWindow()
+                    {
+                        InitializeComponent();
+
+                        MyTaskBarInfo.ProgressState = TaskbarItemProgressState.Normal;
+                    }
+
+                /// <summary>
+                ///     The on closing.
+                /// </summary>
+                /// <param name="e"> The e. </param>
+                protected override void OnClosing(CancelEventArgs e)
+                    {
+                        Settings.Default.Save();
+                        base.OnClosing(e);
+                    }
+            }
     }
-}

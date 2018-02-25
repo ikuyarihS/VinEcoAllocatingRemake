@@ -7,103 +7,102 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+using Microsoft.Office.Interop.Excel;
+
 namespace VinEcoAllocatingRemake.AllocatingInventory
-{
-    #region
-
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Runtime.InteropServices;
-
-    using Microsoft.Office.Interop.Excel;
-
-    #endregion
-
-    /// <summary>
-    ///     The delete evaluation sheet interop.
-    /// </summary>
-    // ReSharper disable once StyleCop.SA1404
-    [SuppressMessage("ReSharper", "ArrangeThisQualifier")]
-    public partial class Utilities
     {
+        #region
+
+        #endregion
+
         /// <summary>
-        ///     A special function to deal with Evaluation Sheet created by Aspose.Cells.
-        ///     Pirate life ftw.
+        ///     The delete evaluation sheet interop.
         /// </summary>
-        /// <param name="filePath"> Path of file saved and closed by Aspose.Cells. </param>
-        public void DeleteEvaluationSheetInterop(string filePath)
-        {
-            try
+        // ReSharper disable once StyleCop.SA1404
+        [SuppressMessage("ReSharper", "ArrangeThisQualifier")]
+        public partial class Utilities
             {
-                // Initialize new instance of Interop Excel.Application.
-                var excelApp = new Application
-                                   {
-                                       ScreenUpdating = false,
-                                       EnableEvents = false,
-                                       DisplayAlerts = false,
-                                       DisplayStatusBar = false,
-                                       AskToUpdateLinks = false,
-                                       Visible = false
-                                   };
-
-                Workbooks workbooks = excelApp.Workbooks;
-
-                Workbook workbook = workbooks.Open(
-                    Filename: filePath,
-                    UpdateLinks: false,
-                    ReadOnly: false,
-                    IgnoreReadOnlyRecommended: true,
-                    Origin: XlPlatform.xlWindows,
-                    Notify: false,
-                    Converter: 0);
-
-                excelApp.Calculation = XlCalculation.xlCalculationManual;
-
-                Sheets worksheets = workbook.Worksheets;
-
-                // foreach (ExcelInterop.Worksheet worksheet in xlWb.Worksheets)
-                for (var sheetIndex = 1; sheetIndex <= worksheets.Count; sheetIndex++)
-                {
-                    Worksheet worksheet = worksheets[sheetIndex];
-
-                    if (worksheet.Name == "Config")
+                /// <summary>
+                ///     A special function to deal with Evaluation Sheet created by Aspose.Cells.
+                ///     Pirate life ftw.
+                /// </summary>
+                /// <param name="filePath"> Path of file saved and closed by Aspose.Cells. </param>
+                public void DeleteEvaluationSheetInterop(string filePath)
                     {
-                        worksheet.Cells[1, 1].Value2 = true;
+                        try
+                            {
+                                // Initialize new instance of Interop Excel.Application.
+                                var excelApp = new Application
+                                                   {
+                                                       ScreenUpdating   = false,
+                                                       EnableEvents     = false,
+                                                       DisplayAlerts    = false,
+                                                       DisplayStatusBar = false,
+                                                       AskToUpdateLinks = false,
+                                                       Visible          = false
+                                                   };
+
+                                Workbooks workbooks = excelApp.Workbooks;
+
+                                Workbook workbook = workbooks.Open(
+                                    filePath,
+                                    false,
+                                    false,
+                                    IgnoreReadOnlyRecommended: true,
+                                    Origin: XlPlatform.xlWindows,
+                                    Notify: false,
+                                    Converter: 0);
+
+                                excelApp.Calculation = XlCalculation.xlCalculationManual;
+
+                                Sheets worksheets = workbook.Worksheets;
+
+                                // foreach (ExcelInterop.Worksheet worksheet in xlWb.Worksheets)
+                                for (var sheetIndex = 1; sheetIndex <= worksheets.Count; sheetIndex++)
+                                    {
+                                        Worksheet worksheet = worksheets[sheetIndex];
+
+                                        if (worksheet.Name == "Config")
+                                            {
+                                                worksheet.Cells[1, 1].Value2 = true;
+                                            }
+
+                                        if (worksheet.Name.IndexOf("Evaluation Warning", StringComparison.OrdinalIgnoreCase) >= 0)
+                                            {
+                                                worksheet.Delete();
+                                            }
+
+                                        Release(worksheet);
+                                    }
+
+                                worksheets[1].Activate();
+
+                                void Release(object suspect)
+                                    {
+                                        Marshal.ReleaseComObject(suspect);
+                                        suspect = null;
+                                    }
+
+                                Release(worksheets);
+
+                                workbook.Save();
+                                workbook.Close();
+                                Release(workbook);
+
+                                Release(workbooks);
+
+                                excelApp.Quit();
+                                Release(excelApp);
+                            }
+                        catch (Exception ex)
+                            {
+                                Debug.WriteLine(ex.Message);
+                                throw;
+                            }
                     }
-
-                    if (worksheet.Name.IndexOf("Evaluation Warning", StringComparison.OrdinalIgnoreCase) >= 0)
-                    {
-                        worksheet.Delete();
-                    }
-
-                    Release(worksheet);
-                }
-
-                worksheets[1].Activate();
-
-                void Release(object suspect)
-                {
-                    Marshal.ReleaseComObject(suspect);
-                    suspect = null;
-                }
-
-                Release(worksheets);
-               
-                workbook.Save();
-                workbook.Close();
-                Release(workbook);
-                
-                Release(workbooks);
-                
-                excelApp.Quit();
-                Release(excelApp);
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-                throw;
-            }
-        }
     }
-}
