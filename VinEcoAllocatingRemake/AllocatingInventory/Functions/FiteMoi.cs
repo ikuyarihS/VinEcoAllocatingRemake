@@ -7,8 +7,6 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-using DocumentFormat.OpenXml.Wordprocessing;
-
 namespace VinEcoAllocatingRemake.AllocatingInventory
 {
     #region
@@ -27,7 +25,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
     using Aspose.Cells;
 
-    using VinEcoAllocatingRemake.AllocatingInventory.Models;
+    using Models;
 
     #endregion
 
@@ -569,9 +567,14 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                 {
                                     try
                                     {
+                                        // To figure out what I need from Mid, calculate the amount of missing from
+                                        // North and South Order vs their native supplies.
                                         double northMissing = sumPoNorth - sumFcNorth;
                                         double southMissing = sumPoSouth - sumFcSouth;
-
+                                        
+                                        // ... and then figure out the actual rate of supply vs order for North and
+                                        // South. Yes, the actual actual rate, not an assumptions.
+                                        // Todo - Manipulate Rate basing on Customers' Types.
                                         double rateNorth = (sumFcNorth + (sumFcMid * (northMissing / (northMissing + southMissing)))) / sumPoNorth;
                                         double rateSouth = (sumFcSouth + (sumFcMid * (southMissing / (northMissing + southMissing)))) / sumPoSouth;
 
@@ -582,6 +585,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         LetsDoThis(orderNorth, forecastNorth, sumFcNorth, rateNorth, "MB");
                                         LetsDoThis(orderSouth, forecastSouth, sumFcSouth, rateSouth, "MN");
 
+                                        // To avoid repeating myself.
+                                        // Dealing with each region.
                                         void LetsDoThis(
                                             Dictionary<CustomerOrder, bool> orders,
                                             Dictionary<SupplierForecast, bool> supplies,
@@ -589,20 +594,29 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                             double rate,
                                             string region)
                                         {
+                                            // Just in case. To avoid unnecessary Exception.
+                                            // And to also avoid having to use try-catch block.
                                             if (orders == null || !(sumSupplies + sumFcMid >= 0))
                                             {
+                                                // Kthxbye.
                                                 return;
                                             }
 
+                                            // Here we go. Let's go from Top-down, big ordering guys first.
                                             foreach (CustomerOrder customerOrder in orders.Keys.OrderByDescending(po => po.QuantityOrder).ToList())
                                             {
-                                                if (forecastNorth != null)
+                                                // Again, just in case.
+                                                if (supplies != null)
                                                 {
                                                     PairSupplyOrder(customerOrder, ref orders, ref supplies, rate, region, region);
 
+                                                    // Well, since we found a supplier, and since we have the policy of
+                                                    // one supplier per customer, welp, might as well just skip.
+                                                    // Todo - Change this when accepting multiple Suppliers.
                                                     continue;
                                                 }
 
+                                                // Just in case agaiiiiinnnnnnn.
                                                 if (forecastMid != null)
                                                 {
                                                     PairSupplyOrder(customerOrder, ref orders, ref forecastMid, rate, region, "LD");
@@ -610,6 +624,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                             }
                                         }
 
+                                        // The protagonist.
+                                        // Coz I hate repeating myself. I reallt do.
                                         void PairSupplyOrder(
                                             CustomerOrder customerOrder,
                                             ref Dictionary<CustomerOrder, bool> orders,
@@ -629,21 +645,29 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                             try
                                             {
                                                 // Warning: Black magic is happening here.
-                                                // Proceed with cautions.
-                                                // You have been warned.
+                                                // Proceed with cautions. // You have been warned.
                                                 forecasts = forecasts.OrderByDescending(s => s.Key.QuantityForecast)
                                                     .ToDictionary(x => x.Key, x => x.Value);
 
+                                                // Grab the first available supply, after sorting and whatsnot.
                                                 SupplierForecast supply = forecasts.First().Key;
+                                                
+                                                // Procedures to deal with struct.
+                                                // The price of aiming for performance.
                                                 SupplierForecast supplyGiven = supply;
                                                 forecasts.Remove(supply);
 
+                                                // Soooo, how much you gonna get?
+                                                // Todo - Implement MOQ rounding.
                                                 double deliQuantity = Math.Min(
                                                     customerOrder.QuantityOrder * rate,
                                                     supply.QuantityForecast);
 
-                                                supply.QuantityForecast -= deliQuantity;
+                                                // This is what you gonna get.
                                                 supplyGiven.QuantityForecast = deliQuantity;
+                                                
+                                                // ... and this is the leftover.
+                                                supply.QuantityForecast -= deliQuantity;
 
                                                 // ReSharper disable once SuggestVarOrType_Elsewhere
                                                 if (!coordResult.TryGetValue(productCode, out var dicCoord))
@@ -653,18 +677,21 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                 }
 
                                                 // Key - Date Ordered & Customer Order.
-                                                // Value - Date Processed ( substracting from the already mapped
+                                                // Value - Date Processed ( substracting from the already mapped 
                                                 // difference in days between Supplier's Region and Customer's &
                                                 // the amount of supply given to fulfill the order.
                                                 dicCoord.Add(
                                                     (datePo, customerOrder, Guid.NewGuid()),
                                                     (datePo.AddDays(distance[(supRegion, cusRegion)]), supplyGiven));
 
+                                                // If the supply still has more to give.
                                                 if (supply.QuantityForecast > 0)
                                                 {
                                                     forecasts.Add(supply, false);
                                                 }
 
+                                                // Goodbye, you've been good.
+                                                // Todo - Change this when accepting multiple Supplies.
                                                 orders.Remove(customerOrder);
                                             }
                                             catch (Exception ex)
@@ -673,42 +700,6 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                 throw;
                                             }
                                         }
-
-                                        ////if (orderNorth != null && sumFcNorth + sumFcMid >= 0)
-                                        ////{
-                                        ////    foreach (CustomerOrder customerOrder in orderNorth.Keys.OrderByDescending(po => po.QuantityOrder).ToList())
-                                        ////    {
-                                        ////        if (forecastNorth != null)
-                                        ////        {
-                                        ////            PairSupplyOrder(customerOrder, orderNorth, forecastNorth, rateNorth);
-
-                                        ////            continue;
-                                        ////        }
-
-                                        ////        if (forecastMid != null)
-                                        ////        {
-                                        ////            PairSupplyOrder(customerOrder, orderNorth, forecastMid, rateNorth);
-                                        ////        }
-                                        ////    }
-                                        ////}
-
-                                        ////if (orderSouth != null && sumFcSouth + sumFcMid >= 0)
-                                        ////{
-                                        ////    foreach (CustomerOrder customerOrder in orderSouth.Keys.OrderByDescending(po => po.QuantityOrder).ToList())
-                                        ////    {
-                                        ////        if (forecastSouth != null)
-                                        ////        {
-                                        ////            PairSupplyOrder(customerOrder, orderSouth, forecastSouth, rateSouth);
-
-                                        ////            continue;
-                                        ////        }
-
-                                        ////        if (forecastMid != null)
-                                        ////        {
-                                        ////            PairSupplyOrder(customerOrder, orderSouth, forecastMid, rateSouth);
-                                        ////        }
-                                        ////    }
-                                        ////}
                                     }
                                     catch (Exception ex)
                                     {
@@ -716,8 +707,6 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         throw;
                                     }
                                 }
-
-                                // Todo - Select Supplier for each Order.
                             }
                         }
 
@@ -754,6 +743,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                 DataTable tableMastahCompact = this.ToDataTableMastahCompact(coordResult, products, customers, suppliers);
 
+                // Example: "Mastah Compact 100% 01.01 - 30.01 (20180101 13h37)"
                 string fileName =
                     $"Mastah Compact 100% {this.ulti.DateToString(dateFrom, "dd.MM")} - {this.ulti.DateToString(dateTo, "dd.MM")} ({this.ulti.DateToString(DateTime.Now, "yyyyMMdd HH\\hmm")}).xlsb";
                 string exportPath = $@"{this.applicationPath}\Output\{fileName}";
@@ -771,6 +761,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     workbook.Save(exportPath, SaveFormat.Xlsb);
                 }
 
+                // To cover our track. Pirate life ftw.
                 this.ulti.DeleteEvaluationSheetInterop(exportPath);
 
                 // The final flag.
@@ -941,10 +932,6 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             {
                 this.WriteToRichTextBoxOutput(ex.Message);
                 throw;
-            }
-            finally
-            {
-                this.TryClear();
             }
         }
     }

@@ -27,10 +27,6 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
     #endregion
 
-    #region
-
-    #endregion
-
     /// <summary>
     ///     The allocating inventory.
     /// </summary>
