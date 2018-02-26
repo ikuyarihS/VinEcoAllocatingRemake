@@ -2,20 +2,20 @@
 using System.Collections.Generic;
 
 namespace VinEcoAllocatingRemake.AllocatingInventory.Models
+{
+    #region
+
+    #endregion
+
+    public class CoordResult
     {
-        #region
+        public Guid _id { get; set; }
 
-        #endregion
+        public Guid CoordResultId { get; set; }
 
-        public class CoordResult
-            {
-                public Guid _id { get; set; }
+        ////[BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        public DateTime DateOrder { get; set; }
 
-                public Guid CoordResultId { get; set; }
-
-                ////[BsonDateTimeOptions(Kind = DateTimeKind.Local)]
-                public DateTime DateOrder { get; set; }
-
-                public List<CoordResultDate> ListCoordResultDate { get; set; }
-            }
+        public List<CoordResultDate> ListCoordResultDate { get; set; }
     }
+}

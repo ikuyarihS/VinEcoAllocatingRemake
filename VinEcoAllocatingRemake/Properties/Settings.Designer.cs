@@ -106,5 +106,29 @@ namespace VinEcoAllocatingRemake.Properties {
                 this["Mid_South"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3")]
+        public int North_South {
+            get {
+                return ((int)(this["North_South"]));
+            }
+            set {
+                this["North_South"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2")]
+        public int South_North {
+            get {
+                return ((int)(this["South_North"]));
+            }
+            set {
+                this["South_North"] = value;
+            }
+        }
     }
 }

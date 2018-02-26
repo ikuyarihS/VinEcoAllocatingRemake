@@ -17,130 +17,130 @@ using Microsoft.Office.Interop.Excel;
 using Workbook = Aspose.Cells.Workbook;
 
 namespace VinEcoAllocatingRemake.AllocatingInventory
-    {
-        #region
+{
+    #region
 
-        #endregion
+    #endregion
+
+    /// <summary>
+    ///     The utilities.
+    /// </summary>
+    public partial class Utilities
+    {
+        /// <summary>
+        ///     The convert excel type aspose.
+        /// </summary>
+        /// <param name="filePath"> The file path. </param>
+        /// <param name="afterwardExtension"> The afterward extension. </param>
+        /// <param name="yesDeleteFile"> The yes delete file. </param>
+        public void ConvertExcelTypeAspose(
+            string filePath,
+            string afterwardExtension,
+            bool   yesDeleteFile = true)
+        {
+            try
+            {
+                // Initialize new instance of Aspose.Cells Workbook
+                using (var workbook = new Workbook(filePath, new LoadOptions { MemorySetting = MemorySetting.MemoryPreference }))
+                {
+                    var dicExtension = new Dictionary<string, SaveFormat>
+                                           {
+                                               { "xlsx", SaveFormat.Xlsx },
+                                               { "xlsb", SaveFormat.Xlsb },
+                                               { "xlsm", SaveFormat.Xlsm },
+                                               { "pdf", SaveFormat.Pdf }
+                                           };
+
+                    // Expecting a miracle.
+                    // workbook.Save(filePath, SaveFormat.Xlsx);
+                    workbook.Save(filePath.Replace("xlsx", afterwardExtension), dicExtension[afterwardExtension]);
+                }
+
+                if (yesDeleteFile)
+                {
+                    File.Delete(filePath);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                throw;
+            }
+        }
 
         /// <summary>
-        ///     The utilities.
+        ///     Convert from one file format to another, using Interop.
+        ///     Because apparently OpenXML doesn't deal with .xls type ( Including, but not exclusive to .xlsb )
         /// </summary>
-        public partial class Utilities
+        /// <param name="filePath"> The file Path. </param>
+        /// <param name="previousExtension"> The previous Extension. </param>
+        /// <param name="afterwardExtension"> The afterward Extension. </param>
+        /// <param name="yesDeleteFile"> The yes Delete File. </param>
+        public void ConvertExcelTypeInterop(
+            string filePath,
+            string previousExtension  = "",
+            string afterwardExtension = "",
+            bool   yesDeleteFile      = true)
+        {
+            try
             {
-                /// <summary>
-                ///     The convert excel type aspose.
-                /// </summary>
-                /// <param name="filePath"> The file path. </param>
-                /// <param name="afterwardExtension"> The afterward extension. </param>
-                /// <param name="yesDeleteFile"> The yes delete file. </param>
-                public void ConvertExcelTypeAspose(
-                    string filePath,
-                    string afterwardExtension,
-                    bool   yesDeleteFile = true)
-                    {
-                        try
-                            {
-                                // Initialize new instance of Aspose.Cells Workbook
-                                using (var workbook = new Workbook(filePath, new LoadOptions { MemorySetting = MemorySetting.MemoryPreference }))
-                                    {
-                                        var dicExtension = new Dictionary<string, SaveFormat>
-                                                               {
-                                                                   { "xlsx", SaveFormat.Xlsx },
-                                                                   { "xlsb", SaveFormat.Xlsb },
-                                                                   { "xlsm", SaveFormat.Xlsm },
-                                                                   { "pdf", SaveFormat.Pdf }
-                                                               };
+                // Initialize new instance of Interop Excel.Application.
+                var excelApp = new Application
+                                   {
+                                       ScreenUpdating   = false,
+                                       EnableEvents     = false,
+                                       DisplayAlerts    = false,
+                                       DisplayStatusBar = false,
+                                       AskToUpdateLinks = false
+                                   };
 
-                                        // Expecting a miracle.
-                                        // workbook.Save(filePath, SaveFormat.Xlsx);
-                                        workbook.Save(filePath.Replace("xlsx", afterwardExtension), dicExtension[afterwardExtension]);
-                                    }
+                Workbooks                               workbooks = excelApp.Workbooks;
+                Microsoft.Office.Interop.Excel.Workbook workbook  = workbooks.Open(filePath);
 
-                                if (yesDeleteFile)
-                                    {
-                                        File.Delete(filePath);
-                                    }
-                            }
-                        catch (Exception ex)
-                            {
-                                Debug.WriteLine(ex.Message);
-                                throw;
-                            }
-                    }
+                object missing = Type.Missing;
 
-                /// <summary>
-                ///     Convert from one file format to another, using Interop.
-                ///     Because apparently OpenXML doesn't deal with .xls type ( Including, but not exclusive to .xlsb )
-                /// </summary>
-                /// <param name="filePath"> The file Path. </param>
-                /// <param name="previousExtension"> The previous Extension. </param>
-                /// <param name="afterwardExtension"> The afterward Extension. </param>
-                /// <param name="yesDeleteFile"> The yes Delete File. </param>
-                public void ConvertExcelTypeInterop(
-                    string filePath,
-                    string previousExtension  = "",
-                    string afterwardExtension = "",
-                    bool   yesDeleteFile      = true)
-                    {
-                        try
-                            {
-                                // Initialize new instance of Interop Excel.Application.
-                                var excelApp = new Application
-                                                   {
-                                                       ScreenUpdating   = false,
-                                                       EnableEvents     = false,
-                                                       DisplayAlerts    = false,
-                                                       DisplayStatusBar = false,
-                                                       AskToUpdateLinks = false
-                                                   };
+                // This is hilarious.
+                string falseStr = false.ToString();
 
-                                Workbooks                               workbooks = excelApp.Workbooks;
-                                Microsoft.Office.Interop.Excel.Workbook workbook  = workbooks.Open(filePath);
+                workbook.SaveAs(
+                    filePath.Replace(previousExtension, afterwardExtension),
+                    XlFileFormat.xlExcel12,
+                    missing,
+                    missing,
+                    falseStr,
+                    falseStr,
+                    XlSaveAsAccessMode.xlExclusive,
+                    missing,
+                    missing,
+                    missing);
 
-                                object missing = Type.Missing;
+                workbook.Close(falseStr);
+                Release(workbook);
 
-                                // This is hilarious.
-                                string falseStr = false.ToString();
+                workbooks.Close();
+                Release(workbooks);
 
-                                workbook.SaveAs(
-                                    filePath.Replace(previousExtension, afterwardExtension),
-                                    XlFileFormat.xlExcel12,
-                                    missing,
-                                    missing,
-                                    falseStr,
-                                    falseStr,
-                                    XlSaveAsAccessMode.xlExclusive,
-                                    missing,
-                                    missing,
-                                    missing);
+                excelApp.Quit();
+                Release(excelApp);
 
-                                workbook.Close(falseStr);
-                                Release(workbook);
+                void Release(object suspect)
+                {
+                    Marshal.ReleaseComObject(suspect);
 
-                                workbooks.Close();
-                                Release(workbooks);
+                    // ReSharper disable once RedundantAssignment
+                    suspect = null;
+                }
 
-                                excelApp.Quit();
-                                Release(excelApp);
-
-                                void Release(object suspect)
-                                    {
-                                        Marshal.ReleaseComObject(suspect);
-
-                                        // ReSharper disable once RedundantAssignment
-                                        suspect = null;
-                                    }
-
-                                if (yesDeleteFile)
-                                    {
-                                        File.Delete(filePath);
-                                    }
-                            }
-                        catch (Exception ex)
-                            {
-                                Debug.WriteLine(ex.Message);
-                                throw;
-                            }
-                    }
+                if (yesDeleteFile)
+                {
+                    File.Delete(filePath);
+                }
             }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                throw;
+            }
+        }
     }
+}
