@@ -1,6 +1,4 @@
-﻿using MahApps.Metro.Controls;
-
-namespace Remake_MahAppsVersion
+﻿namespace Remake_MahAppsVersion
 {
     #region
 
@@ -9,7 +7,7 @@ namespace Remake_MahAppsVersion
     /// <summary>
     ///     Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : MetroWindow
+    public partial class MainWindow
     {
         public MainWindow()
         {

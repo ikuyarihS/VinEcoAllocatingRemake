@@ -32,6 +32,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
     /// </summary>
     // ReSharper disable once StyleCop.SA1404
     [SuppressMessage("ReSharper", "ArrangeThisQualifier")]
+    [SuppressMessage("ReSharper", "ArgumentsStyleLiteral")]
+    [SuppressMessage("ReSharper", "ArgumentsStyleOther")]
+    [SuppressMessage("ReSharper", "ArgumentsStyleNamedExpression")]
     public partial class AllocatingInventory
     {
         /// <summary>
@@ -73,11 +76,11 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                 {
                                                     Worksheet worksheet = workbook.Worksheets[0];
                                                     using (DataTable table = worksheet.Cells.ExportDataTable(
-                                                        0,
-                                                        0,
-                                                        worksheet.Cells.MaxDataRow    + 1,
-                                                        worksheet.Cells.MaxDataColumn + 1,
-                                                        this.globalExportTableOptionsOpts))
+                                                        firstRow: 0,
+                                                        firstColumn: 0,
+                                                        totalRows: worksheet.Cells.MaxDataRow       + 1,
+                                                        totalColumns: worksheet.Cells.MaxDataColumn + 1,
+                                                        options: this.globalExportTableOptionsOpts))
                                                     {
                                                         foreach (DataRow row in table.Select())
                                                         {
@@ -104,19 +107,15 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                                                 using (var workbook = new Workbook(
                                                     $@"{this.applicationPath}\Database\Suppliers.xlsb",
-                                                    new LoadOptions
-                                                        {
-                                                            MemorySetting =
-                                                                MemorySetting.MemoryPreference
-                                                        }))
+                                                    new LoadOptions { MemorySetting = MemorySetting.MemoryPreference }))
                                                 {
                                                     Worksheet worksheet = workbook.Worksheets[0];
                                                     using (DataTable table = worksheet.Cells.ExportDataTable(
-                                                        0,
-                                                        0,
-                                                        worksheet.Cells.MaxDataRow    + 1,
-                                                        worksheet.Cells.MaxDataColumn + 1,
-                                                        this.globalExportTableOptionsOpts))
+                                                        firstRow: 0,
+                                                        firstColumn: 0,
+                                                        totalRows: worksheet.Cells.MaxDataRow       + 1,
+                                                        totalColumns: worksheet.Cells.MaxDataColumn + 1,
+                                                        options: this.globalExportTableOptionsOpts))
                                                     {
                                                         foreach (DataRow row in table.Select())
                                                         {
@@ -145,11 +144,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                                                 using (var workbook = new Workbook(
                                                     $@"{this.applicationPath}\Database\Forecasts.xlsb",
-                                                    new LoadOptions
-                                                        {
-                                                            MemorySetting =
-                                                                MemorySetting.MemoryPreference
-                                                        }))
+                                                    new LoadOptions { MemorySetting = MemorySetting.MemoryPreference }))
                                                 {
                                                     Worksheet worksheet = workbook.Worksheets[0];
                                                     using (DataTable table = worksheet.Cells.ExportDataTable(
@@ -187,7 +182,16 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                                                                     dicOldFc.Add(
                                                                         ((DateTime) dateFc, productCode, supplierCode),
-                                                                        (new SupplierForecast { QualityControlPass = true, SupplierCode = supplierCode, FullOrder = this.ulti.ObjectToInt(row["FullOrder"]) == 1, CrossRegion = this.ulti.ObjectToInt(row["CrossRegion"]) == 1, LabelVinEco = this.ulti.ObjectToInt(row["Label"]) == 1, Level = (byte) this.ulti.ObjectToInt(row["Level"]) }, false));
+                                                                        (new SupplierForecast
+                                                                             {
+                                                                                 QualityControlPass = this.ulti.ObjectToInt(row["QC"]) == 1,
+
+                                                                                 SupplierCode = supplierCode,
+                                                                                 FullOrder    = this.ulti.ObjectToInt(row["FullOrder"])   == 1,
+                                                                                 CrossRegion  = this.ulti.ObjectToInt(row["CrossRegion"]) == 1,
+                                                                                 LabelVinEco  = this.ulti.ObjectToInt(row["Label"])       == 1,
+                                                                                 Level        = (byte) this.ulti.ObjectToInt(row["Level"])
+                                                                             }, false));
                                                                 }
                                                             }
                                                         }
@@ -202,15 +206,13 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
                     task => { task.Start(); });
 
-                await Task.WhenAll(readTasks).ConfigureAwait(true);
+                await Task.WhenAll(readTasks).ConfigureAwait(false);
 
                 // ReSharper restore HeapView.DelegateAllocation
                 // ReSharper restore ImplicitlyCapturedClosure
                 var listDt = new List<DataTable>();
 
-                this.WriteToRichTextBoxOutput(
-                    "Bắt đầu đọc DBSL mới.",
-                    1);
+                this.WriteToRichTextBoxOutput("Bắt đầu đọc DBSL mới.", 1);
 
                 IOrderedEnumerable<FileInfo> files =
                     from file in new DirectoryInfo($@"{this.applicationPath}\Data\Forecast").GetFiles()
@@ -277,21 +279,20 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                                 // To deal with the uhm, Templates having different Headers.
                                 // Please shoot me.
-                                // ReSharper disable once SuggestVarOrType_SimpleTypes
-                                foreach (var key in new (string oldName, string newName)[]
-                                                        {
-                                                            ("Vùng", "Region"),
-                                                            ("Mã Farm", "SCODE"),
-                                                            ("Tên Farm", "SNAME"),
-                                                            ("Nhóm", "PCLASS"),
-                                                            ("Mã VECrops", "VECrops Code"),
-                                                            ("Mã VinEco", "PCODE"),
-                                                            ("Tên VinEco", "PNAME")
-                                                        })
+                                foreach ((string oldName, string newName) in new (string oldName, string newName)[]
+                                                                                 {
+                                                                                     ("Vùng", "Region"),
+                                                                                     ("Mã Farm", "SCODE"),
+                                                                                     ("Tên Farm", "SNAME"),
+                                                                                     ("Nhóm", "PCLASS"),
+                                                                                     ("Mã VECrops", "VECrops Code"),
+                                                                                     ("Mã VinEco", "PCODE"),
+                                                                                     ("Tên VinEco", "PNAME")
+                                                                                 })
                                 {
-                                    if (table.Columns.Contains(key.oldName))
+                                    if (table.Columns.Contains(oldName))
                                     {
-                                        table.Columns[key.oldName].ColumnName = key.newName;
+                                        table.Columns[oldName].ColumnName = newName;
                                     }
                                 }
 
@@ -391,20 +392,22 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                     region = this.ulti.ConvertToUnsigned(this.ulti.ReturnInitials(region));
                                 }
 
+                                var supplier = new Supplier
+                                                   {
+                                                       SupplierRegion = region,
+                                                       SupplierCode   = supCode,
+                                                       SupplierName   = this.ulti.ObjectToString(row["SNAME"]),
+                                                       SupplierType   = table.Columns.Contains("Source")
+                                                                            ? this.ulti.ObjectToString(row["Source"])
+                                                                            : table.TableName == "VinEco"
+                                                                                ? "VinEco"
+                                                                                : "ThuMua"
+                                                   };
+
                                 // Supplier information.
                                 dicSupplier.TryAdd(
                                     supCode,
-                                    new Supplier
-                                        {
-                                            SupplierRegion = region,
-                                            SupplierCode   = supCode,
-                                            SupplierName   = this.ulti.ObjectToString(row["SNAME"]),
-                                            SupplierType   = table.Columns.Contains("Source")
-                                                                 ? this.ulti.ObjectToString(row["Source"])
-                                                                 : table.TableName == "VinEco"
-                                                                     ? "VinEco"
-                                                                     : "ThuMua"
-                                        });
+                                    supplier);
 
                                 // Column layer.
                                 for (var colIndex = 0; colIndex < table.Columns.Count; colIndex++)
@@ -430,23 +433,20 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                                         var supply = new SupplierForecast
                                                          {
-                                                             Availability =
-                                                                 table.Columns.Contains("Availability")
-                                                                     ? this.ulti.ObjectToString(row["Availability"])
-                                                                     : "1234567",
+                                                             Availability = table.Columns.Contains("Availability")
+                                                                                ? this.ulti.ObjectToString(row["Availability"])
+                                                                                : "1234567",
+
                                                              FullOrder          = CheckCol("100%", "Yes"),
                                                              LabelVinEco        = CheckCol("Label VE", "Yes"),
                                                              CrossRegion        = CheckCol("CrossRegion", "Yes"),
-                                                             QualityControlPass = true,
+                                                             QualityControlPass = supplier.SupplierType == "VinEco" || CheckCol("QC", "Ok"),
                                                              Level              = (byte) (table.Columns.Contains("Level")
                                                                                               ? row["Level"] as byte? ?? 1
                                                                                               : 1),
-                                                             QuantityForecast = isKpi
-                                                                                    ? 0
-                                                                                    : value,
-                                                             QuantityForecastPlanned = !isKpi
-                                                                                           ? 0
-                                                                                           : value,
+                                                             QuantityForecast        = isKpi ? 0 : value,
+                                                             QuantityForecastPlanned = !isKpi ? 0 : value,
+
                                                              HasKpi = isKpi
                                                          };
 
@@ -466,21 +466,18 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                          Availability = table.Columns.Contains("Availability")
                                                                             ? this.ulti.ObjectToString(row["Availability"])
                                                                             : "1234567",
+
                                                          FullOrder          = CheckCol("100%", "Yes"),
                                                          LabelVinEco        = CheckCol("Label VE", "Yes"),
                                                          CrossRegion        = CheckCol("CrossRegion", "Yes"),
-                                                         QualityControlPass = true,
+                                                         QualityControlPass = supplier.SupplierType == "VinEco" || CheckCol("QC", "Ok"),
                                                          Level              = (byte) (table.Columns.Contains("Level")
                                                                                           ? row["Level"] as byte? ?? 1
                                                                                           : 1),
-                                                         QuantityForecast = oldValue.Supply.QuantityForecast +
-                                                                            (isKpi
-                                                                                 ? 0
-                                                                                 : value),
-                                                         QuantityForecastPlanned = oldValue.Supply.QuantityForecast +
-                                                                                   (!isKpi
-                                                                                        ? 0
-                                                                                        : value),
+
+                                                         QuantityForecast        = oldValue.Supply.QuantityForecast + (isKpi ? 0 : value),
+                                                         QuantityForecastPlanned = oldValue.Supply.QuantityForecast + (!isKpi ? 0 : value),
+
                                                          HasKpi = isKpi
                                                      }, false));
 
@@ -524,43 +521,45 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                  {
                                                      using (var table = new DataTable { TableName = "Forecasts" })
                                                      {
-                                                         // ReSharper disable once SuggestVarOrType_SimpleTypes
-                                                         foreach (var key in new (string colName, Type colType)[]
-                                                                                 {
-                                                                                     ("ProductCode", typeof(string)),
-                                                                                     ("SupplierCode", typeof(string)),
-                                                                                     ("FullOrder", typeof(int)),
-                                                                                     ("Label", typeof(int)),
-                                                                                     ("CrossRegion", typeof(int)),
-                                                                                     ("Level", typeof(int))
-                                                                                 })
+                                                         foreach ((string colName, Type colType) in new (string colName, Type colType)[]
+                                                                                                        {
+                                                                                                            ("Region", typeof(string)),
+                                                                                                            ("Type", typeof(string)),
+                                                                                                            ("SupplierCode", typeof(string)),
+                                                                                                            ("SupplierName", typeof(string)),
+                                                                                                            ("ProductCode", typeof(string)),
+                                                                                                            ("ProductName", typeof(string)),
+                                                                                                            ("QC", typeof(string)),
+                                                                                                            ("FullOrder", typeof(int)),
+                                                                                                            ("Label", typeof(int)),
+                                                                                                            ("CrossRegion", typeof(int)),
+                                                                                                            ("Level", typeof(int))
+                                                                                                        })
                                                          {
-                                                             table.Columns.Add(key.colName, key.colType);
+                                                             table.Columns.Add(colName, colType);
                                                          }
 
                                                          var listDateFc    = new List<DateTime>();
                                                          var listAllDateFc = new List<DateTime>();
 
                                                          // Count DateFc.
-                                                         // ReSharper disable once SuggestVarOrType_SimpleTypes
-                                                         foreach (var key in dicFc.Keys)
+                                                         foreach ((DateTime dateFc, string _, string _) in dicFc.Keys)
                                                          {
-                                                             if (!listDateFc.Contains(key.DateFc))
+                                                             if (!listDateFc.Contains(dateFc))
                                                              {
-                                                                 listDateFc.Add(key.DateFc);
+                                                                 listDateFc.Add(dateFc);
                                                              }
 
-                                                             if (!listAllDateFc.Contains(key.DateFc))
+                                                             if (!listAllDateFc.Contains(dateFc))
                                                              {
-                                                                 listAllDateFc.Add(key.DateFc);
+                                                                 listAllDateFc.Add(dateFc);
                                                              }
                                                          }
 
                                                          // ... and then add the same amount of columns.
                                                          foreach (DateTime dateFc in listDateFc)
                                                          {
-                                                             // ReSharper disable once SuggestVarOrType_SimpleTypes
-                                                             foreach (var key in dicOldFc.Keys.ToList())
+                                                             foreach ((DateTime DateFc, string ProductCode, string SupplierCode) key in dicOldFc.Keys.ToList())
                                                              {
                                                                  if (key.DateFc == dateFc)
                                                                  {
@@ -595,24 +594,27 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                          }
 
                                                          // Hour of truth.
-                                                         // ReSharper disable once SuggestVarOrType_SimpleTypes
-                                                         foreach (var key in dicFc.Keys)
+                                                         // Merging old and new data.
+                                                         foreach ((DateTime DateFc, string ProductCode, string SupplierCode) key in dicFc.Keys)
                                                          {
                                                              dicOldFc.Add(key, dicFc[key]);
                                                          }
 
-                                                         // ReSharper disable once SuggestVarOrType_SimpleTypes
-                                                         foreach (var key in from key in dicOldFc.Keys
-                                                                             orderby key.ProductCode,
-                                                                                 key.SupplierCode
-                                                                             select key)
+                                                         foreach ((DateTime dateFc, string productCode, string supplierCode) in from key in dicOldFc.Keys
+                                                                                                                                orderby
+                                                                                                                                    key.ProductCode,
+                                                                                                                                    key.SupplierCode
+                                                                                                                                select key)
                                                          {
                                                              DataRow row;
 
-                                                             string           rowKey = $"{key.ProductCode}{key.SupplierCode}";
+                                                             string rowKey = $"{productCode}{supplierCode}";
+
                                                              SupplierForecast supply =
-                                                                 dicOldFc[(key.DateFc, key.ProductCode, key.SupplierCode)]
+                                                                 dicOldFc[(dateFc, productCode, supplierCode)]
                                                                     .Supply;
+
+                                                             Supplier supplier = dicSupplier[supplierCode];
 
                                                              if (dicRow.TryGetValue(rowKey, out int rowIndex))
                                                              {
@@ -622,8 +624,13 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                              {
                                                                  row = table.NewRow();
 
-                                                                 row["ProductCode"]  = key.ProductCode;
-                                                                 row["SupplierCode"] = key.SupplierCode;
+                                                                 row["Region"]       = supplier.SupplierRegion;
+                                                                 row["Type"]         = supplier.SupplierType;
+                                                                 row["SupplierCode"] = supplierCode;
+                                                                 row["SupplierName"] = supplier.SupplierName;
+                                                                 row["ProductCode"]  = productCode;
+                                                                 row["ProductName"]  = dicProduct[productCode].ProductName;
+                                                                 row["QC"]           = BoolToOne(supply.QualityControlPass);
                                                                  row["FullOrder"]    = BoolToOne(supply.FullOrder);
                                                                  row["Label"]        = BoolToOne(supply.LabelVinEco);
                                                                  row["CrossRegion"]  = BoolToOne(supply.CrossRegion);
@@ -633,7 +640,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                                  table.Rows.Add(row);
                                                              }
 
-                                                             row[this.ulti.DateToString(key.DateFc, "dd-MMM-yyyy")] =
+                                                             row[this.ulti.DateToString(dateFc, "dd-MMM-yyyy")] =
                                                                  this.ulti.DoubleToObject(supply.QuantityForecast);
                                                          }
 
@@ -754,7 +761,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     task => { task.Start(); });
 
                 // Making sure every Tasks finished before proceeding.
-                await Task.WhenAll(writeTasks).ConfigureAwait(true);
+                await Task.WhenAll(writeTasks).ConfigureAwait(false);
 
                 // The final flag.
                 watch.Stop();
@@ -770,6 +777,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             }
             finally
             {
+                this.isBackgroundworkerIdle = true;
                 this.TryClear();
             }
         }

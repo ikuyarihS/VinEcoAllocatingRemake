@@ -63,16 +63,16 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                             while (dividend > 0)
                             {
-                                int modifier = (dividend - 1) % 26;
-                                columnName   =
-                                    $"{Convert.ToChar(65 + modifier).ToString(CultureInfo.InvariantCulture)}{columnName}";
-                                dividend = (dividend     - modifier) / 26;
+                                int modifier = (dividend - 1)        % 26;
+                                dividend     = (dividend - modifier) / 26;
+
+                                columnName = $"{Convert.ToChar(65 + modifier).ToString(CultureInfo.InvariantCulture)}{columnName}";
                             }
 
                             dicColName.Add(colIndex + 1, columnName);
                         }
 
-                        var dicType = new Dictionary<Type, string>(4)
+                        var dicType = new Dictionary<Type, string>(5)
                                           {
                                               { typeof(DateTime), "d" },
                                               { typeof(string), "s" },

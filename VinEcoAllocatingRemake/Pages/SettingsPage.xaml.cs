@@ -1,6 +1,4 @@
-﻿using System.Windows.Controls;
-
-namespace VinEcoAllocatingRemake.Pages
+﻿namespace VinEcoAllocatingRemake.Pages
 {
     #region
 
@@ -9,7 +7,7 @@ namespace VinEcoAllocatingRemake.Pages
     /// <summary>
     ///     Interaction logic for SettingsPage.xaml
     /// </summary>
-    public partial class SettingsPage : UserControl
+    public partial class SettingsPage
     {
         public SettingsPage()
         {

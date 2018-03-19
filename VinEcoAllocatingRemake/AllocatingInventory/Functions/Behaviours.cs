@@ -114,11 +114,11 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// <param name="e"> The e. </param>
         private void BackgroundWorkerRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            this.bgw.DoWork             -= this.FiteMoi;
-            this.bgw.DoWork             -= this.ReadForecast;
-            this.bgw.DoWork             -= this.ReadPurchaseOrder;
-            this.isBackgroundworkerIdle =  true;
-            this.WriteToRichTextBoxOutput("Done!");
+            this.bgw.DoWork -= this.FiteMoi;
+            this.bgw.DoWork -= this.ReadForecast;
+            this.bgw.DoWork -= this.ReadPurchaseOrder;
+
+            this.WriteToRichTextBoxOutput("Backgroundworker has been marked completed.");
             this.WriteToRichTextBoxOutput();
             this.TryClear();
         }
@@ -132,7 +132,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         {
             if (!this.bgw.IsBusy)
             {
-                this.WriteToRichTextBoxOutput("Ủa còn chưa kịp làm gì mà :<");
+                this.WriteToRichTextBoxOutput("Wait what, I haven't even done anything :<");
                 return;
             }
 
@@ -147,7 +147,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             this.ProgressStatusBarLabel.Text = "Canceled!";
 
             this.WriteToRichTextBoxOutput();
-            this.WriteToRichTextBoxOutput("Hoãn! Hoãn ngay! Không có chơi bời gì hết nữa!");
+            this.WriteToRichTextBoxOutput("No. Nop. Nope. Staph!");
             this.WriteToRichTextBoxOutput();
         }
 
@@ -160,7 +160,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         {
             if (this.bgw.IsBusy || !this.isBackgroundworkerIdle)
             {
-                MessageBox.Show("Đang uýnh nhau, đợi xíu!");
+                MessageBox.Show("Currently busy at the moment, wait a bit or cancel.");
                 return;
             }
 
@@ -201,8 +201,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
         /// </summary>
         private void Initializer()
         {
-            this.bgw.ProgressChanged += this.BackgroundWorkerProcessChanged;
-
+            this.bgw.ProgressChanged    += this.BackgroundWorkerProcessChanged;
             this.bgw.RunWorkerCompleted += this.BackgroundWorkerRunWorkerCompleted;
 
             this.ProgressStatusBarLabel.Text = string.Empty;

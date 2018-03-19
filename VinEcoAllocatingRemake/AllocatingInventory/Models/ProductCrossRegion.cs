@@ -14,7 +14,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory.Models
             ToSouth = true;
         }
 
-        public Guid _id { get; set; }
+        public Guid Id { get; set; }
 
         public Guid ProductId { get; set; }
 

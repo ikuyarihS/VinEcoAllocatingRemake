@@ -8,7 +8,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 
     public class ProductRate
     {
-        public Guid _id { get; set; }
+        public Guid Id { get; set; }
 
         public string ProductCode { get; set; }
 

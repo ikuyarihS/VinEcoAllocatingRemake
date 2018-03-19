@@ -66,10 +66,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         new Task(
                                             delegate
                                             {
-                                                if (!File.Exists($@"{this.applicationPath}\Database\Products.xlsb"))
-                                                {
-                                                    return;
-                                                }
+                                                if (!File.Exists($@"{this.applicationPath}\Database\Products.xlsb")) return;
 
                                                 using (var workbook = new Workbook(
                                                     $@"{this.applicationPath}\Database\Products.xlsb",
@@ -101,10 +98,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         new Task(
                                             delegate
                                             {
-                                                if (!File.Exists($@"{this.applicationPath}\Database\Customers.xlsb"))
-                                                {
-                                                    return;
-                                                }
+                                                if (!File.Exists($@"{this.applicationPath}\Database\Customers.xlsb")) return;
 
                                                 using (var workbook = new Workbook(
                                                     $@"{this.applicationPath}\Database\Customers.xlsb",
@@ -148,10 +142,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                 try
                                                 {
                                                     string path = $@"{this.applicationPath}\Database\Orders.xlsb";
-                                                    if (!File.Exists(path))
-                                                    {
-                                                        return;
-                                                    }
+                                                    if (!File.Exists(path)) return;
 
                                                     using (var workbook = new Workbook(
                                                         path,
@@ -187,17 +178,11 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                                         // ... it's my fucking database.
                                                                         DateTime? dateFc = this.ulti.StringToDate(
                                                                             column.ColumnName);
-                                                                        if (dateFc == null)
-                                                                        {
-                                                                            continue;
-                                                                        }
+                                                                        if (dateFc == null) continue;
 
                                                                         // Second check point. Is it a valid forecast value?
                                                                         double value = this.ulti.ObjectToDouble(row[colIndex]);
-                                                                        if (value <= 0)
-                                                                        {
-                                                                            continue;
-                                                                        }
+                                                                        if (value <= 0) continue;
 
                                                                         // dicOldPo.Add(
                                                                         // ((DateTime) dateFc, productCode, cusKeyCode),
@@ -234,7 +219,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
                     task => { task.Start(); });
 
-                await Task.WhenAll(readTasks).ConfigureAwait(true);
+                await Task.WhenAll(readTasks).ConfigureAwait(false);
 
                 // ReSharper restore HeapView.DelegateAllocation
                 // ReSharper restore ImplicitlyCapturedClosure
@@ -266,10 +251,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                 Worksheet worksheet = workbook.Worksheets[0];
                                 foreach (Worksheet ws in workbook.Worksheets)
                                 {
-                                    if (ws.Cells.MaxDataRow > worksheet.Cells.MaxDataRow)
-                                    {
-                                        worksheet = ws;
-                                    }
+                                    if (ws.Cells.MaxDataRow > worksheet.Cells.MaxDataRow) worksheet = ws;
                                 }
 
                                 var rowIndex = 0;
@@ -292,10 +274,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                     }
 
                                     // Checkpoint. Well, there has to be a limit.
-                                    if (colIndex > 100)
-                                    {
-                                        break;
-                                    }
+                                    if (colIndex > 100) break;
 
                                     value = worksheet.Cells[rowIndex, colIndex].Value?.ToString().Trim();
                                 }
@@ -314,10 +293,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                                     // To deal with the uhm, Templates having different Headers.
                                     // Please shoot me.
-                                    if (!table.Columns.Contains("VE Code"))
-                                    {
-                                        table.Columns[colIndex].ColumnName = "VE Code";
-                                    }
+                                    if (!table.Columns.Contains("VE Code")) table.Columns[colIndex].ColumnName = "VE Code";
 
                                     // ReSharper disable once SuggestVarOrType_SimpleTypes
                                     foreach (var key in new (string oldName, string newName)[]
@@ -330,10 +306,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                                 ("VE Name", "PNAME")
                                                             })
                                     {
-                                        if (table.Columns.Contains(key.oldName))
-                                        {
-                                            table.Columns[key.oldName].ColumnName = key.newName;
-                                        }
+                                        if (table.Columns.Contains(key.oldName)) table.Columns[key.oldName].ColumnName = key.newName;
                                     }
 
                                     listDt.Add(table);
@@ -368,24 +341,21 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                             // Seriously.
                             foreach (string columnName in new[] { "P&L" })
                             {
-                                if (!table.Columns.Contains(columnName))
-                                {
-                                    table.Columns.Add(columnName);
-                                }
+                                if (!table.Columns.Contains(columnName)) table.Columns.Add(columnName);
                             }
 
                             // Row layer.
                             foreach (DataRow row in table.Select())
                             {
                                 // Idk why this is a thing.
-                                if (string.IsNullOrEmpty(this.ulti.ObjectToString(row["PCODE"])))
-                                {
-                                    continue;
-                                }
+                                if (string.IsNullOrEmpty(this.ulti.ObjectToString(row["PCODE"]))) continue;
+
+                                string company                             = this.ulti.ObjectToString(row["P&L"]);
+                                if (string.IsNullOrEmpty(company)) company = "VCM";
 
                                 // Less conversion.
                                 string cusKeyCode = this.ulti.GetString(
-                                    $"{this.ulti.ObjectToString(row["StoreCode"])} | {this.ulti.ObjectToString(row["StoreType"])} | {this.ulti.ObjectToString(row["P&L"])}");
+                                    $"{this.ulti.ObjectToString(row["StoreCode"])} | {this.ulti.ObjectToString(row["StoreType"])} | {company}");
 
                                 string pCode = string.Intern(this.ulti.ObjectToString(row["PCODE"]));
 
@@ -403,9 +373,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         product.ProductName,
                                         this.ulti.ObjectToString(row["PNAME"])) <
                                     0)
-                                {
                                     product.ProductName = this.ulti.ObjectToString(row["PNAME"]);
-                                }
 
                                 // Optimization, dealing with region.
                                 string region = string.Intern(table.TableName.Substring(0, 2));
@@ -415,13 +383,15 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                     cusKeyCode,
                                     new Customer
                                         {
+                                            CustomerKeyCode   = cusKeyCode,
                                             CustomerBigRegion = region,
                                             CustomerRegion    = this.ulti.ObjectToString(row["Region"]),
-                                            Company           = this.ulti.ObjectToString(row["P&L"]) ?? "VCM",
-                                            CustomerKeyCode   = cusKeyCode,
                                             CustomerCode      = this.ulti.ObjectToString(row["StoreCode"]),
                                             CustomerName      = this.ulti.ObjectToString(row["StoreName"]),
-                                            CustomerType      = this.ulti.ObjectToString(row["StoreType"])
+                                            CustomerType      = this.ulti.ObjectToString(row["StoreType"]),
+                                            Company           = string.IsNullOrEmpty(this.ulti.ObjectToString(row["P&L"]))
+                                                                    ? "VCM"
+                                                                    : this.ulti.ObjectToString(row["P&L"])
                                         });
 
                                 // Meh.
@@ -429,9 +399,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         customer.CustomerName,
                                         this.ulti.ObjectToString(row["StoreName"])) <
                                     0)
-                                {
                                     customer.CustomerName = this.ulti.ObjectToString(row["StoreName"]);
-                                }
 
                                 // Column layer.
                                 for (var colIndex = 0; colIndex < table.Columns.Count; colIndex++)
@@ -440,17 +408,11 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                     {
                                         // First check point. Is it a valid date?
                                         DateTime? datePo = this.ulti.StringToDate(column.ColumnName);
-                                        if (datePo == null)
-                                        {
-                                            continue;
-                                        }
+                                        if (datePo == null) continue;
 
                                         // Second check point. Is it a valid forecast value?
                                         double poValue = this.ulti.ObjectToDouble(row[colIndex]);
-                                        if (poValue <= 0)
-                                        {
-                                            continue;
-                                        }
+                                        if (poValue <= 0) continue;
 
                                         // CustomerOrder order = dicPo.AddOrUpdate(
                                         // ((DateTime) datePo, pCode, cusKeyCode), (new CustomerOrder
@@ -461,9 +423,18 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         // }, false));
                                         dicPo.AddOrUpdate(
                                             ((DateTime) datePo, pCode, cusKeyCode),
-                                            (new CustomerOrder { CustomerCode = customer.CustomerCode, QuantityOrder = poValue }, false),
+                                            (new CustomerOrder
+                                                 {
+                                                     CustomerCode  = customer.CustomerCode,
+                                                     QuantityOrder = poValue
+                                                 }, false),
                                             (key, oldValue) =>
-                                                (new CustomerOrder { CustomerKeyCode = cusKeyCode, CustomerCode = customer.CustomerCode, QuantityOrder = oldValue.Order.QuantityOrder + poValue }, false));
+                                                (new CustomerOrder
+                                                     {
+                                                         CustomerKeyCode = cusKeyCode,
+                                                         CustomerCode    = customer.CustomerCode,
+                                                         QuantityOrder   = oldValue.Order.QuantityOrder + poValue
+                                                     }, false));
 
                                         // lock (myLock)
                                         // order.QuantityOrder += poValue;
@@ -527,9 +498,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                      foreach (var key in dicPo.Keys)
                                                      {
                                                          if (!listDatePo.Contains(key.DatePo))
-                                                         {
                                                              listDatePo.Add(key.DatePo);
-                                                         }
                                                      }
 
                                                      // ... and then add the same amount of columns.
@@ -562,18 +531,16 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
 
                                                      var rowIndex = 0;
 
-                                                     // ReSharper disable once SuggestVarOrType_SimpleTypes
-                                                     foreach (var key in from po in listOldPo
-                                                                         orderby
-                                                                             po.Key.ProductCode,
-                                                                             po.Key.CustomerKeyCode
-                                                                         select po.Key)
+                                                     foreach (
+                                                         (DateTime _, string productCode, string customerKeyCode) in
+                                                         from po in listOldPo
+                                                         orderby
+                                                             po.Key.ProductCode,
+                                                             po.Key.CustomerKeyCode
+                                                         select po.Key)
                                                      {
-                                                         string rowKey = $"{key.ProductCode}{key.CustomerKeyCode}";
-                                                         if (dicRow.ContainsKey(rowKey))
-                                                         {
-                                                             continue;
-                                                         }
+                                                         string rowKey = $"{productCode}{customerKeyCode}";
+                                                         if (dicRow.ContainsKey(rowKey)) continue;
 
                                                          dicRow.Add(rowKey, rowIndex);
                                                          rowIndex++;
@@ -774,7 +741,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     task => { task.Start(); });
 
                 // Making sure every Tasks finished before proceeding.
-                await Task.WhenAll(writeTasks).ConfigureAwait(true);
+                await Task.WhenAll(writeTasks).ConfigureAwait(false);
 
                 // ReSharper restore HeapView.DelegateAllocation
                 // ReSharper restore ImplicitlyCapturedClosure
@@ -795,6 +762,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             }
             finally
             {
+                this.isBackgroundworkerIdle = true;
                 this.TryClear();
             }
         }

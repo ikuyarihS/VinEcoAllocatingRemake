@@ -1,11 +1,9 @@
-﻿using System.Windows;
-
-namespace Remake_MahAppsVersion
+﻿namespace Remake_MahAppsVersion
 {
     /// <summary>
     ///     Interaction logic for App.xaml
     /// </summary>
-    public partial class App : Application
+    public partial class App
     {
     }
 }

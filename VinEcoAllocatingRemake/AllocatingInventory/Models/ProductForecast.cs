@@ -9,7 +9,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 
     public class ProductForecast
     {
-        public Guid _id { get; set; }
+        public Guid Id { get; set; }
 
         public List<SupplierForecast> ListSupplierForecast { get; set; }
 

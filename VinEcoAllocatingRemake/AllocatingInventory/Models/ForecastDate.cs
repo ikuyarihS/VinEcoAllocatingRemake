@@ -9,7 +9,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 
     public class ForecastDate
     {
-        public Guid _id { get; set; }
+        public Guid Id { get; set; }
 
         ////[BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime DateForecast { get; set; }

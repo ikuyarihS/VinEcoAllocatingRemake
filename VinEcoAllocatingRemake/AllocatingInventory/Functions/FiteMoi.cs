@@ -129,9 +129,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                      { "C04401", 0.3 }  // Đậu bắp xanh
                                  };
 
-                this.WriteToRichTextBoxOutput(
-                    "Bắt đầu đọc Data",
-                    1);
+                this.WriteToRichTextBoxOutput("Bắt đầu đọc Database", 1);
+                this.WriteToRichTextBoxOutput("Đọc Sản phẩm, NCC & Khách hàng ... ", 2, false);
 
                 var readTasks = new[]
                                     {
@@ -152,10 +151,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     task => { task.Start(); });
 
                 // Gonna wait for all reading tasks to finish.
-                await Task.WhenAll(readTasks).ConfigureAwait(true);
-                this.WriteToRichTextBoxOutput(
-                    "Đọc xong Data - Phần 1.",
-                    2);
+                await Task.WhenAll(readTasks).ConfigureAwait(false);
+                
+                this.WriteToRichTextBoxOutput("Đọc DBSL & Đơn hàng ... ");
 
                 readTasks = new[]
                                 {
@@ -321,6 +319,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                     }
                                                 }
                                             }
+                                            
+                                            this.WriteToRichTextBoxOutput("Đọc DBSL xong.");
                                         }),
 
                                     // Orders
@@ -341,11 +341,11 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                 {
                                                     Worksheet worksheet = workbook.Worksheets[0];
                                                     using (DataTable table = worksheet.Cells.ExportDataTable(
-                                                        0,
-                                                        0,
-                                                        worksheet.Cells.MaxDataRow    + 1,
-                                                        worksheet.Cells.MaxDataColumn + 1,
-                                                        this.globalExportTableOptionsOpts))
+                                                        firstRow: 0,
+                                                        firstColumn: 0,
+                                                        totalRows: worksheet.Cells.MaxDataRow    + 1,
+                                                        totalColumns: worksheet.Cells.MaxDataColumn + 1,
+                                                        options: this.globalExportTableOptionsOpts))
                                                     {
                                                         var colFirst = 0;
                                                         var colLast  = 0;
@@ -457,6 +457,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                                         }
                                                     }
                                                 }
+                                                
+                                                this.WriteToRichTextBoxOutput("Đọc Đơn hàng xong.", 2);
                                             }
                                             catch (Exception ex)
                                             {
@@ -473,13 +475,15 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                     task => { task.Start(); });
 
                 // Gonna wait for all reading tasks to finish.
-                await Task.WhenAll(readTasks).ConfigureAwait(true);
+                await Task.WhenAll(readTasks).ConfigureAwait(false);
 
-                this.WriteToRichTextBoxOutput("Đọc xong Data - Phần 2.", 2);
+                this.WriteToRichTextBoxOutput("Xong.", 2);
 
                 this.TryClear();
 
-                List<DateTime> listDatePo = dicPo.Keys.ToList();
+                List<DateTime> listDatePo = (from date in dicPo.Keys
+                                             orderby date
+                                             select date).ToList();
 
                 this.WriteToRichTextBoxOutput("Here goes nothing.");
 
@@ -532,6 +536,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                     }
                                     else if (priority == string.Empty)
                                     {
+                                        result = new Dictionary<CustomerOrder, bool>();
                                         foreach (Dictionary<CustomerOrder, bool> key in orderRegionProductsType.Values)
                                         {
                                             foreach (CustomerOrder customerOrder in key.Keys)
@@ -541,12 +546,11 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         }
                                     }
 
-                                    return result.Where(
-                                                      po => priority == string.Empty ||
-                                                            localCustomers[po.Key.CustomerKeyCode]
-                                                               .CustomerType ==
-                                                            priority)
-                                                 .ToDictionary(po => po.Key, po => false);
+                                    return result?.Where(po => priority == string.Empty ||
+                                                               localCustomers[po.Key.CustomerKeyCode]
+                                                                  .CustomerType ==
+                                                               priority)
+                                                  .ToDictionary(po => po.Key, po => false);
                                 }
 
                                 Dictionary<CustomerOrder, bool> orderNorth = GetOrderDictionary(datePo, "MB");
@@ -574,7 +578,18 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                 // Counterpart of GetOrderDictionary.
                                 Dictionary<SupplierForecast, bool> GetForecastDictionary(DateTime date, string region, string supType = "")
                                 {
-                                    if (!dicFc.TryGetValue(date, out Dictionary<string, Dictionary<string, Dictionary<string, Dictionary<SupplierForecast, bool>>>> forecastRegions) || !forecastRegions.TryGetValue(region, out Dictionary<string, Dictionary<string, Dictionary<SupplierForecast, bool>>> forecastRegionProducts) || !forecastRegionProducts.TryGetValue(productCode, out Dictionary<string, Dictionary<SupplierForecast, bool>> forecastRegionProductsType))
+                                    if (!dicFc.TryGetValue(
+                                            date,
+                                            out Dictionary<string, Dictionary<string, Dictionary<string, Dictionary<SupplierForecast, bool>>>>
+                                                    forecastRegions) ||
+                                        !forecastRegions.TryGetValue(
+                                            region,
+                                            out Dictionary<string, Dictionary<string, Dictionary<SupplierForecast, bool>>>
+                                                    forecastRegionProducts) ||
+                                        !forecastRegionProducts.TryGetValue(
+                                            productCode,
+                                            out Dictionary<string, Dictionary<SupplierForecast, bool>>
+                                                    forecastRegionProductsType))
                                     {
                                         return null;
                                     }
@@ -585,6 +600,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                     }
                                     else
                                     {
+                                        result = new Dictionary<SupplierForecast, bool>();
                                         foreach (Dictionary<SupplierForecast, bool> key in forecastRegionProductsType.Values)
                                         {
                                             foreach (SupplierForecast supplierForecast in key.Keys)
@@ -594,10 +610,10 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                         }
                                     }
 
-                                    return result.OrderBy(fc => fc.Key.QuantityForecast)
-                                                 .ToDictionary(
-                                                      fc => fc.Key,
-                                                      fc => true);
+                                    return result?.OrderBy(fc => fc.Key.QuantityForecast)
+                                                  .ToDictionary(
+                                                       fc => fc.Key,
+                                                       fc => true);
                                 }
 
                                 Dictionary<SupplierForecast, bool> forecastNorth = GetForecastDictionary(
@@ -714,7 +730,9 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                                             // Just in case.
                                             // Validation.
                                             // Why the heck is this empty in the first place?
-                                            if (rate <= 0 || forecasts == null || !forecasts.Any())
+                                            if (rate <= 0 || 
+                                                forecasts == null || 
+                                                !forecasts.Any())
                                             {
                                                 return;
                                             }
@@ -862,6 +880,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
             }
             finally
             {
+                this.isBackgroundworkerIdle = true;
                 this.TryClear();
             }
         }
@@ -909,6 +928,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                         }
                     }
                 }
+                
+                this.WriteToRichTextBoxOutput("Đọc Khách hàng xong.", 2);
 
                 return customers;
             }
@@ -958,8 +979,11 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                         }
                     }
                 }
+                
+                this.WriteToRichTextBoxOutput("Đọc Sản phẩm xong.", 2);
 
                 return products;
+                
             }
             catch (Exception ex)
             {
@@ -1010,6 +1034,8 @@ namespace VinEcoAllocatingRemake.AllocatingInventory
                         }
                     }
                 }
+                
+                this.WriteToRichTextBoxOutput("Đọc NCC xong.", 2);
 
                 return suppliers;
             }

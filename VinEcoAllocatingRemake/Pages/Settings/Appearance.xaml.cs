@@ -1,6 +1,4 @@
-﻿using System.Windows.Controls;
-
-namespace VinEcoAllocatingRemake.Pages.Settings
+﻿namespace VinEcoAllocatingRemake.Pages.Settings
 {
     #region
 
@@ -9,7 +7,7 @@ namespace VinEcoAllocatingRemake.Pages.Settings
     /// <summary>
     ///     Interaction logic for Appearance.xaml
     /// </summary>
-    public partial class Appearance : UserControl
+    public partial class Appearance
     {
         public Appearance()
         {

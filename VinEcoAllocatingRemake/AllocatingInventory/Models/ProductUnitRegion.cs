@@ -8,7 +8,7 @@ namespace VinEcoAllocatingRemake.AllocatingInventory.Models
 
     public class ProductUnitRegion
     {
-        public Guid _id { get; set; }
+        public Guid Id { get; set; }
 
         public double OrderUnitPer { get; set; }
 
